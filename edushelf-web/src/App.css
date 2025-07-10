@@ -40,3 +40,21 @@
 .read-the-docs {
   color: #888;
 }
+
+nav {
+  margin-bottom: 1rem;
+}
+
+nav button {
+  margin-right: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+
+nav button.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
