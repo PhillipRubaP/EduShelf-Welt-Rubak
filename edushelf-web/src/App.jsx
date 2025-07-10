@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import './App.css';
-import UploadDialog from './components/UploadDialog';
+import Files from './components/Files';
+import Chat from './components/Chat';
+import Quiz from './components/Quiz';
+import Lernkarten from './components/Lernkarten';
 
 function App() {
   const [activeTab, setActiveTab] = useState('files');
-  const [isUploadDialogOpen, setUploadDialogOpen] = useState(false);
 
   return (
     <div className="app-container">
@@ -18,17 +20,11 @@ function App() {
         </nav>
       </header>
       <main className="main-content">
-        {activeTab === 'files' && (
-          <div>
-            <h2>Dateien</h2>
-            <button onClick={() => setUploadDialogOpen(true)}>Datei hochladen</button>
-          </div>
-        )}
-        {activeTab === 'chat' && <h2>Chat</h2>}
-        {activeTab === 'quiz' && <h2>Quiz</h2>}
-        {activeTab === 'lernkarten' && <h2>Lernkarten</h2>}
+        {activeTab === 'files' && <Files />}
+        {activeTab === 'chat' && <Chat />}
+        {activeTab === 'quiz' && <Quiz />}
+        {activeTab === 'lernkarten' && <Lernkarten />}
       </main>
-      {isUploadDialogOpen && <UploadDialog onClose={() => setUploadDialogOpen(false)} />}
     </div>
   );
 }
