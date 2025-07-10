@@ -1,0 +1,57 @@
+.upload-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.upload-dialog {
+  background: var(--neutral-white);
+  padding: 2rem;
+  border-radius: 8px;
+  width: 500px;
+  color: var(--neutral-anthracite);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.upload-dialog h2 {
+    margin-top: 0;
+    color: var(--primary-green);
+}
+
+.upload-dialog input[type="file"] {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 1rem;
+    border: 1px solid var(--neutral-blue-gray);
+    border-radius: 5px;
+}
+
+.dialog-buttons {
+  margin-top: 20px;
+  text-align: right;
+}
+
+.dialog-buttons button {
+  margin-left: 10px;
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.dialog-buttons button.primary {
+    background-color: var(--primary-green);
+    color: var(--neutral-white);
+}
+
+.dialog-buttons button.primary:hover {
+    background-color: var(--secondary-mint);
+    color: var(--primary-green);
+}
