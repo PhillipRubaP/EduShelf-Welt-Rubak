@@ -9,7 +9,7 @@ const UploadDialog = ({ onClose }) => {
         <input type="file" />
         <div className="dialog-buttons">
           <button onClick={onClose}>Schließen</button>
-          <button>Hochladen</button>
+          <button className="primary">Hochladen</button>
         </div>
       </div>
     </div>
