@@ -10,6 +10,16 @@ public class ApiDbContext : DbContext
     }
 
     public DbSet<User> Users { get; set; }
+    public DbSet<Tag> Tags { get; set; }
+    public DbSet<Course> Courses { get; set; }
+    public DbSet<Document> Documents { get; set; }
+    public DbSet<DocumentTag> DocumentTags { get; set; }
+    public DbSet<DocumentCourse> DocumentCourses { get; set; }
+    public DbSet<Favourite> Favourites { get; set; }
+    public DbSet<AccessLog> AccessLogs { get; set; }
+    public DbSet<ChatMessage> ChatMessages { get; set; }
+    public DbSet<Flashcard> Flashcards { get; set; }
+    public DbSet<Quiz> Quizzes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -19,5 +29,22 @@ public class ApiDbContext : DbContext
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Email)
             .IsUnique();
+
+        modelBuilder.Entity<Tag>()
+            .HasIndex(t => t.Name)
+            .IsUnique();
+
+        modelBuilder.Entity<Course>()
+            .HasIndex(c => c.Name)
+            .IsUnique();
+
+        modelBuilder.Entity<DocumentTag>()
+            .HasKey(dt => new { dt.DocumentId, dt.TagId });
+
+        modelBuilder.Entity<DocumentCourse>()
+            .HasKey(dc => new { dc.DocumentId, dc.CourseId });
+
+        modelBuilder.Entity<Favourite>()
+            .HasKey(f => new { f.UserId, f.DocumentId });
     }
 }
