@@ -81,27 +81,6 @@ namespace EduShelf.Api.Migrations
                     b.ToTable("ChatMessages");
                 });
 
-            modelBuilder.Entity("EduShelf.Api.Models.Entities.Course", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("Courses");
-                });
-
             modelBuilder.Entity("EduShelf.Api.Models.Entities.Document", b =>
                 {
                     b.Property<int>("Id")
@@ -135,24 +114,6 @@ namespace EduShelf.Api.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Documents");
-                });
-
-            modelBuilder.Entity("EduShelf.Api.Models.Entities.DocumentCourse", b =>
-                {
-                    b.Property<int>("DocumentId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("CourseId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Id")
-                        .HasColumnType("integer");
-
-                    b.HasKey("DocumentId", "CourseId");
-
-                    b.HasIndex("CourseId");
-
-                    b.ToTable("DocumentCourses");
                 });
 
             modelBuilder.Entity("EduShelf.Api.Models.Entities.DocumentTag", b =>
@@ -276,6 +237,38 @@ namespace EduShelf.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("Tags");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Mathematics"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Physics"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Chemistry"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "Biology"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "History"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Name = "Computer Science"
+                        });
                 });
 
             modelBuilder.Entity("EduShelf.Api.Models.Entities.User", b =>
@@ -313,6 +306,17 @@ namespace EduShelf.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = 1,
+                            CreatedAt = new DateTime(2025, 7, 15, 10, 24, 31, 503, DateTimeKind.Utc).AddTicks(1389),
+                            Email = "admin@edushelf.com",
+                            PasswordHash = "placeholder_hash",
+                            Role = "Admin",
+                            Username = "Admin User"
+                        });
                 });
 
             modelBuilder.Entity("EduShelf.Api.Models.Entities.AccessLog", b =>
@@ -362,25 +366,6 @@ namespace EduShelf.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("EduShelf.Api.Models.Entities.DocumentCourse", b =>
-                {
-                    b.HasOne("EduShelf.Api.Models.Entities.Course", "Course")
-                        .WithMany()
-                        .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("EduShelf.Api.Models.Entities.Document", "Document")
-                        .WithMany()
-                        .HasForeignKey("DocumentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Course");
-
-                    b.Navigation("Document");
                 });
 
             modelBuilder.Entity("EduShelf.Api.Models.Entities.DocumentTag", b =>

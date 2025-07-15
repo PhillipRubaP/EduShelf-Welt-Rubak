@@ -4,6 +4,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace EduShelf.Api.Migrations
 {
     /// <inheritdoc />
@@ -12,19 +14,6 @@ namespace EduShelf.Api.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "Courses",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Courses", x => x.Id);
-                });
-
             migrationBuilder.CreateTable(
                 name: "Tags",
                 columns: table => new
@@ -131,31 +120,6 @@ namespace EduShelf.Api.Migrations
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "DocumentCourses",
-                columns: table => new
-                {
-                    DocumentId = table.Column<int>(type: "integer", nullable: false),
-                    CourseId = table.Column<int>(type: "integer", nullable: false),
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DocumentCourses", x => new { x.DocumentId, x.CourseId });
-                    table.ForeignKey(
-                        name: "FK_DocumentCourses_Courses_CourseId",
-                        column: x => x.CourseId,
-                        principalTable: "Courses",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_DocumentCourses_Documents_DocumentId",
-                        column: x => x.DocumentId,
-                        principalTable: "Documents",
-                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -267,6 +231,24 @@ namespace EduShelf.Api.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.InsertData(
+                table: "Tags",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Mathematics" },
+                    { 2, "Physics" },
+                    { 3, "Chemistry" },
+                    { 4, "Biology" },
+                    { 5, "History" },
+                    { 6, "Computer Science" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Users",
+                columns: new[] { "UserId", "CreatedAt", "Email", "PasswordHash", "Role", "Username" },
+                values: new object[] { 1, new DateTime(2025, 7, 15, 10, 24, 31, 503, DateTimeKind.Utc).AddTicks(1389), "admin@edushelf.com", "placeholder_hash", "Admin", "Admin User" });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AccessLogs_DocumentId",
                 table: "AccessLogs",
@@ -286,17 +268,6 @@ namespace EduShelf.Api.Migrations
                 name: "IX_ChatMessages_UserId",
                 table: "ChatMessages",
                 column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Courses_Name",
-                table: "Courses",
-                column: "Name",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DocumentCourses_CourseId",
-                table: "DocumentCourses",
-                column: "CourseId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Documents_UserId",
@@ -356,9 +327,6 @@ namespace EduShelf.Api.Migrations
                 name: "ChatMessages");
 
             migrationBuilder.DropTable(
-                name: "DocumentCourses");
-
-            migrationBuilder.DropTable(
                 name: "DocumentTags");
 
             migrationBuilder.DropTable(
@@ -369,9 +337,6 @@ namespace EduShelf.Api.Migrations
 
             migrationBuilder.DropTable(
                 name: "Quizzes");
-
-            migrationBuilder.DropTable(
-                name: "Courses");
 
             migrationBuilder.DropTable(
                 name: "Tags");
