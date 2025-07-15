@@ -95,7 +95,24 @@ namespace EduShelf.Api.Controllers
 
             return NoContent();
         }
+// GET: api/Documents/5/tags
+        [HttpGet("{documentId}/tags")]
+        public async Task<ActionResult<IEnumerable<Tag>>> GetTagsForDocument(int documentId)
+        {
+            var document = await _context.Documents.FindAsync(documentId);
+            if (document == null)
+            {
+                return NotFound("Document not found.");
+            }
 
+            var tags = await _context.DocumentTags
+                .Where(dt => dt.DocumentId == documentId)
+                .Select(dt => dt.Tag)
+                .ToListAsync();
+
+            return Ok(tags);
+        }
+        
         // POST: api/Documents/5/tags
         [HttpPost("{documentId}/tags")]
         public async Task<IActionResult> AddTagToDocument(int documentId, [FromBody] int tagId)
@@ -129,6 +146,8 @@ namespace EduShelf.Api.Controllers
 
             return Ok();
         }
+
+    
 
         // DELETE: api/Documents/5/tags/2
         [HttpDelete("{documentId}/tags/{tagId}")]
