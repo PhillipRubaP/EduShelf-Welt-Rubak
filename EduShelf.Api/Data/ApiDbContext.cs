@@ -61,5 +61,36 @@ public class ApiDbContext : DbContext
             new Tag { Id = 5, Name = "History" },
             new Tag { Id = 6, Name = "Computer Science" }
         );
+
+        modelBuilder.Entity<User>().HasData(
+            new User
+            {
+                UserId = 2,
+                Username = "Student User",
+                Email = "student@edushelf.com",
+                PasswordHash = "placeholder_hash", // Use a proper password hasher
+                Role = "Student",
+                CreatedAt = DateTime.UtcNow
+            }
+        );
+
+        modelBuilder.Entity<Document>().HasData(
+            new Document { Id = 1, UserId = 1, Title = "Algebra Basics", Path = "/documents/algebra.pdf", FileType = "pdf", CreatedAt = DateTime.UtcNow },
+            new Document { Id = 2, UserId = 2, Title = "Introduction to Physics", Path = "/documents/physics.pdf", FileType = "pdf", CreatedAt = DateTime.UtcNow }
+        );
+
+        modelBuilder.Entity<DocumentTag>().HasData(
+            new DocumentTag { DocumentId = 1, TagId = 1 }, // Algebra -> Mathematics
+            new DocumentTag { DocumentId = 2, TagId = 2 }  // Physics Intro -> Physics
+        );
+
+        modelBuilder.Entity<Flashcard>().HasData(
+            new Flashcard { Id = 1, UserId = 1, DocumentId = 1, Question = "What is 2+2?", Answer = "4", CreatedAt = DateTime.UtcNow },
+            new Flashcard { Id = 2, UserId = 1, DocumentId = 1, Question = "What is x in x+5=10?", Answer = "5", CreatedAt = DateTime.UtcNow }
+        );
+
+        modelBuilder.Entity<Quiz>().HasData(
+            new Quiz { Id = 1, UserId = 2, DocumentId = 2, Score = 85, CreatedAt = DateTime.UtcNow }
+        );
     }
 }
