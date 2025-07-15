@@ -13,11 +13,6 @@ CREATE TABLE Tags (
     Name VARCHAR(255) UNIQUE NOT NULL
 );
 
--- Courses Table
-CREATE TABLE Courses (
-    Id SERIAL PRIMARY KEY,
-    Name VARCHAR(255) UNIQUE NOT NULL
-);
 
 -- Documents Table
 CREATE TABLE Documents (
@@ -40,15 +35,6 @@ CREATE TABLE DocumentTag (
     UNIQUE (DocumentId, TagId)
 );
 
--- DocumentCourse Junction Table
-CREATE TABLE DocumentCourse (
-    Id SERIAL PRIMARY KEY,
-    DocumentId INTEGER NOT NULL,
-    CourseId INTEGER NOT NULL,
-    FOREIGN KEY (DocumentId) REFERENCES Documents(Id) ON DELETE CASCADE,
-    FOREIGN KEY (CourseId) REFERENCES Courses(Id) ON DELETE CASCADE,
-    UNIQUE (DocumentId, CourseId)
-);
 
 -- Favourites Table
 CREATE TABLE Favourites (
@@ -110,8 +96,6 @@ CREATE TABLE Quiz (
 CREATE INDEX idx_documents_userid ON Documents(UserId);
 CREATE INDEX idx_documenttag_documentid ON DocumentTag(DocumentId);
 CREATE INDEX idx_documenttag_tagid ON DocumentTag(TagId);
-CREATE INDEX idx_documentcourse_documentid ON DocumentCourse(DocumentId);
-CREATE INDEX idx_documentcourse_courseid ON DocumentCourse(CourseId);
 CREATE INDEX idx_favourites_userid ON Favourites(UserId);
 CREATE INDEX idx_favourites_documentid ON Favourites(DocumentId);
 CREATE INDEX idx_accesslogs_userid ON AccessLogs(UserId);

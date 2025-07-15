@@ -148,57 +148,6 @@ namespace EduShelf.Api.Controllers
             return NoContent();
         }
 
-        // POST: api/Documents/5/courses
-        [HttpPost("{documentId}/courses")]
-        public async Task<IActionResult> AddCourseToDocument(int documentId, [FromBody] int courseId)
-        {
-            var documentExists = await _context.Documents.AnyAsync(d => d.Id == documentId);
-            if (!documentExists)
-            {
-                return NotFound("Document not found.");
-            }
-
-            var courseExists = await _context.Courses.AnyAsync(c => c.Id == courseId);
-            if (!courseExists)
-            {
-                return NotFound("Course not found.");
-            }
-
-            var documentCourseExists = await _context.DocumentCourses.AnyAsync(dc => dc.DocumentId == documentId && dc.CourseId == courseId);
-            if (documentCourseExists)
-            {
-                return Conflict("This course is already associated with the document.");
-            }
-
-            var documentCourse = new DocumentCourse
-            {
-                DocumentId = documentId,
-                CourseId = courseId
-            };
-
-            _context.DocumentCourses.Add(documentCourse);
-            await _context.SaveChangesAsync();
-
-            return Ok();
-        }
-
-        // DELETE: api/Documents/5/courses/3
-        [HttpDelete("{documentId}/courses/{courseId}")]
-        public async Task<IActionResult> RemoveCourseFromDocument(int documentId, int courseId)
-        {
-            var documentCourse = await _context.DocumentCourses
-                .FirstOrDefaultAsync(dc => dc.DocumentId == documentId && dc.CourseId == courseId);
-
-            if (documentCourse == null)
-            {
-                return NotFound("Course association not found.");
-            }
-
-            _context.DocumentCourses.Remove(documentCourse);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
         private bool DocumentExists(int id)
         {
             return _context.Documents.Any(e => e.Id == id);
