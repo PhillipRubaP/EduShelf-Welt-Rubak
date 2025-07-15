@@ -1,0 +1,4 @@
+# Created by Roo - AI Software Engineer
+
+# Auto detect text files and perform LF normalization
+* text=auto eol=lf
