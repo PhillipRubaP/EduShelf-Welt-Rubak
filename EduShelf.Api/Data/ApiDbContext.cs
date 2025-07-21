@@ -1,5 +1,6 @@
 using EduShelf.Api.Models.Entities;
 using Microsoft.EntityFrameworkCore;
+using Pgvector.EntityFrameworkCore;
 
 namespace EduShelf.Api.Data;
 
@@ -18,9 +19,11 @@ public class ApiDbContext : DbContext
     public DbSet<ChatMessage> ChatMessages { get; set; }
     public DbSet<Flashcard> Flashcards { get; set; }
     public DbSet<Quiz> Quizzes { get; set; }
+    public DbSet<DocumentChunk> DocumentChunks { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresExtension("vector");
         base.OnModelCreating(modelBuilder);
 
         // Configure unique constraint for Email
@@ -92,5 +95,10 @@ public class ApiDbContext : DbContext
         modelBuilder.Entity<Quiz>().HasData(
             new Quiz { Id = 1, UserId = 2, DocumentId = 2, Score = 85, CreatedAt = DateTime.UtcNow }
         );
+
+        modelBuilder.Entity<DocumentChunk>()
+            .HasIndex(dc => dc.Embedding)
+            .HasMethod("hnsw")
+            .HasOperators("vector_l2_ops");
     }
 }
