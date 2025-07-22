@@ -1,5 +1,6 @@
 using EduShelf.Api.Data;
 using EduShelf.Api.Models.Entities;
+using EduShelf.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -13,10 +14,12 @@ namespace EduShelf.Api.Controllers
     public class DocumentsController : ControllerBase
     {
         private readonly ApiDbContext _context;
+        private readonly IndexingService _indexingService;
 
-        public DocumentsController(ApiDbContext context)
+        public DocumentsController(ApiDbContext context, IndexingService indexingService)
         {
             _context = context;
+            _indexingService = indexingService;
         }
 
         // GET: api/Documents
@@ -46,6 +49,21 @@ namespace EduShelf.Api.Controllers
         {
             _context.Documents.Add(document);
             await _context.SaveChangesAsync();
+
+            // Fire and forget the indexing process.
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _indexingService.IndexDocumentAsync(document.Id, document.Path);
+                }
+                catch (Exception ex)
+                {
+                    // Log the exception, but don't let it affect the API response.
+                    // Consider using a more robust logging framework here.
+                    Console.WriteLine($"Error indexing document {document.Id}: {ex.Message}");
+                }
+            });
 
             return CreatedAtAction("GetDocument", new { id = document.Id }, document);
         }
