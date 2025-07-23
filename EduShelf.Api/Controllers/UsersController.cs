@@ -52,7 +52,7 @@ namespace EduShelf.Api.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<User>> Login(string email, string password)
+        public async Task<ActionResult> Login(string email, string password)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
@@ -61,19 +61,26 @@ namespace EduShelf.Api.Controllers
                 return Unauthorized();
             }
 
-            return user;
+            return Ok(new { id = user.UserId, username = user.Username, email = user.Email });
         }
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
+        public async Task<IActionResult> PutUser(int id, User userUpdate)
         {
-            if (id != user.UserId)
+            if (id != userUpdate.UserId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(user).State = EntityState.Modified;
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            user.Username = userUpdate.Username;
+            user.Email = userUpdate.Email;
 
             try
             {

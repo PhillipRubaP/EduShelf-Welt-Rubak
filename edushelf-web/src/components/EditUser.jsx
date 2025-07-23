@@ -21,7 +21,7 @@ const EditUser = ({ loggedInUser, setLoggedInUser }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ id: loggedInUser.id, username, email, password: loggedInUser.password }),
+        body: JSON.stringify({ userId: loggedInUser.id, username, email }),
       });
       if (response.ok) {
         setLoggedInUser({ ...loggedInUser, username, email });
