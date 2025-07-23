@@ -93,10 +93,6 @@
   transition: background-color 0.2s;
 }
 
-.logout-button:hover {
-  background-color: #dc2626; /* red-600 */
-}
-
 .logout-button svg {
   color: var(--neutral-white);
 }

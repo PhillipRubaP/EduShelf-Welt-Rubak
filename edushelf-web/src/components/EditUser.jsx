@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import API_BASE_URL from '../config';
 
 const EditUser = ({ loggedInUser, setLoggedInUser }) => {
   const [username, setUsername] = useState('');
@@ -16,7 +17,7 @@ const EditUser = ({ loggedInUser, setLoggedInUser }) => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:49152/api/Users/${loggedInUser.id}`, {
+      const response = await fetch(`${API_BASE_URL}/Users/${loggedInUser.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -36,7 +37,7 @@ const EditUser = ({ loggedInUser, setLoggedInUser }) => {
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`http://localhost:49152/api/Users/${loggedInUser.id}`, {
+      const response = await fetch(`${API_BASE_URL}/Users/${loggedInUser.id}`, {
         method: 'DELETE',
       });
       if (response.ok) {

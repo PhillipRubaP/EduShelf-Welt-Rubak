@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import InfoDialog from './InfoDialog';
+import API_BASE_URL from '../config';
 
 const Login = ({ setLoggedInUser }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:49152/api/Users/login?email=${email}&password=${password}`, {
+      const response = await fetch(`${API_BASE_URL}/Users/login?email=${email}&password=${password}`, {
         method: 'POST',
       });
       if (response.ok) {
@@ -17,20 +20,23 @@ const Login = ({ setLoggedInUser }) => {
         setLoggedInUser(user);
         navigate('/');
       } else {
-        alert('Login failed');
+        setError('Invalid email or password.');
       }
     } catch (error) {
       console.error('Error during login:', error);
+      setError('An unexpected error occurred. Please try again.');
     }
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-900 text-white">
-      <div className="w-full max-w-md p-8 space-y-6 bg-gray-800 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center">Login</h1>
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium">Email</label>
+    <>
+      <InfoDialog message={error} onClose={() => setError('')} />
+      <div className="flex justify-center items-center h-screen bg-gray-900 text-white">
+        <div className="w-full max-w-md p-8 space-y-6 bg-gray-800 rounded-lg shadow-md">
+          <h1 className="text-2xl font-bold text-center">Login</h1>
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium">Email</label>
             <input
               type="email"
               value={email}
@@ -62,8 +68,9 @@ const Login = ({ setLoggedInUser }) => {
             Register
           </Link>
         </p>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -42,13 +42,29 @@ namespace EduShelf.Api.Controllers
 
         // POST: api/Users
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
+        public async Task<ActionResult<User>> PostUser([FromBody] UserRegister userRegister)
         {
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.Password);
+            if (await _context.Users.AnyAsync(u => u.Username == userRegister.Username))
+            {
+                return Conflict("Username already exists.");
+            }
+
+            if (await _context.Users.AnyAsync(u => u.Email == userRegister.Email))
+            {
+                return Conflict("Email already exists.");
+            }
+
+            var user = new User
+            {
+                Username = userRegister.Username,
+                Email = userRegister.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(userRegister.Password)
+            };
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetUser", new { id = user.UserId }, user);
+            return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, user);
         }
 
         [HttpPost("login")]

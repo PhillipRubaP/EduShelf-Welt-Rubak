@@ -1,39 +1,47 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import InfoDialog from './InfoDialog';
+import API_BASE_URL from '../config';
 
 const Register = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:49152/api/Users', {
+      const response = await fetch(`${API_BASE_URL}/Users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ username, email, password: password }),
+        credentials: 'include',
       });
       if (response.ok) {
         navigate('/login');
       } else {
-        alert('Registration failed');
+        const errorMessage = await response.text();
+        setError(errorMessage);
       }
     } catch (error) {
       console.error('Error during registration:', error);
+      setError('An unexpected error occurred. Please try again.');
     }
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-900 text-white">
-      <div className="w-full max-w-md p-8 space-y-6 bg-gray-800 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center">Register</h1>
-        <form onSubmit={handleRegister} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium">Username</label>
+    <>
+      <InfoDialog message={error} onClose={() => setError('')} />
+      <div className="flex justify-center items-center h-screen bg-gray-900 text-white">
+        <div className="w-full max-w-md p-8 space-y-6 bg-gray-800 rounded-lg shadow-md">
+          <h1 className="text-2xl font-bold text-center">Register</h1>
+          <form onSubmit={handleRegister} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium">Username</label>
             <input
               type="text"
               value={username}
@@ -75,8 +83,9 @@ const Register = () => {
             Login
           </Link>
         </p>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

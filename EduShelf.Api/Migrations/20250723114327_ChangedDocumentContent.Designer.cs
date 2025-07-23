@@ -3,6 +3,7 @@ using System;
 using EduShelf.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -12,9 +13,11 @@ using Pgvector;
 namespace EduShelf.Api.Migrations
 {
     [DbContext(typeof(ApiDbContext))]
-    partial class ApiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250723114327_ChangedDocumentContent")]
+    partial class ChangedDocumentContent
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -100,7 +103,6 @@ namespace EduShelf.Api.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.Property<string>("Path")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Title")
@@ -121,7 +123,7 @@ namespace EduShelf.Api.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 7, 23, 12, 23, 47, 335, DateTimeKind.Utc).AddTicks(994),
+                            CreatedAt = new DateTime(2025, 7, 23, 11, 43, 27, 326, DateTimeKind.Utc).AddTicks(5),
                             FileType = "pdf",
                             Path = "/documents/algebra.pdf",
                             Title = "Algebra Basics",
@@ -130,7 +132,7 @@ namespace EduShelf.Api.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 7, 23, 12, 23, 47, 335, DateTimeKind.Utc).AddTicks(996),
+                            CreatedAt = new DateTime(2025, 7, 23, 11, 43, 27, 326, DateTimeKind.Utc).AddTicks(50),
                             FileType = "pdf",
                             Path = "/documents/physics.pdf",
                             Title = "Introduction to Physics",
@@ -260,7 +262,7 @@ namespace EduShelf.Api.Migrations
                         {
                             Id = 1,
                             Answer = "4",
-                            CreatedAt = new DateTime(2025, 7, 23, 12, 23, 47, 335, DateTimeKind.Utc).AddTicks(1060),
+                            CreatedAt = new DateTime(2025, 7, 23, 11, 43, 27, 326, DateTimeKind.Utc).AddTicks(105),
                             DocumentId = 1,
                             Question = "What is 2+2?",
                             UserId = 1
@@ -269,7 +271,7 @@ namespace EduShelf.Api.Migrations
                         {
                             Id = 2,
                             Answer = "5",
-                            CreatedAt = new DateTime(2025, 7, 23, 12, 23, 47, 335, DateTimeKind.Utc).AddTicks(1062),
+                            CreatedAt = new DateTime(2025, 7, 23, 11, 43, 27, 326, DateTimeKind.Utc).AddTicks(107),
                             DocumentId = 1,
                             Question = "What is x in x+5=10?",
                             UserId = 1
@@ -308,7 +310,7 @@ namespace EduShelf.Api.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 7, 23, 12, 23, 47, 335, DateTimeKind.Utc).AddTicks(1092),
+                            CreatedAt = new DateTime(2025, 7, 23, 11, 43, 27, 326, DateTimeKind.Utc).AddTicks(128),
                             DocumentId = 2,
                             Score = 85,
                             UserId = 2
@@ -408,7 +410,7 @@ namespace EduShelf.Api.Migrations
                         new
                         {
                             UserId = 1,
-                            CreatedAt = new DateTime(2025, 7, 23, 12, 23, 47, 335, DateTimeKind.Utc).AddTicks(753),
+                            CreatedAt = new DateTime(2025, 7, 23, 11, 43, 27, 325, DateTimeKind.Utc).AddTicks(9904),
                             Email = "admin@edushelf.com",
                             PasswordHash = "placeholder_hash",
                             Role = "Admin",
@@ -417,7 +419,7 @@ namespace EduShelf.Api.Migrations
                         new
                         {
                             UserId = 2,
-                            CreatedAt = new DateTime(2025, 7, 23, 12, 23, 47, 335, DateTimeKind.Utc).AddTicks(838),
+                            CreatedAt = new DateTime(2025, 7, 23, 11, 43, 27, 325, DateTimeKind.Utc).AddTicks(9971),
                             Email = "student@edushelf.com",
                             PasswordHash = "placeholder_hash",
                             Role = "Student",
