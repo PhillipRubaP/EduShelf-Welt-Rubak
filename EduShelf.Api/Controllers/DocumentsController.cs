@@ -2,6 +2,8 @@ using EduShelf.Api.Data;
 using EduShelf.Api.Models.Entities;
 using EduShelf.Api.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,8 +47,34 @@ namespace EduShelf.Api.Controllers
 
         // POST: api/Documents
         [HttpPost]
-        public async Task<ActionResult<Document>> PostDocument(Document document)
+        public async Task<ActionResult<Document>> PostDocument([FromForm] IFormFile file, [FromForm] int userId)
         {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            var uploadsFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
+            if (!Directory.Exists(uploadsFolderPath))
+            {
+                Directory.CreateDirectory(uploadsFolderPath);
+            }
+
+            var filePath = Path.Combine(uploadsFolderPath, file.FileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var document = new Document
+            {
+                UserId = userId,
+                Title = Path.GetFileNameWithoutExtension(file.FileName),
+                Path = filePath,
+                FileType = Path.GetExtension(file.FileName)
+            };
+
             _context.Documents.Add(document);
             await _context.SaveChangesAsync();
 

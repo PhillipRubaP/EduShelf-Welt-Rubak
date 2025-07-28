@@ -8,10 +8,11 @@ import Lernkarten from './components/Lernkarten';
 import Login from './components/Login';
 import Register from './components/Register';
 import EditUser from './components/EditUser';
+import MainDashboard from './components/MainDashboard';
 
 function App() {
   const [loggedInUser, setLoggedInUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('files');
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   const handleLogout = () => {
     setLoggedInUser(null);
@@ -29,6 +30,7 @@ function App() {
               <header className="navbar">
                 <h1 className="navbar-title">EduShelf</h1>
                 <nav className="navbar-nav">
+                  <button className={activeTab === 'dashboard' ? 'active' : ''} onClick={() => setActiveTab('dashboard')}>Dashboard</button>
                   <button className={activeTab === 'files' ? 'active' : ''} onClick={() => setActiveTab('files')}>Dateien</button>
                   <button className={activeTab === 'chat' ? 'active' : ''} onClick={() => setActiveTab('chat')}>Chat</button>
                   <button className={activeTab === 'quiz' ? 'active' : ''} onClick={() => setActiveTab('quiz')}>Quiz</button>
@@ -42,6 +44,7 @@ function App() {
                 </nav>
               </header>
               <main className="main-content">
+                {activeTab === 'dashboard' && <MainDashboard />}
                 {activeTab === 'files' && <Files />}
                 {activeTab === 'chat' && <Chat />}
                 {activeTab === 'quiz' && <Quiz />}
