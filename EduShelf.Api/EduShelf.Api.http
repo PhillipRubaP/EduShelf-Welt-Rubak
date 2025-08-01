@@ -1,6 +1,28 @@
 @EduShelf.Api_HostAddress = http://localhost:5015
-
-GET {{EduShelf.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+@token = 
 
 ###
+# 1. Upload a document for indexing
+POST http://localhost:5015/api/Documents
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="Pflichtenheft-Welt-Rubak.pdf"
+Content-Type: application/pdf
+
+< ./Pflichtenheft-Welt-Rubak.pdf
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="userId"
+
+1
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+# 2. Ask a question about the Pflichtenheft
+# The AI should use the content of the indexed document to answer
+POST http://localhost:5015/api/Chat
+Content-Type: application/json
+
+{
+  "message": "Was ist das Ziel des Projekts?"
+}

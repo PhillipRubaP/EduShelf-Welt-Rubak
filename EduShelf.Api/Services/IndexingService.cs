@@ -13,13 +13,11 @@ namespace EduShelf.Api.Services
     public class IndexingService
     {
         private readonly IServiceScopeFactory _scopeFactory;
-        private readonly Kernel _kernel;
         private readonly ILogger<IndexingService> _logger;
 
-        public IndexingService(IServiceScopeFactory scopeFactory, Kernel kernel, ILogger<IndexingService> logger)
+        public IndexingService(IServiceScopeFactory scopeFactory, ILogger<IndexingService> logger)
         {
             _scopeFactory = scopeFactory;
-            _kernel = kernel;
             _logger = logger;
         }
 
@@ -45,7 +43,8 @@ namespace EduShelf.Api.Services
                 using var scope = _scopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<ApiDbContext>();
 
-                var embeddingGenerator = _kernel.GetRequiredService<ITextEmbeddingGenerationService>();
+                var kernel = scope.ServiceProvider.GetRequiredService<Kernel>();
+                var embeddingGenerator = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
 
                 foreach (var chunk in chunks)
                 {

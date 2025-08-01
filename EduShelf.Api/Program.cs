@@ -10,10 +10,12 @@ var builder = WebApplication.CreateBuilder(args);
 var kernelBuilder = builder.Services.AddKernel();
 kernelBuilder.AddOllamaChatCompletion(
     modelId: builder.Configuration["AIService:ChatModel"]!,
-    endpoint: new Uri(builder.Configuration["AIService:Endpoint"]!));
+    endpoint: new Uri(builder.Configuration["AIService:Endpoint"]!))
+    .Services.AddHttpClient("Ollama", c => c.Timeout = TimeSpan.FromMinutes(5));
 kernelBuilder.AddOllamaTextEmbeddingGeneration(
     modelId: builder.Configuration["AIService:EmbeddingModel"]!,
-    endpoint: new Uri(builder.Configuration["AIService:Endpoint"]!));
+    endpoint: new Uri(builder.Configuration["AIService:Endpoint"]!))
+    .Services.AddHttpClient("Ollama", c => c.Timeout = TimeSpan.FromMinutes(5));
 
 builder.Services.AddScoped<IndexingService>();
 builder.Services.AddScoped<ChatService>();
@@ -39,11 +41,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// using (var scope = app.Services.CreateScope())
-// {
-//     var dbContext = scope.ServiceProvider.GetRequiredService<ApiDbContext>();
-//     dbContext.Database.Migrate();
-// }
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApiDbContext>();
+    dbContext.Database.Migrate();
+}
 
 if (app.Environment.IsDevelopment())
 {
