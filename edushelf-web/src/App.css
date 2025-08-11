@@ -23,6 +23,24 @@
 
 .navbar-nav {
   display: flex;
+  align-items: center;
+}
+
+.navbar-nav a {
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  text-decoration: none;
+  color: var(--neutral-white);
+  transition: background-color 0.2s;
+  margin-right: 1rem;
+}
+
+.navbar-nav a:hover {
+  background-color: var(--primary-green);
+}
+
+.navbar-nav a.active {
+  background-color: var(--primary-green);
 }
 
 .navbar-nav button {
@@ -38,11 +56,6 @@
 }
 
 .navbar-nav button:hover {
-  background-color: var(--primary-green);
-  color: var(--neutral-white);
-}
-
-.navbar-nav button.active {
   background-color: var(--primary-green);
   color: var(--neutral-white);
 }
