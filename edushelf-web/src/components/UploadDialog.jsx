@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './UploadDialog.css';
-import API_BASE_URL from '../config';
+import api from '../services/api';
 
 const UploadDialog = ({ onClose, onUploadSuccess }) => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -17,15 +17,12 @@ const UploadDialog = ({ onClose, onUploadSuccess }) => {
 
     const formData = new FormData();
     formData.append('file', selectedFile);
-    formData.append('userId', 1); // Replace with actual user ID
+    const user = JSON.parse(localStorage.getItem('user'));
+    formData.append('userId', user.userId);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/Documents`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
+      const response = await api.postForm('/Documents', formData);
+      if (response) {
         alert('File uploaded successfully!');
         if (onUploadSuccess) {
           onUploadSuccess();

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import InfoDialog from './InfoDialog';
-import API_BASE_URL from '../config';
+import api from '../services/api';
 
 const Login = ({ setLoggedInUser }) => {
   const [email, setEmail] = useState('');
@@ -12,12 +12,11 @@ const Login = ({ setLoggedInUser }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${API_BASE_URL}/Users/login?email=${email}&password=${password}`, {
-        method: 'POST',
-      });
-      if (response.ok) {
-        const user = await response.json();
-        setLoggedInUser(user);
+      const data = await api.post('/Users/login', { email, password });
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        setLoggedInUser(data.user);
         navigate('/');
       } else {
         setError('Invalid email or password.');

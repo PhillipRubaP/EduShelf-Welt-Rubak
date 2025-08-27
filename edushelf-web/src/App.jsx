@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import './App.css';
 import Files from './components/Files';
@@ -14,7 +14,16 @@ function App() {
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
 
+  useEffect(() => {
+    const user = localStorage.getItem('user');
+    if (user) {
+      setLoggedInUser(JSON.parse(user));
+    }
+  }, []);
+
   const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setLoggedInUser(null);
   };
 

@@ -1,34 +1,47 @@
 using EduShelf.Api.Data;
+using EduShelf.Api.Models.Dtos;
 using EduShelf.Api.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace EduShelf.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UsersController : ControllerBase
     {
         private readonly ApiDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public UsersController(ApiDbContext context)
+        public UsersController(ApiDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
         {
-            return await _context.Users.ToListAsync();
+            return await _context.Users
+                .Select(u => new UserDto { UserId = u.UserId, Username = u.Username, Email = u.Email })
+                .ToListAsync();
         }
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        public async Task<ActionResult<UserDto>> GetUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
 
@@ -37,12 +50,20 @@ namespace EduShelf.Api.Controllers
                 return NotFound();
             }
 
-            return user;
+            var userDto = new UserDto
+            {
+                UserId = user.UserId,
+                Username = user.Username,
+                Email = user.Email
+            };
+
+            return userDto;
         }
 
         // POST: api/Users
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser([FromBody] UserRegister userRegister)
+        [AllowAnonymous]
+        public async Task<ActionResult<UserDto>> PostUser([FromBody] UserRegister userRegister)
         {
             if (await _context.Users.AnyAsync(u => u.Username == userRegister.Username))
             {
@@ -64,20 +85,59 @@ namespace EduShelf.Api.Controllers
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, user);
+            var userDto = new UserDto
+            {
+                UserId = user.UserId,
+                Username = user.Username,
+                Email = user.Email
+            };
+
+            return CreatedAtAction(nameof(GetUser), new { id = user.UserId }, userDto);
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult> Login(string email, string password)
+        [AllowAnonymous]
+        public async Task<ActionResult<LoginResponseDto>> Login([FromBody] UserLogin login)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == login.Email);
 
-            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            if (user == null || !BCrypt.Net.BCrypt.Verify(login.Password, user.PasswordHash))
             {
                 return Unauthorized();
             }
 
-            return Ok(new { id = user.UserId, username = user.Username, email = user.Email });
+            var token = GenerateJwtToken(user);
+
+            var userDto = new UserDto
+            {
+                UserId = user.UserId,
+                Username = user.Username,
+                Email = user.Email
+            };
+
+            return Ok(new LoginResponseDto { Token = token, User = userDto });
+        }
+
+        private string GenerateJwtToken(User user)
+        {
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(120),
+                signingCredentials: credentials);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
         // PUT: api/Users/5
