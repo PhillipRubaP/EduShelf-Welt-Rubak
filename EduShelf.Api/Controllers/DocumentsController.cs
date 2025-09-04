@@ -62,7 +62,17 @@ namespace EduShelf.Api.Controllers
                 Directory.CreateDirectory(uploadsFolderPath);
             }
 
-            var filePath = Path.Combine(uploadsFolderPath, file.FileName);
+            var originalFileName = Path.GetFileName(file.FileName);
+            var fileExtension = Path.GetExtension(originalFileName).ToLowerInvariant();
+            var allowedExtensions = new[] { ".pdf", ".docx", ".txt" };
+
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                return BadRequest("Invalid file type. Only .pdf, .docx, and .txt files are allowed.");
+            }
+
+            var uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
+            var filePath = Path.Combine(uploadsFolderPath, uniqueFileName);
 
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
@@ -72,9 +82,9 @@ namespace EduShelf.Api.Controllers
             var document = new Document
             {
                 UserId = userId,
-                Title = Path.GetFileNameWithoutExtension(file.FileName),
+                Title = Path.GetFileNameWithoutExtension(originalFileName),
                 Path = filePath,
-                FileType = Path.GetExtension(file.FileName)
+                FileType = Path.GetExtension(originalFileName)
             };
 
             _context.Documents.Add(document);

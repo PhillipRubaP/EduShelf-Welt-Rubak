@@ -32,7 +32,7 @@ namespace EduShelf.Api.Services
 
                 var relevantChunks = await _context.DocumentChunks
                     .OrderBy(dc => dc.Embedding.L2Distance(new Vector(promptEmbedding)))
-                    .Take(5)
+                    .Take(20)
                     .ToListAsync();
 
                 var contextText = new StringBuilder();
@@ -43,7 +43,8 @@ namespace EduShelf.Api.Services
 
                 var prompt = $"""
                 You are a helpful AI assistant for the EduShelf platform.
-                Answer the user's question based on the following context.
+                Answer the user's question based on the following context, which includes document titles.
+                When a document title is relevant to the question, mention it in your answer.
                 If the context doesn't contain the answer, say that you don't know.
 
                 Context:

@@ -35,7 +35,8 @@ namespace EduShelf.Api.Services
                 }
 
 #pragma warning disable SKEXP0050 // Experimental
-                var chunks = TextChunker.SplitPlainTextParagraphs(content.Split('\n').ToList(), maxTokensPerParagraph: 256);
+                List<string> lines = TextChunker.SplitPlainTextLines(content, 256);
+                var chunks = TextChunker.SplitPlainTextParagraphs(lines, 1024);
 #pragma warning restore SKEXP0050 // Experimental
                 
                 _logger.LogInformation("Document split into {ChunkCount} chunks.", chunks.Count);
@@ -46,13 +47,17 @@ namespace EduShelf.Api.Services
                 var kernel = scope.ServiceProvider.GetRequiredService<Kernel>();
                 var embeddingGenerator = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
 
+                var document = await context.Documents.FindAsync(documentId);
+                var title = document?.Title ?? "Unknown Document";
+
                 foreach (var chunk in chunks)
                 {
-                    var embedding = await embeddingGenerator.GenerateEmbeddingAsync(chunk);
+                    var contentWithTitle = $"Document: {title}\n{chunk}";
+                    var embedding = await embeddingGenerator.GenerateEmbeddingAsync(contentWithTitle);
                     var documentChunk = new DocumentChunk
                     {
                         DocumentId = documentId,
-                        Content = chunk,
+                        Content = contentWithTitle,
                         Embedding = new Pgvector.Vector(embedding)
                     };
                     context.DocumentChunks.Add(documentChunk);
@@ -76,6 +81,8 @@ namespace EduShelf.Api.Services
                     return ExtractTextFromPdf(filePath);
                 case ".docx":
                     return ExtractTextFromDocx(filePath);
+                case ".txt":
+                    return File.ReadAllText(filePath);
                 default:
                     _logger.LogWarning("Unsupported file type for text extraction: {Extension}", extension);
                     return string.Empty;
