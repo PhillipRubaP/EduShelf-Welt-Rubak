@@ -19,11 +19,13 @@ namespace EduShelf.Api.Controllers
     {
         private readonly ApiDbContext _context;
         private readonly IndexingService _indexingService;
+        private readonly string _uploadPath;
 
-        public DocumentsController(ApiDbContext context, IndexingService indexingService)
+        public DocumentsController(ApiDbContext context, IndexingService indexingService, IConfiguration configuration)
         {
             _context = context;
             _indexingService = indexingService;
+            _uploadPath = configuration["FileStorage:UploadPath"] ?? "Uploads";
         }
 
         // GET: api/Documents
@@ -56,7 +58,7 @@ namespace EduShelf.Api.Controllers
                 return BadRequest("No file uploaded.");
             }
 
-            var uploadsFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
+            var uploadsFolderPath = Path.Combine(Directory.GetCurrentDirectory(), _uploadPath);
             if (!Directory.Exists(uploadsFolderPath))
             {
                 Directory.CreateDirectory(uploadsFolderPath);
@@ -83,9 +85,10 @@ namespace EduShelf.Api.Controllers
             {
                 UserId = userId,
                 Title = Path.GetFileNameWithoutExtension(originalFileName),
-                Path = filePath,
-                FileType = Path.GetExtension(originalFileName)
+                Path = uniqueFileName,
+                FileType = fileExtension.TrimStart('.')
             };
+
 
             _context.Documents.Add(document);
             await _context.SaveChangesAsync();

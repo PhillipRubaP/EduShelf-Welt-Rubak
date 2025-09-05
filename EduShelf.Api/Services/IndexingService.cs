@@ -14,20 +14,28 @@ namespace EduShelf.Api.Services
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<IndexingService> _logger;
+        private readonly string _uploadPath;
 
-        public IndexingService(IServiceScopeFactory scopeFactory, ILogger<IndexingService> logger)
+        public IndexingService(IServiceScopeFactory scopeFactory, ILogger<IndexingService> logger, IConfiguration configuration)
         {
             _scopeFactory = scopeFactory;
             _logger = logger;
+            _uploadPath = configuration["FileStorage:UploadPath"] ?? "Uploads";
         }
 
-        public async Task IndexDocumentAsync(int documentId, string filePath)
+        public async Task IndexDocumentAsync(int documentId, string fileName)
         {
             try
             {
-                _logger.LogInformation("Starting indexing for document ID {DocumentId} at path {FilePath}", documentId, filePath);
+                var fullPath = Path.Combine(_uploadPath, fileName);
+                _logger.LogInformation("Starting indexing for document ID {DocumentId} at path {FilePath}", documentId, fullPath);
+                if (!File.Exists(fullPath))
+                {
+                    _logger.LogError("File not found at path {FilePath}", fullPath);
+                    return;
+                }
 
-                var content = ExtractTextFromFile(filePath);
+                var content = ExtractTextFromFile(fullPath);
                 if (string.IsNullOrWhiteSpace(content))
                 {
                     _logger.LogWarning("No content extracted from document {DocumentId}", documentId);

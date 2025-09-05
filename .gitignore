@@ -53,3 +53,6 @@ dist-ssr/
 .npm
 .eslintcache
 coverage/
+
+# Ignore everything inside the Uploads folder
+EduShelf.Api/Uploads/*
