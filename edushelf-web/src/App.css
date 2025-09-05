@@ -23,6 +23,24 @@
 
 .navbar-nav {
   display: flex;
+  align-items: center;
+}
+
+.navbar-nav a {
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  text-decoration: none;
+  color: var(--neutral-white);
+  transition: background-color 0.2s;
+  margin-right: 1rem;
+}
+
+.navbar-nav a:hover {
+  background-color: var(--primary-green);
+}
+
+.navbar-nav a.active {
+  background-color: var(--primary-green);
 }
 
 .navbar-nav button {
@@ -38,11 +56,6 @@
 }
 
 .navbar-nav button:hover {
-  background-color: var(--primary-green);
-  color: var(--neutral-white);
-}
-
-.navbar-nav button.active {
   background-color: var(--primary-green);
   color: var(--neutral-white);
 }
@@ -95,4 +108,35 @@
 
 .logout-button svg {
   color: var(--neutral-white);
+}
+
+
+.lernkarte {
+  background-color: var(--neutral-anthracite);
+  color: var(--neutral-white);
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s;
+  width: 100%;
+  min-height: 150px;
+}
+
+.lernkarten-container {
+}
+
+.lernkarte:hover {
+    transform: translateY(-5px);
+}
+
+.lernkarte p {
+    font-size: 1.125rem;
+    flex-grow: 1;
+}
+
+.lernkarte button {
+    align-self: flex-end;
 }

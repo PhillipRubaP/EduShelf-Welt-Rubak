@@ -1,28 +1,29 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace EduShelf.Api.Models.Entities;
-
-public class Quiz
+namespace EduShelf.Api.Models.Entities
 {
-    [Key]
-    public int Id { get; set; }
+    public class Quiz
+    {
+        [Key]
+        public int Id { get; set; }
 
-    [Required]
-    public int UserId { get; set; }
+        [Required]
+        public int UserId { get; set; }
 
-    [Required]
-    public int DocumentId { get; set; }
+        [Required]
+        public int DocumentId { get; set; }
 
-    [Required]
-    public int Score { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        [ForeignKey("UserId")]
+        public virtual User User { get; set; }
 
-    [ForeignKey("UserId")]
-    public virtual User User { get; set; }
+        [ForeignKey("DocumentId")]
+        public virtual Document Document { get; set; }
 
-    [ForeignKey("DocumentId")]
-    public virtual Document Document { get; set; }
+        public virtual ICollection<Question> Questions { get; set; }
+    }
 }
