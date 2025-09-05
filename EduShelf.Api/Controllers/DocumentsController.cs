@@ -99,8 +99,6 @@ namespace EduShelf.Api.Controllers
                 }
                 catch (Exception ex)
                 {
-                    // Log the exception, but don't let it affect the API response.
-                    // Consider using a more robust logging framework here.
                     Console.WriteLine($"Error indexing document {document.Id}: {ex.Message}");
                 }
             });

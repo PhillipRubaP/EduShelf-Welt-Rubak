@@ -31,6 +31,8 @@ services:
     environment:
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=EduShelfDb;Username=postgres;Password=postgres
       - ASPNETCORE_URLS=http://+:8080
+    volumes:
+      - ./EduShelf.Api/Uploads:/app/Uploads
 
   web:
     build:
