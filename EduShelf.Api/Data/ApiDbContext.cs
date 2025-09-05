@@ -19,6 +19,8 @@ public class ApiDbContext : DbContext
     public DbSet<ChatMessage> ChatMessages { get; set; }
     public DbSet<Flashcard> Flashcards { get; set; }
     public DbSet<Quiz> Quizzes { get; set; }
+    public DbSet<Question> Questions { get; set; }
+    public DbSet<Answer> Answers { get; set; }
     public DbSet<DocumentChunk> DocumentChunks { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -129,7 +131,7 @@ public class ApiDbContext : DbContext
         );
 
         modelBuilder.Entity<Quiz>().HasData(
-            new Quiz { Id = 1, UserId = 2, DocumentId = 2, Score = 85, CreatedAt = DateTime.UtcNow }
+            new Quiz { Id = 1, UserId = 2, DocumentId = 2, CreatedAt = DateTime.UtcNow }
         );
 
         modelBuilder.Entity<DocumentChunk>()
