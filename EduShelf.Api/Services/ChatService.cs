@@ -23,7 +23,7 @@ namespace EduShelf.Api.Services
             _logger = logger;
         }
 
-        public async Task<string> GetResponseAsync(string userInput)
+        public async Task<string> GetResponseAsync(string userInput, int userId)
         {
             try
             {
@@ -31,6 +31,8 @@ namespace EduShelf.Api.Services
                 var promptEmbedding = await embeddingGenerator.GenerateEmbeddingAsync(userInput);
 
                 var relevantChunks = await _context.DocumentChunks
+                    .Include(dc => dc.Document)
+                    .Where(dc => dc.Document.UserId == userId)
                     .OrderBy(dc => dc.Embedding.L2Distance(new Vector(promptEmbedding)))
                     .Take(20)
                     .ToListAsync();

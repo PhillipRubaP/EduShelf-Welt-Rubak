@@ -20,7 +20,13 @@ namespace EduShelf.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> PostMessage([FromBody] ChatRequest request)
         {
-            var response = await _chatService.GetResponseAsync(request.Message);
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var response = await _chatService.GetResponseAsync(request.Message, int.Parse(userId));
             return Ok(new { response });
         }
     }
