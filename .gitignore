@@ -54,5 +54,8 @@ dist-ssr/
 .eslintcache
 coverage/
 
+# Snapshots
+/snapshots/
+
 # Ignore everything inside the Uploads folder
 EduShelf.Api/Uploads/*

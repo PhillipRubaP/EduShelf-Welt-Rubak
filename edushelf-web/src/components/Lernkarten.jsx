@@ -29,7 +29,7 @@ const Lernkarten = () => {
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 lernkarten-container">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Lernkarten</h2>
         <button onClick={openModal} className="bg-blue-500 text-white p-2 rounded">
@@ -39,13 +39,11 @@ const Lernkarten = () => {
 
       {isModalOpen && <LernkartenModal addCard={addCard} closeModal={closeModal} />}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {cards.map((card, index) => (
           <div
             key={index}
-            className={`p-4 border rounded cursor-pointer ${
-              flippedCard === index ? 'bg-blue-100' : 'bg-white'
-            }`}
+            className="lernkarte"
             onClick={() => flipCard(index)}
           >
             <p>{flippedCard === index ? card.back : card.front}</p>
