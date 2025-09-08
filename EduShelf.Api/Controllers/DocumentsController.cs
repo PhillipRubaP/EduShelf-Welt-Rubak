@@ -1,4 +1,5 @@
 using EduShelf.Api.Data;
+using EduShelf.Api.Models.Dtos;
 using EduShelf.Api.Models.Entities;
 using EduShelf.Api.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +8,7 @@ using System.IO;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 
@@ -30,9 +32,31 @@ namespace EduShelf.Api.Controllers
 
         // GET: api/Documents
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Document>>> GetDocuments()
+        public async Task<ActionResult<IEnumerable<DocumentDto>>> GetDocuments()
         {
-            return await _context.Documents.ToListAsync();
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString))
+            {
+                return Unauthorized();
+            }
+
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized();
+            }
+
+            var documents = await _context.Documents
+                .Where(d => d.UserId == userId)
+                .Select(d => new DocumentDto
+                {
+                    Id = d.Id,
+                    Title = d.Title,
+                    FileType = d.FileType,
+                    CreatedAt = d.CreatedAt
+                })
+                .ToListAsync();
+
+            return Ok(documents);
         }
 
         // GET: api/Documents/5
