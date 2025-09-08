@@ -35,18 +35,21 @@ namespace EduShelf.Api.Controllers
         public async Task<ActionResult<IEnumerable<DocumentDto>>> GetDocuments()
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userIdString))
-            {
-                return Unauthorized();
-            }
-
             if (!int.TryParse(userIdString, out var userId))
             {
-                return Unauthorized();
+                return Unauthorized("Invalid user identifier.");
             }
 
-            var documents = await _context.Documents
-                .Where(d => d.UserId == userId)
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
+
+            var query = _context.Documents.AsQueryable();
+
+            if (userRole != "Admin")
+            {
+                query = query.Where(d => d.UserId == userId);
+            }
+
+            var documents = await query
                 .Select(d => new DocumentDto
                 {
                     Id = d.Id,

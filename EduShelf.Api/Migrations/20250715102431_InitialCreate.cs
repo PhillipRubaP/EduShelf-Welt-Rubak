@@ -247,7 +247,7 @@ namespace EduShelf.Api.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "UserId", "CreatedAt", "Email", "PasswordHash", "Role", "Username" },
-                values: new object[] { 1, new DateTime(2025, 7, 15, 10, 24, 31, 503, DateTimeKind.Utc).AddTicks(1389), "admin@edushelf.com", "placeholder_hash", "Admin", "Admin User" });
+                values: new object[] { 1, new DateTime(2025, 7, 15, 10, 24, 31, 503, DateTimeKind.Utc).AddTicks(1389), "admin@edushelf.com", "$2a$11$h.pY2s.y0b5s3zG/D.L.O.ex.9.C.C.d.U.S.O.e.y.Y.Y.Y.Y.Y", "Admin", "Admin User" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AccessLogs_DocumentId",

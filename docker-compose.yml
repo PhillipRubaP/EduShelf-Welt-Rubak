@@ -10,6 +10,11 @@ services:
       - "11434:11434"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d EduShelfDb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   ollama:
     build:
@@ -29,8 +34,10 @@ services:
     ports:
       - "49152:8080"
     depends_on:
-      - db
-      - ollama
+      db:
+        condition: service_healthy
+      ollama:
+        condition: service_started
     environment:
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=EduShelfDb;Username=postgres;Password=postgres
       - ASPNETCORE_URLS=http://+:8080
