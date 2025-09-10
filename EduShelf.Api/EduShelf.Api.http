@@ -26,3 +26,9 @@ Content-Type: application/json
 {
   "message": "Was ist das Ziel des Projekts?"
 }
+
+### Hash Admin Password
+GET http://localhost:5000/api/Users/hash/admin
+
+### Hash Student Password
+GET http://localhost:5000/api/Users/hash/student

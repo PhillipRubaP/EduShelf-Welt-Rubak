@@ -141,6 +141,81 @@ namespace EduShelf.Api.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        [HttpGet("me")]
+        public async Task<ActionResult<UserDto>> GetMe()
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+
+            var user = await _context.Users.FindAsync(userId);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var userDto = new UserDto
+            {
+                UserId = user.UserId,
+                Username = user.Username,
+                Email = user.Email
+            };
+
+            return userDto;
+        }
+
+        [HttpPut("me/password")]
+        public async Task<IActionResult> ChangePassword([FromBody] PasswordChangeDto passwordChange)
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            if (!BCrypt.Net.BCrypt.Verify(passwordChange.OldPassword, user.PasswordHash))
+            {
+                return BadRequest("Invalid old password.");
+            }
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(passwordChange.NewPassword);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpGet("{id}/documents")]
+        public async Task<ActionResult<IEnumerable<DocumentDto>>> GetUserDocuments(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            var documents = await _context.Documents
+                .Where(d => d.UserId == id)
+                .Select(d => new DocumentDto
+                {
+                    Id = d.Id,
+                    Title = d.Title,
+                    FileType = d.FileType,
+                    CreatedAt = d.CreatedAt
+                })
+                .ToListAsync();
+
+            return Ok(documents);
+        }
+
         // PUT: api/Users/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, User userUpdate)
@@ -198,5 +273,11 @@ namespace EduShelf.Api.Controllers
         {
             return _context.Users.Any(e => e.UserId == id);
         }
+    }
+
+    public class PasswordChangeDto
+    {
+        public string OldPassword { get; set; }
+        public string NewPassword { get; set; }
     }
 }

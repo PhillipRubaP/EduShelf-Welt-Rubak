@@ -22,13 +22,13 @@ namespace EduShelf.Api.Migrations
                 table: "Users",
                 keyColumn: "UserId",
                 keyValue: 1,
-                column: "CreatedAt",
-                value: new DateTime(2025, 7, 15, 10, 57, 43, 164, DateTimeKind.Utc).AddTicks(2077));
-
+                columns: new[] { "PasswordHash", "Role" },
+                values: new object[] { "$2a$11$hP5Ch.WgPqrLbA8xsDe4vOBfyiP9cQxM8Yt6FWkCo2Z.wX2CgyiP6", "Admin" });
+ 
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "UserId", "CreatedAt", "Email", "PasswordHash", "Role", "Username" },
-                values: new object[] { 2, new DateTime(2025, 7, 15, 10, 57, 43, 164, DateTimeKind.Utc).AddTicks(2153), "student@edushelf.com", "placeholder_hash", "Student", "Student User" });
+                values: new object[] { 2, new DateTime(2025, 7, 15, 10, 57, 43, 164, DateTimeKind.Utc).AddTicks(2153), "student@edushelf.com", "$2a$11$UY8JAY3qb1seKMqc4duzd.ygPIwM.vZ1OCRImtEXfC7tIg2ttTVOS", "Student", "Student User" });
 
             migrationBuilder.InsertData(
                 table: "DocumentTags",
