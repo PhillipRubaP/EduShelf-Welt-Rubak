@@ -28,7 +28,6 @@ public class ApiDbContext : DbContext
         modelBuilder.HasPostgresExtension("vector");
         base.OnModelCreating(modelBuilder);
 
-        // Configure unique constraint for Email
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Email)
             .IsUnique();
@@ -86,9 +85,7 @@ public class ApiDbContext : DbContext
                 UserId = 1,
                 Username = "Admin User",
                 Email = "admin@edushelf.com",
-                // You should use a proper password hasher in a real application
-                // This is a placeholder and is not secure.
-                PasswordHash = "placeholder_hash",
+                PasswordHash = "$2a$11$hP5Ch.WgPqrLbA8xsDe4vOBfyiP9cQxM8Yt6FWkCo2Z.wX2CgyiP6",
                 Role = "Admin",
                 CreatedAt = DateTime.UtcNow
             }
@@ -109,7 +106,7 @@ public class ApiDbContext : DbContext
                 UserId = 2,
                 Username = "Student User",
                 Email = "student@edushelf.com",
-                PasswordHash = "placeholder_hash", // Use a proper password hasher
+                PasswordHash = "$2a$11$UY8JAY3qb1seKMqc4duzd.ygPIwM.vZ1OCRImtEXfC7tIg2ttTVOS",
                 Role = "Student",
                 CreatedAt = DateTime.UtcNow
             }
@@ -121,8 +118,8 @@ public class ApiDbContext : DbContext
         );
 
         modelBuilder.Entity<DocumentTag>().HasData(
-            new DocumentTag { DocumentId = 1, TagId = 1 }, // Algebra -> Mathematics
-            new DocumentTag { DocumentId = 2, TagId = 2 }  // Physics Intro -> Physics
+            new DocumentTag { DocumentId = 1, TagId = 1 },
+            new DocumentTag { DocumentId = 2, TagId = 2 }  
         );
 
         modelBuilder.Entity<Flashcard>().HasData(
