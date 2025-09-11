@@ -25,4 +25,5 @@ public class User
     public string Role { get; set; } = "Schüler";
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
 }
