@@ -16,7 +16,8 @@ kernelBuilder.AddOllamaChatCompletion(
     modelId: builder.Configuration["AIService:ChatModel"]!,
     endpoint: new Uri(builder.Configuration["AIService:Endpoint"]!))
     .Services.AddHttpClient("Ollama", c => c.Timeout = TimeSpan.FromMinutes(5));
-kernelBuilder.AddOllamaEmbeddingGenerator(
+#pragma warning disable SKEXP0070
+kernelBuilder.AddOllamaTextEmbeddingGeneration(
     modelId: builder.Configuration["AIService:EmbeddingModel"]!,
     endpoint: new Uri(builder.Configuration["AIService:Endpoint"]!))
     .Services.AddHttpClient("Ollama", c => c.Timeout = TimeSpan.FromMinutes(5));
