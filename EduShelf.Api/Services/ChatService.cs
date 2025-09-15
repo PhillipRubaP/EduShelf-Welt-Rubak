@@ -24,48 +24,58 @@ namespace EduShelf.Api.Services
         }
 
         public async Task<string> GetResponseAsync(string userInput, int userId)
+{
+    try
+    {
+        var embeddingGenerator = _kernel.GetRequiredService<ITextEmbeddingGenerationService>();
+        var promptEmbedding = await embeddingGenerator.GenerateEmbeddingAsync(userInput);
+
+        var relevantChunks = await _context.DocumentChunks
+            .Include(dc => dc.Document)
+            .Where(dc => dc.Document.UserId == userId)
+            .OrderBy(dc => dc.Embedding.L2Distance(new Vector(promptEmbedding)))
+            .Take(20) // ggf. dynamisch anpassen
+            .ToListAsync();
+
+        var contextText = new StringBuilder();
+
+        foreach (var chunk in relevantChunks)
         {
-            try
-            {
-                var embeddingGenerator = _kernel.GetRequiredService<ITextEmbeddingGenerationService>();
-                var promptEmbedding = await embeddingGenerator.GenerateEmbeddingAsync(userInput);
-
-                var relevantChunks = await _context.DocumentChunks
-                    .Include(dc => dc.Document)
-                    .Where(dc => dc.Document.UserId == userId)
-                    .OrderBy(dc => dc.Embedding.L2Distance(new Vector(promptEmbedding)))
-                    .Take(20)
-                    .ToListAsync();
-
-                var contextText = new StringBuilder();
-                foreach (var chunk in relevantChunks)
-                {
-                    contextText.AppendLine(chunk.Content);
-                }
-
-                var prompt = $"""
-                You are a helpful AI assistant for the EduShelf platform.
-                Answer the user's question based on the following context, which includes document titles.
-                When a document title is relevant to the question, mention it in your answer.
-                If the context doesn't contain the answer, say that you don't know.
-
-                Context:
-                {contextText}
-
-                Question:
-                {userInput}
-                """;
-
-                var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
-                var result = await chatCompletionService.GetChatMessageContentAsync(prompt);
-
-                return result.Content ?? "I'm sorry, I couldn't generate a response.";
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting response from ChatService.");
-                return "An error occurred while processing your request.";
-            }
+            // Titel hinzufügen für besseren Kontext
+            contextText.AppendLine($"[{chunk.Document.Title}] {chunk.Content}");
         }
+
+        // Promptgröße begrenzen (z. B. 4000 Zeichen)
+        var contextString = contextText.ToString();
+        if (contextString.Length > 4000)
+        {
+            contextString = contextString.Substring(0, 4000) + "...";
+        }
+
+        var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
+
+        // ChatHistory statt einfachem Prompt
+        var chatHistory = new ChatHistory();
+        chatHistory.AddSystemMessage("""
+            You are a helpful AI assistant for the EduShelf platform.
+            Answer the user's question based on the following context, which includes document titles.
+            When a document title is relevant to the question, mention it in your answer.
+            If the context doesn't contain the answer, say that you don't know.
+        """);
+
+        chatHistory.AddSystemMessage($"Context:\n{contextString}");
+        chatHistory.AddUserMessage(userInput);
+
+        var result = await chatCompletionService.GetChatMessageContentAsync(chatHistory);
+
+        return result.Content ?? "I'm sorry, I couldn't generate a response.";
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error getting response from ChatService.");
+        return "An error occurred while processing your request.";
+    }
+}
+
     }
 }
