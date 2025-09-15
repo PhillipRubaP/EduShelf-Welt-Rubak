@@ -26,8 +26,16 @@ namespace EduShelf.Api.Controllers
                 return Unauthorized();
             }
 
-            var response = await _chatService.GetResponseAsync(request.Message, int.Parse(userId));
-            return Ok(new { response });
+            try
+            {
+                var response = await _chatService.GetResponseAsync(request.Message, int.Parse(userId));
+                return Ok(new { response });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details here if you have a logger
+                return StatusCode(500, new { response = "An error occurred while processing your request." });
+            }
         }
     }
 
