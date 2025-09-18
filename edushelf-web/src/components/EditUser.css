@@ -6,3 +6,14 @@
   height: calc(100vh - 64px);
   background-color: var(--neutral-white);
 }
+
+.edit-user-button {
+  margin-top: 10px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 0 auto;
+}

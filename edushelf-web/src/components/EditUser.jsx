@@ -65,19 +65,21 @@ const EditUser = ({ loggedInUser, setLoggedInUser }) => {
               required
             />
           </div>
-          <button
-            type="submit"
-            className="w-full px-4 py-2 mt-4 font-bold rounded-md bg-primary-green text-white hover:bg-secondary-mint hover:text-primary-green transition-colors"
-          >
-            Update
-          </button>
+          <div className="button-container">
+            <button
+              type="submit"
+              className="px-4 py-2 mt-4 font-bold rounded-md bg-primary-green text-white hover:bg-secondary-mint hover:text-primary-green transition-colors edit-user-button"
+            >
+              Update
+            </button>
+            <button
+              onClick={handleDelete}
+              className="px-4 py-2 mt-4 font-bold rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors edit-user-button"
+            >
+              Delete Account
+            </button>
+          </div>
         </form>
-        <button
-          onClick={handleDelete}
-          className="w-full px-4 py-2 mt-4 font-bold rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors"
-        >
-          Delete Account
-        </button>
       </div>
     </div>
   );
