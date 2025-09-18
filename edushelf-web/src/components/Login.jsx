@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import InfoDialog from './InfoDialog';
 import api from '../services/api';
-import './Login.css';
+import './Auth.css';
 
 const Login = ({ setLoggedInUser }) => {
   const [email, setEmail] = useState('');
@@ -29,9 +29,9 @@ const Login = ({ setLoggedInUser }) => {
   };
 
   return (
-    <div className="login-container">
+    <div className="auth-container">
       <InfoDialog message={error} onClose={() => setError('')} />
-      <div className="login-box">
+      <div className="auth-box">
         <h1 className="text-3xl font-bold text-center">Login</h1>
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
@@ -56,7 +56,7 @@ const Login = ({ setLoggedInUser }) => {
           </div>
           <button
             type="submit"
-            className="w-full px-4 py-2 font-bold rounded-md bg-primary-green text-white hover:bg-secondary-mint hover:text-primary-green transition-colors"
+            className="w-full px-4 py-2 mt-4 font-bold rounded-md bg-primary-green text-white hover:bg-secondary-mint hover:text-primary-green transition-colors"
           >
             Login
           </button>

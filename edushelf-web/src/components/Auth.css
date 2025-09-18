@@ -1,12 +1,12 @@
-.login-container {
+.auth-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  height: calc(100vh - 64px);
   background-color: var(--neutral-white);
 }
 
-.login-box {
+.auth-box {
   text-align: center;
   width: 100%;
   max-width: 28rem; /* Equivalent to max-w-md */
