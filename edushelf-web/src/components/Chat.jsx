@@ -15,7 +15,7 @@ const Chat = () => {
     setIsLoading(true);
 
     try {
-      const response = await api.post('/api/Chat', { message: input });
+      const response = await api.post('/Chat', { message: input });
       const botMessage = { sender: 'bot', text: response.response };
       setMessages(prevMessages => [...prevMessages, botMessage]);
     } catch (error) {
