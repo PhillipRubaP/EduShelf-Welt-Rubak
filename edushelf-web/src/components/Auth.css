@@ -17,6 +17,18 @@
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Equivalent to shadow-lg */
 }
 
+.form-group {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  align-items: center;
+  text-align: left;
+  gap: 1rem;
+}
+
+.form-group label {
+  text-align: left;
+}
+
 .button-auth {
   margin-top: 1rem;
 }

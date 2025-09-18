@@ -28,8 +28,8 @@ const Register = () => {
       <div className="auth-box">
         <h1 className="text-3xl font-bold text-center">Register</h1>
         <form onSubmit={handleRegister} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium mb-1">Username: </label>
+          <div className="form-group">
+            <label className="text-sm font-medium mb-1">Username: </label>
             <input
               type="text"
               value={username}
@@ -38,8 +38,8 @@ const Register = () => {
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Email: </label>
+          <div className="form-group">
+            <label className="text-sm font-medium mb-1">Email: </label>
             <input
               type="email"
               value={email}
@@ -48,8 +48,8 @@ const Register = () => {
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Password: </label>
+          <div className="form-group">
+            <label className="text-sm font-medium mb-1">Password: </label>
             <input
               type="password"
               value={password}
