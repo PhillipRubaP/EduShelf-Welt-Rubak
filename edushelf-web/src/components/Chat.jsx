@@ -1,12 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
+import './Chat.css';
 
 const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef(null);
 
-  const handleSend = async () => {
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSend = async (e) => {
+    e.preventDefault();
     if (input.trim() === '') return;
 
     const userMessage = { sender: 'user', text: input };
@@ -28,38 +39,36 @@ const Chat = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-200px)] bg-gray-100 rounded-lg">
-      <div className="flex-1 overflow-y-auto p-4">
+    <div className="chat-container">
+      <div className="chat-header">
+        <h1>EduShelf Assistant</h1>
+      </div>
+      <div className="chat-messages">
         {messages.map((msg, index) => (
-          <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} mb-2`}>
-            <div className={`p-2 rounded-lg ${msg.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}>
-              {msg.text}
-            </div>
+          <div key={index} className={`message ${msg.sender}`}>
+            {msg.text}
           </div>
         ))}
         {isLoading && (
-          <div className="flex justify-start mb-2">
-            <div className="p-2 rounded-lg bg-gray-300">
-              ...
-            </div>
+          <div className="message bot">
+            ...
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
-      <div className="p-4 border-t">
-        <div className="flex">
-          <input
-            type="text"
-            className="flex-1 p-2 border rounded-l-lg"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Type your message..."
-          />
-          <button onClick={handleSend} className="p-2 bg-blue-500 text-white rounded-r-lg">
-            Send
-          </button>
-        </div>
-      </div>
+      <form className="chat-input-form" onSubmit={handleSend}>
+        <input
+          type="text"
+          className="chat-input"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Type your message..."
+          disabled={isLoading}
+        />
+        <button type="submit" className="send-button" disabled={isLoading}>
+          Send
+        </button>
+      </form>
     </div>
   );
 };
