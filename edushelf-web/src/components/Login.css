@@ -1,0 +1,18 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: var(--neutral-white);
+}
+
+.login-box {
+  text-align: center;
+  width: 100%;
+  max-width: 28rem; /* Equivalent to max-w-md */
+  padding: 2rem; /* Equivalent to p-8 */
+  background-color: var(--neutral-anthracite);
+  color: var(--neutral-white);
+  border-radius: 1rem; /* Equivalent to rounded-2xl */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Equivalent to shadow-lg */
+}
