@@ -32,6 +32,8 @@ const Lernkarten = () => {
     <div className="p-4 lernkarten-container">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Lernkarten</h2>
+      </div>
+      <div className="create-card-button-container">
         <button onClick={openModal} className="bg-blue-500 text-white p-2 rounded">
           Neue Karte erstellen
         </button>
