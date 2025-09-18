@@ -1,0 +1,8 @@
+.edit-user-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 11vh;
+  height: calc(100vh - 64px);
+  background-color: var(--neutral-white);
+}

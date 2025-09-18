@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import './Auth.css';
+import './EditUser.css';
 
 const EditUser = ({ loggedInUser, setLoggedInUser }) => {
   const [username, setUsername] = useState('');
@@ -41,7 +41,7 @@ const EditUser = ({ loggedInUser, setLoggedInUser }) => {
   }
 
   return (
-    <div className="auth-container">
+    <div className="edit-user-container">
       <div className="auth-box">
         <h1 className="text-3xl font-bold text-center">Edit Profile</h1>
         <form onSubmit={handleUpdate} className="space-y-6">

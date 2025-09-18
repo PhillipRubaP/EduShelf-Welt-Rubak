@@ -19,7 +19,7 @@ const LernkartenModal = ({ addCard, closeModal }) => {
         <h2 className="text-2xl font-bold mb-4">Neue Lernkarte erstellen</h2>
         <form onSubmit={handleSubmit}>
           <div className="flex flex-col mb-2">
-            <label htmlFor="front" className="mb-1 text-gray-700">Vorderseite:</label>
+            <label htmlFor="front" className="mb-1 text-white">Vorderseite:</label>
             <input
               type="text"
               id="front"
@@ -30,7 +30,7 @@ const LernkartenModal = ({ addCard, closeModal }) => {
             />
           </div>
           <div className="flex flex-col mb-2">
-            <label htmlFor="back" className="mb-1 text-gray-700">Rückseite:</label>
+            <label htmlFor="back" className="mb-1 text-white">Rückseite:</label>
             <input
               type="text"
               id="back"
