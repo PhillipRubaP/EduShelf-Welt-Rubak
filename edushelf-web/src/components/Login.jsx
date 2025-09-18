@@ -35,7 +35,7 @@ const Login = ({ setLoggedInUser }) => {
         <h1 className="text-3xl font-bold text-center">Login</h1>
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
+            <label className="block text-sm font-medium mb-1">Email: </label>
             <input
               type="email"
               value={email}
@@ -45,7 +45,7 @@ const Login = ({ setLoggedInUser }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
+            <label className="block text-sm font-medium mb-1">Password: </label>
             <input
               type="password"
               value={password}
