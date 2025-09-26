@@ -83,10 +83,10 @@ const QuizModal = ({ onClose, onQuizCreated }) => {
                                     />
                                 </div>
                             ))}
-                            <button type="button" onClick={() => handleAddAnswer(qIndex)}>Add Answer</button>
+                            <button type="button" onClick={() => handleAddAnswer(qIndex)} className="add-answer-btn">Add Answer</button>
                         </div>
                     ))}
-                    <button type="button" onClick={handleAddQuestion}>Add Question</button>
+                    <button type="button" onClick={handleAddQuestion} className="add-question-btn">Add Question</button>
                     <div className="modal-actions">
                         <button type="submit">Create</button>
                         <button type="button" onClick={onClose}>Cancel</button>

@@ -25,6 +25,33 @@
     color: var(--primary-green);
 }
 
+@media (prefers-color-scheme: dark) {
+    .upload-dialog {
+        background: var(--neutral-anthracite);
+        color: var(--neutral-white);
+    }
+
+    .upload-dialog h2 {
+        color: var(--secondary-mint);
+    }
+
+    .upload-dialog input[type="file"] {
+        background-color: var(--neutral-blue-gray);
+        color: var(--neutral-anthracite);
+        border-color: var(--primary-green);
+    }
+
+    .dialog-buttons button.primary {
+        background-color: var(--secondary-mint);
+        color: var(--neutral-anthracite);
+    }
+
+    .dialog-buttons button.primary:hover {
+        background-color: var(--primary-green);
+        color: var(--neutral-white);
+    }
+}
+
 .upload-dialog input[type="file"] {
     width: 100%;
     padding: 0.5rem;

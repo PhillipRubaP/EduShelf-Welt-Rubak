@@ -57,3 +57,47 @@
     gap: 10px;
     margin-top: 20px;
 }
+
+@media (prefers-color-scheme: dark) {
+    .modal-content {
+        background: var(--neutral-anthracite);
+        color: var(--neutral-white);
+    }
+
+    .question-block {
+        border-color: var(--neutral-blue-gray);
+    }
+
+    .form-group input {
+        background-color: var(--neutral-blue-gray);
+        color: var(--neutral-anthracite);
+        border-color: var(--primary-green);
+    }
+
+    .modal-actions button {
+        background-color: var(--primary-green);
+        color: var(--neutral-white);
+    }
+
+    .modal-actions button:hover {
+        background-color: var(--secondary-mint);
+        color: var(--neutral-anthracite);
+    }
+}
+
+.add-question-btn,
+.add-answer-btn {
+    background-color: var(--secondary-mint);
+    color: var(--neutral-anthracite);
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.add-question-btn:hover,
+.add-answer-btn:hover {
+    background-color: var(--primary-green);
+    color: var(--neutral-white);
+}
