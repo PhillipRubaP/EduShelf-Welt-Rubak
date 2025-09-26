@@ -42,7 +42,8 @@ function App() {
                   <Route index element={<MainDashboard />} />
                   <Route path="files" element={<Files />} />
                   <Route path="chat" element={<Chat />} />
-                  <Route path="quiz" element={<Quiz />} />
+                  <Route path="quizzes" element={<Quiz />} />
+                  <Route path="quiz/:quizTitle" element={<Quiz />} />
                   <Route path="lernkarten" element={<Lernkarten />} />
                   <Route path="edit-user" element={<EditUser loggedInUser={loggedInUser} setLoggedInUser={setLoggedInUser} />} />
                   <Route path="*" element={<Navigate to="/" />} />

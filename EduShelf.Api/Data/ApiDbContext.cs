@@ -131,6 +131,16 @@ public class ApiDbContext : DbContext
             new Quiz { Id = 1, UserId = 2, Title = "Math Quiz", CreatedAt = DateTime.UtcNow }
         );
 
+        modelBuilder.Entity<Question>().HasData(
+            new Question { Id = 1, QuizId = 1, Text = "What is 2 + 2?" }
+        );
+
+        modelBuilder.Entity<Answer>().HasData(
+            new Answer { Id = 1, QuestionId = 1, Text = "4", IsCorrect = true },
+            new Answer { Id = 2, QuestionId = 1, Text = "3", IsCorrect = false },
+            new Answer { Id = 3, QuestionId = 1, Text = "5", IsCorrect = false }
+        );
+
         modelBuilder.Entity<DocumentChunk>()
             .HasIndex(dc => dc.Embedding)
             .HasMethod("hnsw")

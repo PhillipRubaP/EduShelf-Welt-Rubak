@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getQuizzes } from '../services/api';
 import QuizModal from './QuizModal';
 
 const Quiz = () => {
+    const { quizTitle } = useParams();
+    const navigate = useNavigate();
     const [quizzes, setQuizzes] = useState([]);
     const [selectedQuiz, setSelectedQuiz] = useState(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -20,6 +23,26 @@ const Quiz = () => {
         };
         fetchQuizzes();
     }, []);
+
+    useEffect(() => {
+        if (quizTitle && quizzes.length > 0) {
+            const quiz = quizzes.find((q) => q.title.toLowerCase().replace(/\s+/g, '-') === quizTitle);
+            setSelectedQuiz(quiz);
+        } else {
+            setSelectedQuiz(null);
+        }
+    }, [quizTitle, quizzes]);
+
+    useEffect(() => {
+        if (selectedQuiz === null) {
+            setShowScore(false);
+        }
+        if (quizTitle === undefined) {
+            setSelectedQuiz(null);
+            setCurrentQuestionIndex(0);
+            setScore(0);
+        }
+    }, [selectedQuiz, quizTitle]);
 
     const handleAnswerOptionClick = (isCorrect) => {
         if (isCorrect) {
@@ -39,23 +62,25 @@ const Quiz = () => {
     };
 
     const selectQuiz = (quiz) => {
-        setSelectedQuiz(quiz);
-        setCurrentQuestionIndex(0);
-        setScore(0);
-        setShowScore(false);
+        const quizTitleSlug = quiz.title.toLowerCase().replace(/\s+/g, '-');
+        navigate(`/quiz/${quizTitleSlug}`);
+    };
+
+    const handleBackToQuizzes = () => {
+        navigate('/quizzes');
     };
 
     if (showScore) {
         return (
             <div className="p-4">
                 <h2 className="text-2xl font-bold mb-4">Quiz Completed</h2>
-                <p className="text-lg">Your score is {score} out of {selectedQuiz.questions.length}</p>
-                <button onClick={() => setSelectedQuiz(null)}>Back to Quizzes</button>
+                <p className="text-lg">Your score is {score} out of {selectedQuiz?.questions.length}</p>
+                <button onClick={handleBackToQuizzes}>Back to Quizzes</button>
             </div>
         );
     }
 
-    if (selectedQuiz) {
+    if (quizTitle && selectedQuiz) {
         return (
             <div className="p-4">
                 <h2 className="text-2xl font-bold mb-4">{selectedQuiz.title}</h2>
