@@ -13,9 +13,6 @@ public class Flashcard
     public int UserId { get; set; }
 
     [Required]
-    public int DocumentId { get; set; }
-
-    [Required]
     public string Question { get; set; }
 
     [Required]
@@ -26,6 +23,4 @@ public class Flashcard
     [ForeignKey("UserId")]
     public virtual User User { get; set; }
 
-    [ForeignKey("DocumentId")]
-    public virtual Document Document { get; set; }
 }

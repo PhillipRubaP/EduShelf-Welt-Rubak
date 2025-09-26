@@ -123,12 +123,12 @@ public class ApiDbContext : DbContext
         );
 
         modelBuilder.Entity<Flashcard>().HasData(
-            new Flashcard { Id = 1, UserId = 1, DocumentId = 1, Question = "What is 2+2?", Answer = "4", CreatedAt = DateTime.UtcNow },
-            new Flashcard { Id = 2, UserId = 1, DocumentId = 1, Question = "What is x in x+5=10?", Answer = "5", CreatedAt = DateTime.UtcNow }
+            new Flashcard { Id = 1, UserId = 1, Question = "What is 2+2?", Answer = "4", CreatedAt = DateTime.UtcNow },
+            new Flashcard { Id = 2, UserId = 1, Question = "What is x in x+5=10?", Answer = "5", CreatedAt = DateTime.UtcNow }
         );
 
         modelBuilder.Entity<Quiz>().HasData(
-            new Quiz { Id = 1, UserId = 2, DocumentId = 2, CreatedAt = DateTime.UtcNow }
+            new Quiz { Id = 1, UserId = 2, Title = "Math Quiz", CreatedAt = DateTime.UtcNow }
         );
 
         modelBuilder.Entity<DocumentChunk>()

@@ -50,10 +50,17 @@ namespace EduShelf.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<Quiz>> PostQuiz(Quiz quiz)
         {
-            _context.Quizzes.Add(quiz);
+            var newQuiz = new Quiz
+            {
+                Title = quiz.Title,
+                UserId = 1, // TODO: Replace with actual user ID from claims
+                Questions = quiz.Questions
+            };
+
+            _context.Quizzes.Add(newQuiz);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetQuiz", new { id = quiz.Id }, quiz);
+            return CreatedAtAction("GetQuiz", new { id = newQuiz.Id }, newQuiz);
         }
 
         // PUT: api/Quizzes/5

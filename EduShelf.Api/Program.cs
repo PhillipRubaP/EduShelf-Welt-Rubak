@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
-
-var builder = WebApplication.CreateBuilder(args);
+using System.Text.Json.Serialization;
+ 
+ var builder = WebApplication.CreateBuilder(args);
 
 // Add Semantic Kernel
 var kernelBuilder = builder.Services.AddKernel();
@@ -74,9 +75,12 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-builder.Services.AddControllers();
-
-builder.Services.AddCors(options =>
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
+ 
+ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowWebApp",
         builder =>

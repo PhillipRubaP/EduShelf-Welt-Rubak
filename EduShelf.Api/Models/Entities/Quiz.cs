@@ -14,16 +14,13 @@ namespace EduShelf.Api.Models.Entities
         public int UserId { get; set; }
 
         [Required]
-        public int DocumentId { get; set; }
+        public string Title { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [ForeignKey("UserId")]
-        public virtual User User { get; set; }
+        public virtual User? User { get; set; }
 
-        [ForeignKey("DocumentId")]
-        public virtual Document Document { get; set; }
-
-        public virtual ICollection<Question> Questions { get; set; }
+        public virtual ICollection<Question>? Questions { get; set; }
     }
 }

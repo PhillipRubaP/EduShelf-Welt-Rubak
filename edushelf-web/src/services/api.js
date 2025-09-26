@@ -57,4 +57,7 @@ const api = {
   },
 };
 
+export const getQuizzes = () => api.get('/quizzes');
+export const createQuiz = (quizData) => api.post('/quizzes', quizData);
+
 export default api;

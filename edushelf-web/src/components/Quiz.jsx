@@ -1,45 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { getQuizzes } from '../services/api';
+import QuizModal from './QuizModal';
 
 const Quiz = () => {
-    const { documentId } = useParams();
-    const [quiz, setQuiz] = useState(null);
+    const [quizzes, setQuizzes] = useState([]);
+    const [selectedQuiz, setSelectedQuiz] = useState(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [selectedAnswer, setSelectedAnswer] = useState(null);
     const [score, setScore] = useState(0);
     const [showScore, setShowScore] = useState(false);
-
-    // Mock data for the quiz
-    const mockQuiz = {
-        id: 1,
-        documentId: 1,
-        questions: [
-            {
-                id: 1,
-                text: 'What is 2 + 2?',
-                answers: [
-                    { id: 1, text: '3', isCorrect: false },
-                    { id: 2, text: '4', isCorrect: true },
-                    { id: 3, text: '5', isCorrect: false },
-                ],
-            },
-            {
-                id: 2,
-                text: 'What is the capital of France?',
-                answers: [
-                    { id: 4, text: 'Berlin', isCorrect: false },
-                    { id: 5, text: 'Madrid', isCorrect: false },
-                    { id: 6, text: 'Paris', isCorrect: true },
-                ],
-            },
-        ],
-    };
-
+    const [isModalOpen, setIsModalOpen] = useState(false);
     useEffect(() => {
-        // In a real application, you would fetch the quiz from the API
-        // For now, we'll use the mock data
-        setQuiz(mockQuiz);
-    }, [documentId]);
+        const fetchQuizzes = async () => {
+            try {
+                const data = await getQuizzes();
+                setQuizzes(data);
+            } catch (error) {
+                console.error('Error fetching quizzes:', error);
+            }
+        };
+        fetchQuizzes();
+    }, []);
 
     const handleAnswerOptionClick = (isCorrect) => {
         if (isCorrect) {
@@ -47,43 +27,68 @@ const Quiz = () => {
         }
 
         const nextQuestion = currentQuestionIndex + 1;
-        if (nextQuestion < quiz.questions.length) {
+        if (nextQuestion < selectedQuiz.questions.length) {
             setCurrentQuestionIndex(nextQuestion);
         } else {
             setShowScore(true);
         }
     };
 
+    const handleQuizCreated = (newQuiz) => {
+        setQuizzes([...quizzes, newQuiz]);
+    };
+
+    const selectQuiz = (quiz) => {
+        setSelectedQuiz(quiz);
+        setCurrentQuestionIndex(0);
+        setScore(0);
+        setShowScore(false);
+    };
+
     if (showScore) {
         return (
             <div className="p-4">
                 <h2 className="text-2xl font-bold mb-4">Quiz Completed</h2>
-                <p className="text-lg">Your score is {score} out of {quiz.questions.length}</p>
+                <p className="text-lg">Your score is {score} out of {selectedQuiz.questions.length}</p>
+                <button onClick={() => setSelectedQuiz(null)}>Back to Quizzes</button>
             </div>
         );
     }
 
-    if (!quiz) {
-        return <div>Loading...</div>;
+    if (selectedQuiz) {
+        return (
+            <div className="p-4">
+                <h2 className="text-2xl font-bold mb-4">{selectedQuiz.title}</h2>
+                <div className="mb-4">
+                    <h3 className="text-xl">{selectedQuiz.questions[currentQuestionIndex].text}</h3>
+                </div>
+                <div className="grid grid-cols-1 gap-4">
+                    {selectedQuiz.questions[currentQuestionIndex].answers.map((answer) => (
+                        <button
+                            key={answer.id}
+                            onClick={() => handleAnswerOptionClick(answer.isCorrect)}
+                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                        >
+                            {answer.text}
+                        </button>
+                    ))}
+                </div>
+            </div>
+        );
     }
 
     return (
         <div className="p-4">
-            <h2 className="text-2xl font-bold mb-4">Quiz</h2>
-            <div className="mb-4">
-                <h3 className="text-xl">{quiz.questions[currentQuestionIndex].text}</h3>
-            </div>
-            <div className="grid grid-cols-1 gap-4">
-                {quiz.questions[currentQuestionIndex].answers.map((answer) => (
-                    <button
-                        key={answer.id}
-                        onClick={() => handleAnswerOptionClick(answer.isCorrect)}
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                    >
-                        {answer.text}
-                    </button>
+            <h2 className="text-2xl font-bold mb-4">Available Quizzes</h2>
+            <button onClick={() => setIsModalOpen(true)}>Create Quiz</button>
+            {isModalOpen && <QuizModal onClose={() => setIsModalOpen(false)} onQuizCreated={handleQuizCreated} />}
+            <ul>
+                {quizzes.map((quiz) => (
+                    <li key={quiz.id} onClick={() => selectQuiz(quiz)} className="cursor-pointer hover:underline">
+                        {quiz.title}
+                    </li>
                 ))}
-            </div>
+            </ul>
         </div>
     );
 };

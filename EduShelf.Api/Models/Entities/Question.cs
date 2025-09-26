@@ -13,11 +13,11 @@ namespace EduShelf.Api.Models.Entities
         public int QuizId { get; set; }
 
         [Required]
-        public string Text { get; set; }
+        public string? Text { get; set; }
 
         [ForeignKey("QuizId")]
-        public virtual Quiz Quiz { get; set; }
+        public virtual Quiz? Quiz { get; set; }
 
-        public virtual ICollection<Answer> Answers { get; set; }
+        public virtual ICollection<Answer>? Answers { get; set; }
     }
 }

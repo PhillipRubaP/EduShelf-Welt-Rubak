@@ -9,7 +9,7 @@
 .auth-box {
   text-align: center;
   width: 100%;
-  max-width: 28rem; /* Equivalent to max-w-md */
+  max-width: 24rem; /* Equivalent to max-w-md */
   padding: 2rem; /* Equivalent to p-8 */
   background-color: var(--neutral-anthracite);
   color: var(--neutral-white);
