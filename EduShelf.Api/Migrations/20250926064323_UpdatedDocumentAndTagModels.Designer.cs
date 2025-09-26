@@ -3,6 +3,7 @@ using System;
 using EduShelf.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -12,9 +13,11 @@ using Pgvector;
 namespace EduShelf.Api.Migrations
 {
     [DbContext(typeof(ApiDbContext))]
-    partial class ApiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250926064323_UpdatedDocumentAndTagModels")]
+    partial class UpdatedDocumentAndTagModels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -73,29 +76,6 @@ namespace EduShelf.Api.Migrations
                     b.HasIndex("QuestionId");
 
                     b.ToTable("Answers");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            IsCorrect = true,
-                            QuestionId = 1,
-                            Text = "4"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            IsCorrect = false,
-                            QuestionId = 1,
-                            Text = "3"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            IsCorrect = false,
-                            QuestionId = 1,
-                            Text = "5"
-                        });
                 });
 
             modelBuilder.Entity("EduShelf.Api.Models.Entities.ChatMessage", b =>
@@ -169,11 +149,7 @@ namespace EduShelf.Api.Migrations
                         new
                         {
                             Id = 1,
-<<<<<<< HEAD
-                            CreatedAt = new DateTime(2025, 9, 26, 8, 26, 6, 208, DateTimeKind.Utc).AddTicks(9191),
-=======
                             CreatedAt = new DateTime(2025, 9, 26, 6, 43, 22, 586, DateTimeKind.Utc).AddTicks(3424),
->>>>>>> 7f0b8364eb8771adebc46459bf2df0fe0daf1d1b
                             FileType = "pdf",
                             Path = "/documents/algebra.pdf",
                             Title = "Algebra Basics",
@@ -182,11 +158,7 @@ namespace EduShelf.Api.Migrations
                         new
                         {
                             Id = 2,
-<<<<<<< HEAD
-                            CreatedAt = new DateTime(2025, 9, 26, 8, 26, 6, 208, DateTimeKind.Utc).AddTicks(9194),
-=======
                             CreatedAt = new DateTime(2025, 9, 26, 6, 43, 22, 586, DateTimeKind.Utc).AddTicks(3428),
->>>>>>> 7f0b8364eb8771adebc46459bf2df0fe0daf1d1b
                             FileType = "pdf",
                             Path = "/documents/physics.pdf",
                             Title = "Introduction to Physics",
@@ -293,6 +265,9 @@ namespace EduShelf.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("DocumentId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Question")
                         .IsRequired()
                         .HasColumnType("text");
@@ -301,6 +276,8 @@ namespace EduShelf.Api.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DocumentId");
 
                     b.HasIndex("UserId");
 
@@ -311,12 +288,8 @@ namespace EduShelf.Api.Migrations
                         {
                             Id = 1,
                             Answer = "4",
-<<<<<<< HEAD
-                            CreatedAt = new DateTime(2025, 9, 26, 8, 26, 6, 208, DateTimeKind.Utc).AddTicks(9264),
-=======
                             CreatedAt = new DateTime(2025, 9, 26, 6, 43, 22, 586, DateTimeKind.Utc).AddTicks(3536),
                             DocumentId = 1,
->>>>>>> 7f0b8364eb8771adebc46459bf2df0fe0daf1d1b
                             Question = "What is 2+2?",
                             UserId = 1
                         },
@@ -324,12 +297,8 @@ namespace EduShelf.Api.Migrations
                         {
                             Id = 2,
                             Answer = "5",
-<<<<<<< HEAD
-                            CreatedAt = new DateTime(2025, 9, 26, 8, 26, 6, 208, DateTimeKind.Utc).AddTicks(9267),
-=======
                             CreatedAt = new DateTime(2025, 9, 26, 6, 43, 22, 586, DateTimeKind.Utc).AddTicks(3540),
                             DocumentId = 1,
->>>>>>> 7f0b8364eb8771adebc46459bf2df0fe0daf1d1b
                             Question = "What is x in x+5=10?",
                             UserId = 1
                         });
@@ -355,14 +324,6 @@ namespace EduShelf.Api.Migrations
                     b.HasIndex("QuizId");
 
                     b.ToTable("Questions");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            QuizId = 1,
-                            Text = "What is 2 + 2?"
-                        });
                 });
 
             modelBuilder.Entity("EduShelf.Api.Models.Entities.Quiz", b =>
@@ -376,14 +337,15 @@ namespace EduShelf.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("DocumentId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DocumentId");
 
                     b.HasIndex("UserId");
 
@@ -393,13 +355,8 @@ namespace EduShelf.Api.Migrations
                         new
                         {
                             Id = 1,
-<<<<<<< HEAD
-                            CreatedAt = new DateTime(2025, 9, 26, 8, 26, 6, 208, DateTimeKind.Utc).AddTicks(9305),
-                            Title = "Math Quiz",
-=======
                             CreatedAt = new DateTime(2025, 9, 26, 6, 43, 22, 586, DateTimeKind.Utc).AddTicks(3591),
                             DocumentId = 2,
->>>>>>> 7f0b8364eb8771adebc46459bf2df0fe0daf1d1b
                             UserId = 2
                         });
                 });
@@ -497,11 +454,7 @@ namespace EduShelf.Api.Migrations
                         new
                         {
                             UserId = 1,
-<<<<<<< HEAD
-                            CreatedAt = new DateTime(2025, 9, 26, 8, 26, 6, 208, DateTimeKind.Utc).AddTicks(9061),
-=======
                             CreatedAt = new DateTime(2025, 9, 26, 6, 43, 22, 586, DateTimeKind.Utc).AddTicks(3248),
->>>>>>> 7f0b8364eb8771adebc46459bf2df0fe0daf1d1b
                             Email = "admin@edushelf.com",
                             PasswordHash = "$2a$11$hP5Ch.WgPqrLbA8xsDe4vOBfyiP9cQxM8Yt6FWkCo2Z.wX2CgyiP6",
                             Role = "Admin",
@@ -510,11 +463,7 @@ namespace EduShelf.Api.Migrations
                         new
                         {
                             UserId = 2,
-<<<<<<< HEAD
-                            CreatedAt = new DateTime(2025, 9, 26, 8, 26, 6, 208, DateTimeKind.Utc).AddTicks(9163),
-=======
                             CreatedAt = new DateTime(2025, 9, 26, 6, 43, 22, 586, DateTimeKind.Utc).AddTicks(3379),
->>>>>>> 7f0b8364eb8771adebc46459bf2df0fe0daf1d1b
                             Email = "student@edushelf.com",
                             PasswordHash = "$2a$11$UY8JAY3qb1seKMqc4duzd.ygPIwM.vZ1OCRImtEXfC7tIg2ttTVOS",
                             Role = "Student",
@@ -633,11 +582,19 @@ namespace EduShelf.Api.Migrations
 
             modelBuilder.Entity("EduShelf.Api.Models.Entities.Flashcard", b =>
                 {
+                    b.HasOne("EduShelf.Api.Models.Entities.Document", "Document")
+                        .WithMany()
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("EduShelf.Api.Models.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Document");
 
                     b.Navigation("User");
                 });
@@ -655,11 +612,19 @@ namespace EduShelf.Api.Migrations
 
             modelBuilder.Entity("EduShelf.Api.Models.Entities.Quiz", b =>
                 {
+                    b.HasOne("EduShelf.Api.Models.Entities.Document", "Document")
+                        .WithMany()
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("EduShelf.Api.Models.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Document");
 
                     b.Navigation("User");
                 });

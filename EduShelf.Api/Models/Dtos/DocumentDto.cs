@@ -6,4 +6,5 @@ public class DocumentDto
     public string Title { get; set; }
     public string FileType { get; set; }
     public DateTime CreatedAt { get; set; }
+    public List<TagDto> Tags { get; set; }
 }

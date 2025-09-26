@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -27,4 +28,6 @@ public class Document
 
     [ForeignKey("UserId")]
     public virtual User User { get; set; }
+
+    public virtual ICollection<DocumentTag> DocumentTags { get; set; }
 }
