@@ -50,12 +50,15 @@ namespace EduShelf.Api.Controllers
             }
 
             var documents = await query
+                .Include(d => d.DocumentTags)
+                .ThenInclude(dt => dt.Tag)
                 .Select(d => new DocumentDto
                 {
                     Id = d.Id,
                     Title = d.Title,
                     FileType = d.FileType,
-                    CreatedAt = d.CreatedAt
+                    CreatedAt = d.CreatedAt,
+                    Tags = d.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList()
                 })
                 .ToListAsync();
 
@@ -64,21 +67,33 @@ namespace EduShelf.Api.Controllers
 
         // GET: api/Documents/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Document>> GetDocument(int id)
+        public async Task<ActionResult<DocumentDto>> GetDocument(int id)
         {
-            var document = await _context.Documents.FindAsync(id);
+            var document = await _context.Documents
+                .Include(d => d.DocumentTags)
+                .ThenInclude(dt => dt.Tag)
+                .Where(d => d.Id == id)
+                .Select(d => new DocumentDto
+                {
+                    Id = d.Id,
+                    Title = d.Title,
+                    FileType = d.FileType,
+                    CreatedAt = d.CreatedAt,
+                    Tags = d.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList()
+                })
+                .FirstOrDefaultAsync();
 
             if (document == null)
             {
                 return NotFound();
             }
 
-            return document;
+            return Ok(document);
         }
 
         // POST: api/Documents
         [HttpPost]
-        public async Task<ActionResult<Document>> PostDocument([FromForm] IFormFile file, [FromForm] int userId)
+        public async Task<ActionResult<Document>> PostDocument([FromForm] IFormFile file, [FromForm] int userId, [FromForm] List<string> tags)
         {
             if (file == null || file.Length == 0)
             {
@@ -116,6 +131,23 @@ namespace EduShelf.Api.Controllers
                 FileType = fileExtension.TrimStart('.')
             };
 
+            if (tags != null && tags.Any())
+            {
+                document.DocumentTags = new List<DocumentTag>();
+                foreach (var tagName in tags)
+                {
+                    var normalizedTagName = tagName.Trim().ToLower();
+                    var existingTag = await _context.Tags.FirstOrDefaultAsync(t => t.Name == normalizedTagName);
+
+                    if (existingTag == null)
+                    {
+                        existingTag = new Tag { Name = normalizedTagName };
+                        _context.Tags.Add(existingTag);
+                    }
+
+                    document.DocumentTags.Add(new DocumentTag { Tag = existingTag });
+                }
+            }
 
             _context.Documents.Add(document);
             await _context.SaveChangesAsync();
@@ -233,6 +265,36 @@ namespace EduShelf.Api.Controllers
             return Ok();
         }
 
+        // PUT: api/Documents/5/tags
+        [HttpPut("{documentId}/tags")]
+        public async Task<IActionResult> UpdateTagsForDocument(int documentId, [FromBody] List<int> tagIds)
+        {
+            var document = await _context.Documents
+                .Include(d => d.DocumentTags)
+                .FirstOrDefaultAsync(d => d.Id == documentId);
+
+            if (document == null)
+            {
+                return NotFound("Document not found.");
+            }
+
+            var tags = await _context.Tags.Where(t => tagIds.Contains(t.Id)).ToListAsync();
+            if (tags.Count != tagIds.Count)
+            {
+                return BadRequest("One or more tags are invalid.");
+            }
+
+            document.DocumentTags.Clear();
+
+            foreach (var tagId in tagIds)
+            {
+                document.DocumentTags.Add(new DocumentTag { DocumentId = documentId, TagId = tagId });
+            }
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
     
 
         // DELETE: api/Documents/5/tags/2
@@ -277,12 +339,15 @@ namespace EduShelf.Api.Controllers
             }
 
             var documents = await documentsQuery
+                .Include(d => d.DocumentTags)
+                .ThenInclude(dt => dt.Tag)
                 .Select(d => new DocumentDto
                 {
                     Id = d.Id,
                     Title = d.Title,
                     FileType = d.FileType,
-                    CreatedAt = d.CreatedAt
+                    CreatedAt = d.CreatedAt,
+                    Tags = d.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList()
                 })
                 .ToListAsync();
 

@@ -1,4 +1,4 @@
-@EduShelf.Api_HostAddress = http://localhost:5015
+@EduShelf_Api_HostAddress = http://localhost:5015
 @token = 
 
 ###
@@ -32,3 +32,38 @@ GET http://localhost:5000/api/Users/hash/admin
 
 ### Hash Student Password
 GET http://localhost:5000/api/Users/hash/student
+
+### Login to get a token
+POST {{@EduShelf_Api_HostAddress}}/api/Users/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin"
+}
+
+### Get a single document by ID
+GET {{@EduShelf_Api_HostAddress}}/api/Documents/1
+Authorization: Bearer {{token}}
+
+### Add a tag to a document
+POST {{@EduShelf_Api_HostAddress}}/api/Documents/1/tags
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "tagId": 1
+}
+
+### Create a new tag
+POST {{@EduShelf_Api_HostAddress}}/api/Tags
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Physics"
+}
+
+### Get all tags
+GET {{@EduShelf_Api_HostAddress}}/api/Tags
+Authorization: Bearer {{token}}
