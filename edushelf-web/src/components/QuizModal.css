@@ -45,10 +45,15 @@
     display: flex;
     align-items: center;
     margin-bottom: 5px;
+    justify-content: flex-start;
 }
 
 .answer-block input[type="radio"] {
     margin-right: 10px;
+}
+
+.answer-block input[type="text"] {
+    width: calc(100% - 30px);
 }
 
 .modal-actions {

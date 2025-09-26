@@ -36,6 +36,10 @@ const EditUser = ({ loggedInUser, setLoggedInUser }) => {
     }
   };
 
+  const handleClose = () => {
+    navigate('/');
+  };
+
   if (!loggedInUser) {
     return <p>Please log in to edit your profile.</p>;
   }
@@ -43,10 +47,11 @@ const EditUser = ({ loggedInUser, setLoggedInUser }) => {
   return (
     <div className="edit-user-container">
       <div className="auth-box">
+        <span className="close-button" onClick={handleClose}>&times;</span>
         <h1 className="text-3xl font-bold text-center">Edit Profile</h1>
         <form onSubmit={handleUpdate} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium mb-1">Username: </label>
+          <div className="form-group">
+            <label className="text-sm font-medium mb-1">Username: </label>
             <input
               type="text"
               value={username}
@@ -55,12 +60,12 @@ const EditUser = ({ loggedInUser, setLoggedInUser }) => {
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Email: </label>
+          <div className="form-group">
+            <label className="text-sm font-medium mb-1">Email: </label>
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.gtarget.value)}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-green"
               required
             />
@@ -68,13 +73,13 @@ const EditUser = ({ loggedInUser, setLoggedInUser }) => {
           <div className="button-container">
             <button
               type="submit"
-              className="px-4 py-2 mt-4 font-bold rounded-md bg-primary-green text-white hover:bg-secondary-mint hover:text-primary-green transition-colors edit-user-button"
+              className="w-full px-4 py-2 mt-4 font-bold rounded-md bg-primary-green text-white hover:bg-secondary-mint hover:text-primary-green transition-colors button-auth"
             >
               Update
             </button>
             <button
               onClick={handleDelete}
-              className="px-4 py-2 mt-4 font-bold rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors edit-user-button"
+              className="w-full px-4 py-2 mt-4 font-bold rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors button-auth"
             >
               Delete Account
             </button>

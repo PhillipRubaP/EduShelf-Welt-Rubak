@@ -67,7 +67,7 @@ const QuizModal = ({ onClose, onQuizCreated }) => {
                                 <input type="text" value={question.text} onChange={(e) => handleQuestionChange(qIndex, e)} required />
                             </div>
                             {question.answers.map((answer, aIndex) => (
-                                <div key={aIndex} className="answer-block">
+                                <div key={aIndex} className="answer-block form-group">
                                     <input
                                         type="radio"
                                         name={`correct-answer-${qIndex}`}
