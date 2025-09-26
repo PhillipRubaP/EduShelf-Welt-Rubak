@@ -93,7 +93,7 @@ namespace EduShelf.Api.Controllers
 
         // POST: api/Documents
         [HttpPost]
-        public async Task<ActionResult<Document>> PostDocument([FromForm] IFormFile file, [FromForm] int userId)
+        public async Task<ActionResult<Document>> PostDocument([FromForm] IFormFile file, [FromForm] int userId, [FromForm] List<string> tags)
         {
             if (file == null || file.Length == 0)
             {
@@ -131,6 +131,23 @@ namespace EduShelf.Api.Controllers
                 FileType = fileExtension.TrimStart('.')
             };
 
+            if (tags != null && tags.Any())
+            {
+                document.DocumentTags = new List<DocumentTag>();
+                foreach (var tagName in tags)
+                {
+                    var normalizedTagName = tagName.Trim().ToLower();
+                    var existingTag = await _context.Tags.FirstOrDefaultAsync(t => t.Name == normalizedTagName);
+
+                    if (existingTag == null)
+                    {
+                        existingTag = new Tag { Name = normalizedTagName };
+                        _context.Tags.Add(existingTag);
+                    }
+
+                    document.DocumentTags.Add(new DocumentTag { Tag = existingTag });
+                }
+            }
 
             _context.Documents.Add(document);
             await _context.SaveChangesAsync();
