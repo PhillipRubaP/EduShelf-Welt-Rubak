@@ -23,7 +23,7 @@ namespace EduShelf.Api.Services
             _uploadPath = configuration["FileStorage:UploadPath"] ?? "Uploads";
         }
 
-        public async Task IndexDocumentAsync(int documentId, string fileName)
+        public async Task IndexDocumentAsync(int documentId, string fileName, int? batchSize = null)
         {
             try
             {
@@ -42,23 +42,91 @@ namespace EduShelf.Api.Services
                     return;
                 }
 
-#pragma warning disable SKEXP0050 // Experimental
-                List<string> lines = TextChunker.SplitPlainTextLines(content, 256);
-                var chunks = TextChunker.SplitPlainTextParagraphs(lines, 1024);
-#pragma warning restore SKEXP0050 // Experimental
-                
+#pragma warning disable SKEXP0055 // Experimental
+                var chunks = ChunkContent(content);
+#pragma warning restore SKEXP0055 // Experimental
+
                 _logger.LogInformation("Document split into {ChunkCount} chunks.", chunks.Count);
 
+                if (batchSize.HasValue)
+                {
+                    await ProcessInBatches(documentId, chunks, batchSize.Value);
+                }
+                else
+                {
+                    await ProcessAll(documentId, chunks);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while indexing document {DocumentId}", documentId);
+            }
+        }
+
+        private List<string> ChunkContent(string content)
+        {
+            var sentences = TextChunker.SplitBySentence(content);
+            var chunks = new List<string>();
+            var currentChunk = new StringBuilder();
+
+            foreach (var sentence in sentences)
+            {
+                if (currentChunk.Length + sentence.Length > 1024 && currentChunk.Length > 0)
+                {
+                    chunks.Add(currentChunk.ToString().Trim());
+                    currentChunk.Clear();
+                }
+                currentChunk.Append(sentence);
+            }
+
+            if (currentChunk.Length > 0)
+            {
+                chunks.Add(currentChunk.ToString().Trim());
+            }
+
+            return chunks;
+        }
+
+        private async Task ProcessAll(int documentId, List<string> chunks)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<ApiDbContext>();
+            var kernel = scope.ServiceProvider.GetRequiredService<Kernel>();
+            var embeddingGenerator = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
+            var document = await context.Documents.FindAsync(documentId);
+            var title = document?.Title ?? "Unknown Document";
+
+            foreach (var chunk in chunks)
+            {
+                var contentWithTitle = $"Document: {title}\n{chunk}";
+                var embedding = await embeddingGenerator.GenerateEmbeddingAsync(contentWithTitle);
+                var documentChunk = new DocumentChunk
+                {
+                    DocumentId = documentId,
+                    Content = contentWithTitle,
+                    Embedding = new Pgvector.Vector(embedding)
+                };
+                context.DocumentChunks.Add(documentChunk);
+            }
+
+            await context.SaveChangesAsync();
+            _logger.LogInformation("Successfully indexed {ChunkCount} chunks for document ID {DocumentId}", chunks.Count, documentId);
+        }
+
+        private async Task ProcessInBatches(int documentId, List<string> chunks, int batchSize)
+        {
+            var totalChunks = 0;
+            for (int i = 0; i < chunks.Count; i += batchSize)
+            {
+                var batch = chunks.Skip(i).Take(batchSize).ToList();
                 using var scope = _scopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<ApiDbContext>();
-
                 var kernel = scope.ServiceProvider.GetRequiredService<Kernel>();
                 var embeddingGenerator = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
-
                 var document = await context.Documents.FindAsync(documentId);
                 var title = document?.Title ?? "Unknown Document";
 
-                foreach (var chunk in chunks)
+                foreach (var chunk in batch)
                 {
                     var contentWithTitle = $"Document: {title}\n{chunk}";
                     var embedding = await embeddingGenerator.GenerateEmbeddingAsync(contentWithTitle);
@@ -72,12 +140,10 @@ namespace EduShelf.Api.Services
                 }
 
                 await context.SaveChangesAsync();
-                _logger.LogInformation("Successfully indexed {ChunkCount} chunks for document ID {DocumentId}", chunks.Count, documentId);
+                totalChunks += batch.Count;
+                _logger.LogInformation("Indexed batch of {BatchCount} chunks for document ID {DocumentId}", batch.Count, documentId);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while indexing document {DocumentId}", documentId);
-            }
+            _logger.LogInformation("Successfully indexed a total of {TotalChunks} chunks for document ID {DocumentId}", totalChunks, documentId);
         }
 
         private string ExtractTextFromFile(string filePath)
