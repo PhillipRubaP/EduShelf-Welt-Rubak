@@ -1,0 +1,130 @@
+.files-container {
+  display: flex;
+  height: 100%;
+}
+
+.file-list {
+  width: 100%;
+  padding: 1rem;
+}
+
+.file-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.file-card {
+  background-color: #2d3748; /* Dark gray-blue */
+  border: 1px solid #4a5568; /* Lighter gray-blue */
+  border-radius: 8px;
+  padding: 1.5rem;
+  width: 250px;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #e2e8f0; /* Light gray text */
+  position: relative;
+}
+
+.file-card p {
+  margin: 0;
+  font-weight: bold;
+  word-wrap: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
+  margin-bottom: 2rem;
+}
+
+.file-card-buttons {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 1.5rem;
+}
+
+.file-card-buttons button {
+  background-color: #38a169; /* Green */
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.file-card-buttons button:hover {
+  background-color: #2f855a; /* Darker green */
+}
+
+.file-list-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.add-file-button {
+  background-color: #38a169; /* Green */
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding-bottom: 2px;
+}
+
+.add-file-button:hover {
+  background-color: #2f855a; /* Darker green */
+}
+
+
+.menu-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.menu-icon {
+  width: 20px;
+  height: 2px;
+  background-color: #e2e8f0;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #2d3748;
+  border: 1px solid #4a5568;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdown-menu button {
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  text-align: center;
+  width: 100%;
+  font-size: 20px;
+  cursor: pointer;
+  color: #e2e8f0;
+}
+
+.dropdown-menu button:hover {
+  background-color: #4a5568;
+}

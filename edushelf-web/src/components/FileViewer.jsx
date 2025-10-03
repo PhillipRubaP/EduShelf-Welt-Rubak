@@ -1,23 +1,47 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../services/api';
 
 const FileViewer = ({ document }) => {
+  const [content, setContent] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (document) {
+      const fetchDocumentContent = async () => {
+        try {
+          const response = await api.get(`/documents/download/${document.id}`, {
+            responseType: 'blob',
+          });
+          const file = new Blob([response], { type: response.headers['content-type'] });
+          const text = await file.text();
+          setContent(text);
+          setError('');
+        } catch (err) {
+          setError('Error fetching document content.');
+          console.error(err);
+        }
+      };
+      fetchDocumentContent();
+    }
+  }, [document]);
+
   const renderContent = () => {
-    if (!document || !document.content) {
-      return <p>No content to display.</p>;
+    if (error) {
+      return <p>{error}</p>;
+    }
+    if (!content) {
+      return <p>Loading content...</p>;
     }
 
-    // This is a simplified example.
-    // In a real application, you would use libraries like react-pdf for PDFs
-    // and a markdown renderer for markdown files.
-    const fileType = document.name.split('.').pop().toLowerCase();
+    const fileType = document.title.split('.').pop().toLowerCase();
 
     switch (fileType) {
       case 'pdf':
-        return <p>PDF preview not yet implemented. Would use a library like react-pdf.</p>;
+        return <p>PDF preview not yet implemented.</p>;
       case 'md':
-        return <pre>{document.content}</pre>; // Placeholder for markdown rendering
+        return <pre>{content}</pre>;
       case 'txt':
-        return <pre>{document.content}</pre>;
+        return <pre>{content}</pre>;
       default:
         return <p>Unsupported file type.</p>;
     }
@@ -25,7 +49,7 @@ const FileViewer = ({ document }) => {
 
   return (
     <div className="file-viewer p-4">
-      <h3 className="text-xl font-bold mb-2">{document.name}</h3>
+      <h3 className="text-xl font-bold mb-2">{document.title}</h3>
       <div className="content bg-gray-100 p-4 rounded">
         {renderContent()}
       </div>
