@@ -11,6 +11,11 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Docnet.Core;
+using Docnet.Core.Models;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
+using System.Text;
 
 namespace EduShelf.Api.Controllers
 {
@@ -93,7 +98,7 @@ namespace EduShelf.Api.Controllers
 
         // POST: api/Documents
         [HttpPost]
-        public async Task<ActionResult<Document>> PostDocument([FromForm] IFormFile file, [FromForm] int userId, [FromForm] List<string> tags)
+        public async Task<ActionResult<Models.Entities.Document>> PostDocument([FromForm] IFormFile file, [FromForm] int userId, [FromForm] List<string> tags)
         {
             if (file == null || file.Length == 0)
             {
@@ -123,7 +128,7 @@ namespace EduShelf.Api.Controllers
                 await file.CopyToAsync(stream);
             }
 
-            var document = new Document
+            var document = new Models.Entities.Document
             {
                 UserId = userId,
                 Title = Path.GetFileNameWithoutExtension(originalFileName),
@@ -141,7 +146,7 @@ namespace EduShelf.Api.Controllers
 
                     if (existingTag == null)
                     {
-                        existingTag = new Tag { Name = normalizedTagName };
+                        existingTag = new Models.Entities.Tag { Name = normalizedTagName };
                         _context.Tags.Add(existingTag);
                     }
 
@@ -170,7 +175,7 @@ namespace EduShelf.Api.Controllers
 
         // PUT: api/Documents/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutDocument(int id, Document document)
+        public async Task<IActionResult> PutDocument(int id, Models.Entities.Document document)
         {
             if (id != document.Id)
             {
@@ -215,7 +220,7 @@ namespace EduShelf.Api.Controllers
         }
 // GET: api/Documents/5/tags
         [HttpGet("{documentId}/tags")]
-        public async Task<ActionResult<IEnumerable<Tag>>> GetTagsForDocument(int documentId)
+        public async Task<ActionResult<IEnumerable<Models.Entities.Tag>>> GetTagsForDocument(int documentId)
         {
             var document = await _context.Documents.FindAsync(documentId);
             if (document == null)
@@ -414,7 +419,44 @@ namespace EduShelf.Api.Controllers
                 return NotFound("File not found.");
             }
 
-            var content = await System.IO.File.ReadAllTextAsync(filePath);
+            string content;
+            var fileExtension = Path.GetExtension(document.Path).ToLowerInvariant();
+
+            if (fileExtension == ".pdf")
+            {
+                using (var docReader = DocLib.Instance.GetDocReader(filePath, new PageDimensions()))
+                {
+                    var stringBuilder = new StringBuilder();
+                    for (var i = 0; i < docReader.GetPageCount(); i++)
+                    {
+                        using (var pageReader = docReader.GetPageReader(i))
+                        {
+                            stringBuilder.AppendLine(pageReader.GetText());
+                        }
+                    }
+                    content = stringBuilder.ToString();
+                }
+            }
+            else if (fileExtension == ".docx")
+            {
+                using (var wordDoc = WordprocessingDocument.Open(filePath, false))
+                {
+                    var stringBuilder = new StringBuilder();
+                    foreach (var p in wordDoc.MainDocumentPart.Document.Body.Elements<Paragraph>())
+                    {
+                        stringBuilder.AppendLine(p.InnerText);
+                    }
+                    content = stringBuilder.ToString();
+                }
+            }
+            else if (fileExtension == ".txt")
+            {
+                content = await System.IO.File.ReadAllTextAsync(filePath);
+            }
+            else
+            {
+                return BadRequest("Unsupported file type for content extraction.");
+            }
 
             return Ok(content);
         }
