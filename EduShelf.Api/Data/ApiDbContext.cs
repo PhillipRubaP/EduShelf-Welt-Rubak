@@ -22,6 +22,7 @@ public class ApiDbContext : DbContext
     public DbSet<Question> Questions { get; set; }
     public DbSet<Answer> Answers { get; set; }
     public DbSet<DocumentChunk> DocumentChunks { get; set; }
+    public DbSet<FlashcardTag> FlashcardTags { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -38,6 +39,9 @@ public class ApiDbContext : DbContext
 
         modelBuilder.Entity<DocumentTag>()
             .HasKey(dt => new { dt.DocumentId, dt.TagId });
+
+        modelBuilder.Entity<FlashcardTag>()
+            .HasKey(ft => new { ft.FlashcardId, ft.TagId });
 
         modelBuilder.Entity<Favourite>()
             .HasKey(f => new { f.UserId, f.DocumentId });
