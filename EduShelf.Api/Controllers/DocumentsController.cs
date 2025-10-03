@@ -500,5 +500,78 @@ namespace EduShelf.Api.Controllers
 
             return File(memory, GetContentType(filePath), document.Title + "." + document.FileType);
         }
+        [HttpPatch("{id}/content")]
+        public async Task<IActionResult> UpdateDocumentContent(int id, [FromBody] DocumentContentUpdateDto documentUpdateDto)
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
+
+            var document = await _context.Documents.FindAsync(id);
+
+            if (document == null)
+            {
+                return NotFound();
+            }
+
+            if (userRole != "Admin" && document.UserId != userId)
+            {
+                return Forbid();
+            }
+
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), _uploadPath, document.Path);
+
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound("File not found.");
+            }
+
+            var fileExtension = Path.GetExtension(document.Path).ToLowerInvariant();
+
+            if (fileExtension == ".pdf")
+            {
+                return BadRequest("Direct content update for PDF files is not supported.");
+            }
+            else if (fileExtension == ".docx")
+            {
+                using (var wordDoc = WordprocessingDocument.Open(filePath, true))
+                {
+                    var mainPart = wordDoc.MainDocumentPart;
+                    if (mainPart == null)
+                    {
+                        mainPart = wordDoc.AddMainDocumentPart();
+                        mainPart.Document = new DocumentFormat.OpenXml.Wordprocessing.Document();
+                    }
+                    mainPart.Document.Body = new Body(new Paragraph(new Run(new Text(documentUpdateDto.Content))));
+                    mainPart.Document.Save();
+                }
+            }
+            else if (fileExtension == ".txt")
+            {
+                await System.IO.File.WriteAllTextAsync(filePath, documentUpdateDto.Content);
+            }
+            else
+            {
+                return BadRequest("Unsupported file type for content update.");
+            }
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _indexingService.IndexDocumentAsync(document.Id, document.Path);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error re-indexing document {document.Id}: {ex.Message}");
+                }
+            });
+
+            return NoContent();
+        }
     }
 }
