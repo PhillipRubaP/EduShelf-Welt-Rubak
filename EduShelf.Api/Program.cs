@@ -49,6 +49,8 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "EduShelf API", Version = "v1" });
 
+    c.AddServer(new OpenApiServer { Url = "http://localhost:49152", Description = "Local Docker" });
+
     // JWT Bearer Token hinzufügen
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {

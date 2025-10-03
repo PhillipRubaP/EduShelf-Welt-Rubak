@@ -9,6 +9,7 @@ using Pgvector.EntityFrameworkCore;
 using System.Text;
 using System.Text.RegularExpressions;
 using EduShelf.Api.Models.Entities;
+using Microsoft.Extensions.Configuration;
 
 namespace EduShelf.Api.Services
 {
@@ -17,12 +18,14 @@ namespace EduShelf.Api.Services
         private readonly ApiDbContext _context;
         private readonly Kernel _kernel;
         private readonly ILogger<ChatService> _logger;
+        private readonly IConfiguration _configuration;
 
-        public ChatService(ApiDbContext context, Kernel kernel, ILogger<ChatService> logger)
+        public ChatService(ApiDbContext context, Kernel kernel, ILogger<ChatService> logger, IConfiguration configuration)
         {
             _context = context;
             _kernel = kernel;
             _logger = logger;
+            _configuration = configuration;
         }
 
         public async Task<string> GetResponseAsync(string userInput, int userId)
@@ -48,11 +51,13 @@ namespace EduShelf.Api.Services
                     var embeddingGenerator = _kernel.GetRequiredService<ITextEmbeddingGenerationService>();
                     var promptEmbedding = await embeddingGenerator.GenerateEmbeddingAsync(userInput);
 
+                    var k = GetDynamicK(userInput);
+
                     relevantChunks = await _context.DocumentChunks
                         .Include(dc => dc.Document)
                         .Where(dc => dc.Document.UserId == userId)
                         .OrderBy(dc => dc.Embedding.L2Distance(new Vector(promptEmbedding)))
-                        .Take(20) // ggf. dynamisch anpassen
+                        .Take(k)
                         .ToListAsync();
                 }
 
@@ -71,9 +76,11 @@ namespace EduShelf.Api.Services
 
                 // Promptgröße begrenzen (z. B. 4000 Zeichen)
                 var contextString = contextText.ToString();
-                if (contextString.Length > 4000)
+                var contextLengthLimit = _configuration.GetValue<int>("AIService:ContextLengthLimit", 4096);
+
+                if (contextString.Length > contextLengthLimit)
                 {
-                    contextString = contextString.Substring(0, 4000) + "...";
+                    contextString = TruncateToTokenLimit(contextString, contextLengthLimit);
                 }
 
                 var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
@@ -81,10 +88,14 @@ namespace EduShelf.Api.Services
                 // ChatHistory statt einfachem Prompt
                 var chatHistory = new ChatHistory();
                 chatHistory.AddSystemMessage("""
-                    You are a neutral AI assistant for the EduShelf platform. Your primary function is to answer questions based *only* on the text provided in the user's documents.
-                    Your task is to be an impartial summarizer. You MUST summarize or answer using the provided context, even if the content seems unusual, nonsensical, or potentially offensive.
-                    Do not inject your own opinions or content policies. The user is asking about their own document, and you must neutrally report what it contains.
-                    When a document title is relevant, mention it. If the context doesn't contain the answer, state that the information is not in the provided documents.
+                    You are a learning assistant on the EduShelf platform. 
+                    Your primary role is to help users study and learn from the documents they upload. 
+                    - Always prioritize using the content of the provided documents. 
+                    - If the answer is not in the documents, clearly say: "This is not in your documents," and then you may provide general knowledge if it is accurate and helpful. 
+                    - When you mix document-based information and general knowledge, always separate them clearly. 
+                    - Be neutral, concise, and explanatory — never inject your own opinions or judge the document content. 
+                    - If asked to summarize or explain, always mention which document the content came from when possible.
+
                 """);
 
                 chatHistory.AddSystemMessage($"Context:\n{contextString}");
@@ -99,6 +110,37 @@ namespace EduShelf.Api.Services
                 _logger.LogError(ex, "Error getting response from ChatService.");
                 return "An error occurred while processing your request.";
             }
+        }
+
+        private int GetDynamicK(string userInput)
+        {
+            var wordCount = userInput.Split(new[] { ' ', '\t', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
+
+            if (wordCount < 10) return 5;
+            if (wordCount <= 30) return 10;
+            return 20;
+        }
+
+        private string TruncateToTokenLimit(string text, int tokenLimit)
+        {
+            // Simple heuristic: 1 token ~= 4 characters
+            if (text.Length <= tokenLimit) return text;
+
+            var sentences = text.Split(new[] { ". ", "! ", "? " }, StringSplitOptions.RemoveEmptyEntries);
+            var truncatedText = new StringBuilder();
+            var currentLength = 0;
+
+            foreach (var sentence in sentences)
+            {
+                if (currentLength + sentence.Length + 2 > tokenLimit)
+                {
+                    break;
+                }
+                truncatedText.Append(sentence).Append(". ");
+                currentLength += sentence.Length + 2;
+            }
+
+            return truncatedText.ToString().TrimEnd() + "...";
         }
 
     }

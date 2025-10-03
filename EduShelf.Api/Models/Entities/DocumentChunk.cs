@@ -10,6 +10,8 @@ namespace EduShelf.Api.Models.Entities
         public Document Document { get; set; }
         public string Content { get; set; }
 
+        public int Page { get; set; }
+
         [Column(TypeName = "vector(768)")]
         public Vector Embedding { get; set; }
     }
