@@ -41,7 +41,7 @@ const UploadDialog = ({ onClose, onUploadSuccess }) => {
     <div className="upload-dialog-overlay">
       <div className="upload-dialog">
         <h2>Datei hochladen</h2>
-        <input type="file" onChange={handleFileChange} />
+        <input type="file" onChange={handleFileChange} accept=".pdf,.doc,.docx,.txt" />
         <div className="dialog-buttons">
           <button onClick={handleUpload} className="primary">Hochladen</button>
           <button onClick={onClose}>Schließen</button>
