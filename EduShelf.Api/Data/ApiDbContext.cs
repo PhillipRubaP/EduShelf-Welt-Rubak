@@ -23,6 +23,8 @@ public class ApiDbContext : DbContext
     public DbSet<Answer> Answers { get; set; }
     public DbSet<DocumentChunk> DocumentChunks { get; set; }
     public DbSet<FlashcardTag> FlashcardTags { get; set; }
+    public DbSet<Role> Roles { get; set; }
+    public DbSet<UserRole> UserRoles { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -46,6 +48,19 @@ public class ApiDbContext : DbContext
         modelBuilder.Entity<Favourite>()
             .HasKey(f => new { f.UserId, f.DocumentId });
 
+        modelBuilder.Entity<UserRole>()
+            .HasKey(ur => new { ur.UserId, ur.RoleId });
+
+        modelBuilder.Entity<UserRole>()
+            .HasOne(ur => ur.User)
+            .WithMany(u => u.UserRoles)
+            .HasForeignKey(ur => ur.UserId);
+
+        modelBuilder.Entity<UserRole>()
+            .HasOne(ur => ur.Role)
+            .WithMany(r => r.UserRoles)
+            .HasForeignKey(ur => ur.RoleId);
+ 
         modelBuilder.Entity<Document>()
             .HasOne(d => d.User)
             .WithMany()
@@ -83,6 +98,11 @@ public class ApiDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
         // Seed initial data
+        modelBuilder.Entity<Role>().HasData(
+            new Role { RoleId = 1, Name = "Admin" },
+            new Role { RoleId = 2, Name = "Schüler" }
+        );
+
         modelBuilder.Entity<User>().HasData(
             new User
             {
@@ -90,9 +110,21 @@ public class ApiDbContext : DbContext
                 Username = "Admin User",
                 Email = "admin@edushelf.com",
                 PasswordHash = "$2a$11$hP5Ch.WgPqrLbA8xsDe4vOBfyiP9cQxM8Yt6FWkCo2Z.wX2CgyiP6",
-                Role = "Admin",
+                CreatedAt = DateTime.UtcNow
+            },
+            new User
+            {
+                UserId = 2,
+                Username = "Student User",
+                Email = "student@edushelf.com",
+                PasswordHash = "$2a$11$UY8JAY3qb1seKMqc4duzd.ygPIwM.vZ1OCRImtEXfC7tIg2ttTVOS",
                 CreatedAt = DateTime.UtcNow
             }
+        );
+
+        modelBuilder.Entity<UserRole>().HasData(
+            new UserRole { UserId = 1, RoleId = 1 },
+            new UserRole { UserId = 2, RoleId = 2 }
         );
 
         modelBuilder.Entity<Tag>().HasData(
@@ -102,18 +134,6 @@ public class ApiDbContext : DbContext
             new Tag { Id = 4, Name = "Biology" },
             new Tag { Id = 5, Name = "History" },
             new Tag { Id = 6, Name = "Computer Science" }
-        );
-
-        modelBuilder.Entity<User>().HasData(
-            new User
-            {
-                UserId = 2,
-                Username = "Student User",
-                Email = "student@edushelf.com",
-                PasswordHash = "$2a$11$UY8JAY3qb1seKMqc4duzd.ygPIwM.vZ1OCRImtEXfC7tIg2ttTVOS",
-                Role = "Student",
-                CreatedAt = DateTime.UtcNow
-            }
         );
 
         modelBuilder.Entity<Document>().HasData(

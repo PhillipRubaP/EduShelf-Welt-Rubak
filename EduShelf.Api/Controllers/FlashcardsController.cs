@@ -7,10 +7,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+
 namespace EduShelf.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
+    [ApiExplorerSettings(GroupName = "Flashcards")]
     public class FlashcardsController : ControllerBase
     {
         private readonly ApiDbContext _context;
@@ -24,7 +29,21 @@ namespace EduShelf.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FlashcardDto>>> GetFlashcards()
         {
-            return await _context.Flashcards
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+            var isAdmin = User.IsInRole("Admin");
+
+            var query = _context.Flashcards.AsQueryable();
+
+            if (!isAdmin)
+            {
+                query = query.Where(f => f.UserId == userId);
+            }
+
+            return await query
                 .Include(f => f.FlashcardTags)
                 .ThenInclude(ft => ft.Tag)
                 .Select(f => new FlashcardDto
@@ -62,6 +81,18 @@ namespace EduShelf.Api.Controllers
                 return NotFound();
             }
 
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+            var isAdmin = User.IsInRole("Admin");
+
+            if (!isAdmin && flashcard.UserId != userId)
+            {
+                return Forbid();
+            }
+
             return flashcard;
         }
 
@@ -69,9 +100,15 @@ namespace EduShelf.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<FlashcardDto>> PostFlashcard(FlashcardCreateDto flashcardDto)
         {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+
             var flashcard = new Flashcard
             {
-                UserId = flashcardDto.UserId,
+                UserId = userId,
                 Question = flashcardDto.Question,
                 Answer = flashcardDto.Answer
             };
@@ -117,6 +154,18 @@ namespace EduShelf.Api.Controllers
             if (flashcard == null)
             {
                 return NotFound();
+            }
+
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+            var isAdmin = User.IsInRole("Admin");
+
+            if (!isAdmin && flashcard.UserId != userId)
+            {
+                return Forbid();
             }
 
             flashcard.UserId = flashcardDto.UserId;
@@ -165,6 +214,18 @@ namespace EduShelf.Api.Controllers
             if (flashcard == null)
             {
                 return NotFound();
+            }
+
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+            var isAdmin = User.IsInRole("Admin");
+
+            if (!isAdmin && flashcard.UserId != userId)
+            {
+                return Forbid();
             }
 
             _context.Flashcards.Remove(flashcard);

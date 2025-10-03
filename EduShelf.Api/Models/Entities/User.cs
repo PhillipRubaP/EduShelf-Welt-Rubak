@@ -22,7 +22,7 @@ public class User
     [NotMapped]
     public string Password { get; set; } = string.Empty;
 
-    public string Role { get; set; } = "Schüler";
+    public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

@@ -4,12 +4,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EduShelf.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
+    [ApiExplorerSettings(GroupName = "Quizzes")]
     public class QuizzesController : ControllerBase
     {
         private readonly ApiDbContext _context;
@@ -23,7 +27,21 @@ namespace EduShelf.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Quiz>>> GetQuizzes()
         {
-            return await _context.Quizzes
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+            var isAdmin = User.IsInRole("Admin");
+
+            var query = _context.Quizzes.AsQueryable();
+
+            if (!isAdmin)
+            {
+                query = query.Where(q => q.UserId == userId);
+            }
+
+            return await query
                 .Include(q => q.Questions)
                 .ThenInclude(q => q.Answers)
                 .ToListAsync();
@@ -43,6 +61,18 @@ namespace EduShelf.Api.Controllers
                 return NotFound();
             }
 
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+            var isAdmin = User.IsInRole("Admin");
+
+            if (!isAdmin && quiz.UserId != userId)
+            {
+                return Forbid();
+            }
+
             return quiz;
         }
 
@@ -50,10 +80,16 @@ namespace EduShelf.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<Quiz>> PostQuiz(Quiz quiz)
         {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+
             var newQuiz = new Quiz
             {
                 Title = quiz.Title,
-                UserId = 1, // TODO: Replace with actual user ID from claims
+                UserId = userId,
                 Questions = quiz.Questions
             };
 
@@ -70,6 +106,24 @@ namespace EduShelf.Api.Controllers
             if (id != quiz.Id)
             {
                 return BadRequest();
+            }
+
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+            var isAdmin = User.IsInRole("Admin");
+            var q = await _context.Quizzes.FindAsync(id);
+
+            if (q == null)
+            {
+                return NotFound();
+            }
+
+            if (!isAdmin && q.UserId != userId)
+            {
+                return Forbid();
             }
 
             _context.Entry(quiz).State = EntityState.Modified;
@@ -101,6 +155,18 @@ namespace EduShelf.Api.Controllers
             if (quiz == null)
             {
                 return NotFound();
+            }
+
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+            var isAdmin = User.IsInRole("Admin");
+
+            if (!isAdmin && quiz.UserId != userId)
+            {
+                return Forbid();
             }
 
             _context.Quizzes.Remove(quiz);

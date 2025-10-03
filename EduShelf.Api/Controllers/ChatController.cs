@@ -8,6 +8,7 @@ namespace EduShelf.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
+    [ApiExplorerSettings(GroupName = "Chat")]
     public class ChatController : ControllerBase
     {
         private readonly ChatService _chatService;

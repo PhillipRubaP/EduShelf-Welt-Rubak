@@ -5,11 +5,14 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EduShelf.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
+    [ApiExplorerSettings(GroupName = "Tags")]
     public class TagsController : ControllerBase
     {
         private readonly ApiDbContext _context;
@@ -42,6 +45,7 @@ namespace EduShelf.Api.Controllers
 
         // POST: api/Tags
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Tag>> PostTag(Tag tag)
         {
             _context.Tags.Add(tag);
@@ -52,6 +56,7 @@ namespace EduShelf.Api.Controllers
 
         // PUT: api/Tags/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> PutTag(int id, Tag tag)
         {
             if (id != tag.Id)
@@ -82,6 +87,7 @@ namespace EduShelf.Api.Controllers
 
         // DELETE: api/Tags/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteTag(int id)
         {
             var tag = await _context.Tags.FindAsync(id);

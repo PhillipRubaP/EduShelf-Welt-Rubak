@@ -19,6 +19,7 @@ namespace EduShelf.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
+    [ApiExplorerSettings(GroupName = "Users")]
     public class UsersController : ControllerBase
     {
         private readonly ApiDbContext _context;
@@ -32,6 +33,7 @@ namespace EduShelf.Api.Controllers
 
         // GET: api/Users
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
         {
             return await _context.Users
@@ -41,6 +43,7 @@ namespace EduShelf.Api.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<UserDto>> GetUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
@@ -82,6 +85,14 @@ namespace EduShelf.Api.Controllers
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(userRegister.Password)
             };
 
+            var schuelerRole = await _context.Roles.SingleOrDefaultAsync(r => r.Name == "Schüler");
+            if (schuelerRole == null)
+            {
+                return StatusCode(500, "Default role not found.");
+            }
+
+            user.UserRoles.Add(new UserRole { Role = schuelerRole });
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
@@ -99,7 +110,10 @@ namespace EduShelf.Api.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<LoginResponseDto>> Login([FromBody] UserLogin login)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == login.Email);
+            var user = await _context.Users
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Email == login.Email);
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(login.Password, user.PasswordHash))
             {
@@ -123,13 +137,17 @@ namespace EduShelf.Api.Controllers
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
+
+            foreach (var userRole in user.UserRoles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
+            }
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
@@ -220,6 +238,14 @@ namespace EduShelf.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, User userUpdate)
         {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+
+            if (currentUserId != id.ToString() && !isAdmin)
+            {
+                return Forbid();
+            }
+
             if (id != userUpdate.UserId)
             {
                 return BadRequest();
@@ -255,6 +281,7 @@ namespace EduShelf.Api.Controllers
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
@@ -272,6 +299,75 @@ namespace EduShelf.Api.Controllers
         private bool UserExists(int id)
         {
             return _context.Users.Any(e => e.UserId == id);
+        }
+
+        [HttpGet("{id}/roles")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<IEnumerable<Role>>> GetUserRoles(int id)
+        {
+            var user = await _context.Users
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.UserId == id);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(user.UserRoles.Select(ur => ur.Role));
+        }
+
+        [HttpPost("{id}/roles")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AddUserRole(int id, [FromBody] UserRoleDto userRoleDto)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            var role = await _context.Roles.FindAsync(userRoleDto.RoleId);
+            if (role == null)
+            {
+                return NotFound("Role not found.");
+            }
+
+            var userRoleExists = await _context.UserRoles.AnyAsync(ur => ur.UserId == id && ur.RoleId == userRoleDto.RoleId);
+            if (userRoleExists)
+            {
+                return Conflict("User already has this role.");
+            }
+
+            var userRole = new UserRole
+            {
+                UserId = id,
+                RoleId = userRoleDto.RoleId
+            };
+
+            _context.UserRoles.Add(userRole);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpDelete("{id}/roles/{roleId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RemoveUserRole(int id, int roleId)
+        {
+            var userRole = await _context.UserRoles
+                .FirstOrDefaultAsync(ur => ur.UserId == id && ur.RoleId == roleId);
+
+            if (userRole == null)
+            {
+                return NotFound("User role not found.");
+            }
+
+            _context.UserRoles.Remove(userRole);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 

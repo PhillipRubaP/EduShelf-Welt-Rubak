@@ -22,6 +22,7 @@ namespace EduShelf.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
+    [ApiExplorerSettings(GroupName = "Documents")]
     public class DocumentsController : ControllerBase
     {
         private readonly ApiDbContext _context;
@@ -74,6 +75,14 @@ namespace EduShelf.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<DocumentDto>> GetDocument(int id)
         {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
+
             var document = await _context.Documents
                 .Include(d => d.DocumentTags)
                 .ThenInclude(dt => dt.Tag)
@@ -84,9 +93,15 @@ namespace EduShelf.Api.Controllers
                     Title = d.Title,
                     FileType = d.FileType,
                     CreatedAt = d.CreatedAt,
-                    Tags = d.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList()
+                    Tags = d.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList(),
+                    UserId = d.UserId
                 })
                 .FirstOrDefaultAsync();
+
+            if (document != null && userRole != "Admin" && document.UserId != userId)
+            {
+                return Forbid();
+            }
 
             if (document == null)
             {
@@ -177,6 +192,25 @@ namespace EduShelf.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutDocument(int id, Models.Entities.Document document)
         {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
+            var doc = await _context.Documents.FindAsync(id);
+
+            if (doc == null)
+            {
+                return NotFound();
+            }
+
+            if (userRole != "Admin" && doc.UserId != userId)
+            {
+                return Forbid();
+            }
+
             if (id != document.Id)
             {
                 return BadRequest();
@@ -207,10 +241,23 @@ namespace EduShelf.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDocument(int id)
         {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+
+            var userRole = User.FindFirstValue(ClaimTypes.Role);
             var document = await _context.Documents.FindAsync(id);
+
             if (document == null)
             {
                 return NotFound();
+            }
+
+            if (userRole != "Admin" && document.UserId != userId)
+            {
+                return Forbid();
             }
 
             _context.Documents.Remove(document);
