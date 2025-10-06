@@ -1,5 +1,6 @@
 using EduShelf.Api.Data;
 using EduShelf.Api.Models.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Embeddings;
 using Microsoft.SemanticKernel.Text;
@@ -89,27 +90,36 @@ namespace EduShelf.Api.Services
 
         private async Task ProcessAll(int documentId, List<string> chunks)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<ApiDbContext>();
-            var kernel = scope.ServiceProvider.GetRequiredService<Kernel>();
-            var embeddingGenerator = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
-            var document = await context.Documents.FindAsync(documentId);
-            var title = document?.Title ?? "Unknown Document";
-
-            foreach (var chunk in chunks)
+            using (var scope = _scopeFactory.CreateScope())
             {
-                var contentWithTitle = $"Document: {title}\n{chunk}";
-                var embedding = await embeddingGenerator.GenerateEmbeddingAsync(contentWithTitle);
-                var documentChunk = new DocumentChunk
-                {
-                    DocumentId = documentId,
-                    Content = contentWithTitle,
-                    Embedding = new Pgvector.Vector(embedding)
-                };
-                context.DocumentChunks.Add(documentChunk);
-            }
+                var context = scope.ServiceProvider.GetRequiredService<ApiDbContext>();
+                var kernel = scope.ServiceProvider.GetRequiredService<Kernel>();
+                var embeddingGenerator = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
 
-            await context.SaveChangesAsync();
+                // Clear old chunks before adding new ones
+                var oldChunks = await context.DocumentChunks.Where(dc => dc.DocumentId == documentId).ToListAsync();
+                if (oldChunks.Any())
+                {
+                    context.DocumentChunks.RemoveRange(oldChunks);
+                    await context.SaveChangesAsync();
+                    _logger.LogInformation("Removed {OldChunkCount} old chunks for document ID {DocumentId}", oldChunks.Count, documentId);
+                }
+
+                foreach (var chunk in chunks)
+                {
+                    var embedding = await embeddingGenerator.GenerateEmbeddingAsync(chunk);
+                    var documentChunk = new DocumentChunk
+                    {
+                        DocumentId = documentId,
+                        Content = chunk,
+                        Embedding = new Pgvector.Vector(embedding),
+                        Page = 0 // Placeholder for now
+                    };
+                    context.DocumentChunks.Add(documentChunk);
+                }
+
+                await context.SaveChangesAsync();
+            }
             _logger.LogInformation("Successfully indexed {ChunkCount} chunks for document ID {DocumentId}", chunks.Count, documentId);
         }
 
@@ -119,27 +129,31 @@ namespace EduShelf.Api.Services
             for (int i = 0; i < chunks.Count; i += batchSize)
             {
                 var batch = chunks.Skip(i).Take(batchSize).ToList();
-                using var scope = _scopeFactory.CreateScope();
-                var context = scope.ServiceProvider.GetRequiredService<ApiDbContext>();
-                var kernel = scope.ServiceProvider.GetRequiredService<Kernel>();
-                var embeddingGenerator = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
-                var document = await context.Documents.FindAsync(documentId);
-                var title = document?.Title ?? "Unknown Document";
-
-                foreach (var chunk in batch)
+                using (var scope = _scopeFactory.CreateScope())
                 {
-                    var contentWithTitle = $"Document: {title}\n{chunk}";
-                    var embedding = await embeddingGenerator.GenerateEmbeddingAsync(contentWithTitle);
-                    var documentChunk = new DocumentChunk
-                    {
-                        DocumentId = documentId,
-                        Content = contentWithTitle,
-                        Embedding = new Pgvector.Vector(embedding)
-                    };
-                    context.DocumentChunks.Add(documentChunk);
-                }
+                    var context = scope.ServiceProvider.GetRequiredService<ApiDbContext>();
+                    var kernel = scope.ServiceProvider.GetRequiredService<Kernel>();
+                    var embeddingGenerator = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
 
-                await context.SaveChangesAsync();
+                    // It's better to clear all old chunks once at the start,
+                    // but if we must do it in batches, this logic would need to be more complex.
+                    // For simplicity, we assume the main `IndexDocumentAsync` handles clearing.
+
+                    foreach (var chunk in batch)
+                    {
+                        var embedding = await embeddingGenerator.GenerateEmbeddingAsync(chunk);
+                        var documentChunk = new DocumentChunk
+                        {
+                            DocumentId = documentId,
+                            Content = chunk,
+                            Embedding = new Pgvector.Vector(embedding),
+                            Page = 0 // Placeholder
+                        };
+                        context.DocumentChunks.Add(documentChunk);
+                    }
+
+                    await context.SaveChangesAsync();
+                }
                 totalChunks += batch.Count;
                 _logger.LogInformation("Indexed batch of {BatchCount} chunks for document ID {DocumentId}", batch.Count, documentId);
             }

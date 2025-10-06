@@ -4,28 +4,36 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.Ollama;
 using Microsoft.SemanticKernel.Embeddings;
+using System.IO;
 using Pgvector;
 using Pgvector.EntityFrameworkCore;
 using System.Text;
-using System.Text.RegularExpressions;
 using EduShelf.Api.Models.Entities;
 using Microsoft.Extensions.Configuration;
+using System.Text.Json;
 
 namespace EduShelf.Api.Services
 {
     public class ChatService
     {
+        private class Intent
+        {
+            public string Type { get; set; }
+            public string DocumentName { get; set; }
+        }
         private readonly ApiDbContext _context;
         private readonly Kernel _kernel;
         private readonly ILogger<ChatService> _logger;
         private readonly IConfiguration _configuration;
+        private readonly IndexingService _indexingService;
 
-        public ChatService(ApiDbContext context, Kernel kernel, ILogger<ChatService> logger, IConfiguration configuration)
+        public ChatService(ApiDbContext context, Kernel kernel, ILogger<ChatService> logger, IConfiguration configuration, IndexingService indexingService)
         {
             _context = context;
             _kernel = kernel;
             _logger = logger;
             _configuration = configuration;
+            _indexingService = indexingService;
         }
 
         public async Task<string> GetResponseAsync(string userInput, int userId)
@@ -35,16 +43,38 @@ namespace EduShelf.Api.Services
                 var contextText = new StringBuilder();
                 List<DocumentChunk> relevantChunks;
 
-                // Regex to find "file 'filename.ext'"
-                var fileMatch = Regex.Match(userInput, @"file\s+'([^']+\.\w+)'", RegexOptions.IgnoreCase);
+                var intent = await GetIntentAsync(userInput);
 
-                if (fileMatch.Success)
+                if (intent.Type == "summarize" && !string.IsNullOrEmpty(intent.DocumentName))
                 {
-                    var fileName = fileMatch.Groups[1].Value;
+                    var documentNameWithoutExtension = Path.GetFileNameWithoutExtension(intent.DocumentName);
                     relevantChunks = await _context.DocumentChunks
                         .Include(dc => dc.Document)
-                        .Where(dc => dc.Document.UserId == userId && EF.Functions.ILike(dc.Document.Title, fileName))
+                        .Where(dc => dc.Document.UserId == userId && EF.Functions.ILike(dc.Document.Title, documentNameWithoutExtension))
                         .ToListAsync();
+
+                    // If no chunks are found, try to re-index the document
+                    if (!relevantChunks.Any())
+                    {
+                        _logger.LogWarning("No chunks found for document '{DocumentName}'. Attempting to re-index.", documentNameWithoutExtension);
+                        var documentToIndex = await _context.Documents
+                            .FirstOrDefaultAsync(d => d.UserId == userId && EF.Functions.ILike(d.Title, documentNameWithoutExtension));
+
+                        if (documentToIndex != null)
+                        {
+                            await _indexingService.IndexDocumentAsync(documentToIndex.Id, documentToIndex.Path);
+                            // Re-query for the chunks after indexing
+                            relevantChunks = await _context.DocumentChunks
+                                .Include(dc => dc.Document)
+                                .Where(dc => dc.Document.UserId == userId && EF.Functions.ILike(dc.Document.Title, documentNameWithoutExtension))
+                                .ToListAsync();
+                            _logger.LogInformation("Re-indexing complete. Found {ChunkCount} chunks.", relevantChunks.Count);
+                        }
+                        else
+                        {
+                            _logger.LogError("Could not find document '{DocumentName}' to re-index.", documentNameWithoutExtension);
+                        }
+                    }
                 }
                 else
                 {
@@ -109,6 +139,62 @@ namespace EduShelf.Api.Services
             {
                 _logger.LogError(ex, "Error getting response from ChatService.");
                 return "An error occurred while processing your request.";
+            }
+        }
+
+        private async Task<Intent> GetIntentAsync(string userInput)
+        {
+            var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
+            var chatHistory = new ChatHistory();
+            chatHistory.AddSystemMessage("""
+                You are an intent detection agent. Your job is to analyze the user's prompt and determine their intent and the document they are referring to.
+                - The possible intents are: "summarize", "question".
+                - If the user wants a general overview, a summary, or to know what a document is about, the intent is "summarize".
+                - If the user is asking a specific question that can be answered from a small part of the document, the intent is "question".
+                - Your output must be a single, valid JSON object with two properties: "Type" (string) and "DocumentName" (string or null).
+                - Extract the filename, including its extension. Look for names in quotes, or phrases like "file named X", "document Y".
+                - If no specific document is mentioned, "DocumentName" must be null.
+
+                Examples:
+                - User: "Summarize the file 'my_document.pdf'" -> {"Type": "summarize", "DocumentName": "my_document.pdf"}
+                - User: "What is the capital of France according to the text?" -> {"Type": "question", "DocumentName": null}
+                - User: "Tell me everything about 'chapter1.docx'" -> {"Type": "summarize", "DocumentName": "chapter1.docx"}
+                - User: "Read the file named czech.txt and summarize its contents" -> {"Type": "summarize", "DocumentName": "czech.txt"}
+                - User: "where is the name Czechia first mentioned" -> {"Type": "question", "DocumentName": null}
+            """);
+            chatHistory.AddUserMessage(userInput);
+
+            var result = await chatCompletionService.GetChatMessageContentAsync(chatHistory);
+            var rawContent = result.Content ?? string.Empty;
+            _logger.LogInformation("Intent detection raw response: {IntentResponse}", rawContent);
+
+            // Clean the response to remove markdown code blocks
+            var cleanedJson = rawContent.Trim();
+            if (cleanedJson.StartsWith("```json"))
+            {
+                cleanedJson = cleanedJson.Substring(7);
+            }
+            if (cleanedJson.StartsWith("```"))
+            {
+                cleanedJson = cleanedJson.Substring(3);
+            }
+            if (cleanedJson.EndsWith("```"))
+            {
+                cleanedJson = cleanedJson.Substring(0, cleanedJson.Length - 3);
+            }
+            cleanedJson = cleanedJson.Trim();
+
+            try
+            {
+                var intent = JsonSerializer.Deserialize<Intent>(cleanedJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new Intent { Type = "question", DocumentName = null };
+                _logger.LogInformation("Parsed intent: Type={IntentType}, DocumentName={DocumentName}", intent.Type, intent.DocumentName);
+                return intent;
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "Failed to parse intent JSON: {JsonContent}", result.Content);
+                // If JSON parsing fails, default to a general question
+                return new Intent { Type = "question", DocumentName = null };
             }
         }
 
