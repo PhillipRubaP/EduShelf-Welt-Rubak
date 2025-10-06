@@ -128,11 +128,11 @@ namespace EduShelf.Api.Controllers
 
             var originalFileName = Path.GetFileName(file.FileName);
             var fileExtension = Path.GetExtension(originalFileName).ToLowerInvariant();
-            var allowedExtensions = new[] { ".pdf", ".docx", ".txt" };
+            var allowedExtensions = new[] { ".pdf", ".docx", ".txt", ".doc" };
 
             if (!allowedExtensions.Contains(fileExtension))
             {
-                return BadRequest("Invalid file type. Only .pdf, .docx, and .txt files are allowed.");
+                return BadRequest("Invalid file type. Only .pdf, .docx, .txt and .doc files are allowed.");
             }
 
             var uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
@@ -436,6 +436,32 @@ namespace EduShelf.Api.Controllers
         {
             return _context.Documents.Any(e => e.Id == id);
         }
+
+        [HttpGet("download/{id}")]
+        public async Task<IActionResult> DownloadDocument(int id)
+        {
+            var document = await _context.Documents.FindAsync(id);
+            if (document == null)
+            {
+                return NotFound();
+            }
+
+            var filePath = Path.Combine(_uploadPath, document.Path);
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound("File not found.");
+            }
+
+            var memory = new MemoryStream();
+            using (var stream = new FileStream(filePath, FileMode.Open))
+            {
+                await stream.CopyToAsync(memory);
+            }
+            memory.Position = 0;
+
+            return File(memory, GetContentType(filePath), document.Title + "." + document.FileType);
+        }
+        
         [HttpGet("{id}/content")]
         public async Task<IActionResult> GetDocumentContent(int id)
         {
@@ -484,7 +510,7 @@ namespace EduShelf.Api.Controllers
                     content = stringBuilder.ToString();
                 }
             }
-            else if (fileExtension == ".docx")
+            else if (fileExtension == ".docx" || fileExtension == ".doc")
             {
                 using (var wordDoc = WordprocessingDocument.Open(filePath, false))
                 {
@@ -620,5 +646,6 @@ namespace EduShelf.Api.Controllers
 
             return NoContent();
         }
+
     }
 }

@@ -6,10 +6,14 @@ const getAuthHeaders = () => {
 };
 
 const api = {
-  get: async (endpoint) => {
+  get: async (endpoint, options = {}) => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       headers: getAuthHeaders(),
+      ...options,
     });
+    if (options.responseType === 'blob') {
+      return response.blob();
+    }
     return response.json();
   },
 
@@ -54,6 +58,10 @@ const api = {
       headers: getAuthHeaders(),
     });
     return response;
+  },
+
+  download: async (endpoint) => {
+    return api.get(endpoint, { responseType: 'blob' });
   },
 };
 
