@@ -6,8 +6,11 @@ namespace EduShelf.Api.Data;
 
 public class ApiDbContext : DbContext
 {
-    public ApiDbContext(DbContextOptions<ApiDbContext> options) : base(options)
+    private readonly IConfiguration _configuration;
+
+    public ApiDbContext(DbContextOptions<ApiDbContext> options, IConfiguration configuration) : base(options)
     {
+        _configuration = configuration;
     }
 
     public DbSet<User> Users { get; set; }
@@ -109,7 +112,7 @@ public class ApiDbContext : DbContext
                 UserId = 1,
                 Username = "Admin User",
                 Email = "admin@edushelf.com",
-                PasswordHash = "$2a$11$hP5Ch.WgPqrLbA8xsDe4vOBfyiP9cQxM8Yt6FWkCo2Z.wX2CgyiP6",
+                PasswordHash = _configuration["Seeding:AdminPasswordHash"] ?? throw new InvalidOperationException("Admin password hash not found in configuration."),
                 CreatedAt = DateTime.UtcNow
             },
             new User
@@ -117,7 +120,7 @@ public class ApiDbContext : DbContext
                 UserId = 2,
                 Username = "Student User",
                 Email = "student@edushelf.com",
-                PasswordHash = "$2a$11$UY8JAY3qb1seKMqc4duzd.ygPIwM.vZ1OCRImtEXfC7tIg2ttTVOS",
+                PasswordHash = _configuration["Seeding:StudentPasswordHash"] ?? throw new InvalidOperationException("Student password hash not found in configuration."),
                 CreatedAt = DateTime.UtcNow
             }
         );

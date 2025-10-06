@@ -26,8 +26,11 @@ kernelBuilder.AddOllamaTextEmbeddingGeneration(
 builder.Services.AddScoped<IndexingService>();
 builder.Services.AddScoped<ChatService>();
 
-builder.Services.AddDbContext<ApiDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), o => o.UseVector()));
+builder.Services.AddDbContext<ApiDbContext>((serviceProvider, options) =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"), o => o.UseVector());
+});
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
