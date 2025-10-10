@@ -18,7 +18,7 @@ namespace EduShelf.Api.Controllers
             _chatService = chatService;
         }
 
-        [HttpPost]
+        [HttpPost("message")]
         public async Task<IActionResult> PostMessage([FromBody] ChatRequest request)
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -29,19 +29,50 @@ namespace EduShelf.Api.Controllers
 
             try
             {
-                var response = await _chatService.GetResponseAsync(request.Message, int.Parse(userId));
+                var response = await _chatService.GetResponseAsync(request.Message, int.Parse(userId), request.ChatSessionId);
                 return Ok(new { response });
             }
             catch (Exception ex)
             {
-                // Log the exception details here if you have a logger
                 return StatusCode(500, new { response = "An error occurred while processing your request." });
             }
+        }
+
+        [HttpGet("sessions")]
+        public async Task<IActionResult> GetSessions()
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var sessions = await _chatService.GetChatSessionsAsync(int.Parse(userId));
+            return Ok(sessions);
+        }
+
+        [HttpPost("sessions")]
+        public async Task<IActionResult> CreateSession([FromBody] CreateSessionRequest request)
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var session = await _chatService.CreateChatSessionAsync(int.Parse(userId), request.Title);
+            return Ok(session);
         }
     }
 
     public class ChatRequest
     {
         public string Message { get; set; }
+        public int ChatSessionId { get; set; }
+    }
+
+    public class CreateSessionRequest
+    {
+        public string Title { get; set; }
     }
 }

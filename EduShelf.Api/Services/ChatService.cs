@@ -36,26 +36,17 @@ namespace EduShelf.Api.Services
             _indexingService = indexingService;
         }
 
-        public async Task<string> GetResponseAsync(string userInput, int userId)
+        public async Task<string> GetResponseAsync(string userInput, int userId, int chatSessionId)
         {
             try
             {
                 var chatSession = await _context.ChatSessions
                     .Include(cs => cs.ChatMessages)
-                    .Where(cs => cs.UserId == userId)
-                    .OrderByDescending(cs => cs.CreatedAt)
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefaultAsync(cs => cs.Id == chatSessionId && cs.UserId == userId);
 
                 if (chatSession == null)
                 {
-                    chatSession = new ChatSession
-                    {
-                        UserId = userId,
-                        Title = "Default Chat",
-                        CreatedAt = DateTime.UtcNow
-                    };
-                    _context.ChatSessions.Add(chatSession);
-                    await _context.SaveChangesAsync();
+                    throw new Exception("Chat session not found.");
                 }
 
                 var contextText = new StringBuilder();
@@ -103,6 +94,7 @@ namespace EduShelf.Api.Services
                 var chatHistory = new ChatHistory();
                 chatHistory.AddSystemMessage("You are a learning assistant...");
 
+                // Add previous messages from the session to the history
                 foreach (var message in chatSession.ChatMessages.OrderBy(m => m.CreatedAt))
                 {
                     chatHistory.AddUserMessage(message.Message);
@@ -118,9 +110,10 @@ namespace EduShelf.Api.Services
                 var result = await chatCompletionService.GetChatMessageContentAsync(chatHistory);
                 var responseContent = result.Content ?? "I'm sorry, I couldn't generate a response.";
 
+                // Save the new message and response
                 var chatMessage = new ChatMessage
                 {
-                    ChatSessionId = chatSession.Id,
+                    ChatSessionId = chatSessionId,
                     Message = userInput,
                     Response = responseContent,
                     CreatedAt = DateTime.UtcNow
@@ -135,6 +128,28 @@ namespace EduShelf.Api.Services
                 _logger.LogError(ex, "Error getting response from ChatService.");
                 return "An error occurred while processing your request.";
             }
+        }
+
+        public async Task<ChatSession> CreateChatSessionAsync(int userId, string title)
+        {
+            var chatSession = new ChatSession
+            {
+                UserId = userId,
+                Title = title,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.ChatSessions.Add(chatSession);
+            await _context.SaveChangesAsync();
+            return chatSession;
+        }
+
+        public async Task<List<ChatSession>> GetChatSessionsAsync(int userId)
+        {
+            return await _context.ChatSessions
+                .Where(cs => cs.UserId == userId)
+                .OrderByDescending(cs => cs.CreatedAt)
+                .ToListAsync();
         }
 
         private async Task<Intent> GetIntentAsync(string userInput)
