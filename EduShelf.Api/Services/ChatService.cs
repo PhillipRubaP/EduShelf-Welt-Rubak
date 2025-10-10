@@ -8,6 +8,7 @@ using System.IO;
 using Pgvector;
 using Pgvector.EntityFrameworkCore;
 using System.Text;
+using EduShelf.Api.Exceptions;
 using EduShelf.Api.Models.Entities;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;
@@ -38,6 +39,16 @@ namespace EduShelf.Api.Services
 
         public async Task<string> GetResponseAsync(string userInput, int userId, int chatSessionId)
         {
+            if (string.IsNullOrWhiteSpace(userInput))
+            {
+                throw new BadRequestException("User input cannot be empty.");
+            }
+
+            if (userInput.Length > 2000)
+            {
+                throw new BadRequestException("User input cannot exceed 2000 characters.");
+            }
+
             try
             {
                 var chatSession = await _context.ChatSessions
@@ -130,6 +141,16 @@ namespace EduShelf.Api.Services
 
         public async Task<ChatSession> CreateChatSessionAsync(int userId, string title)
         {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                throw new BadRequestException("Title cannot be empty.");
+            }
+
+            if (title.Length > 100)
+            {
+                throw new BadRequestException("Title cannot exceed 100 characters.");
+            }
+
             var chatSession = new ChatSession
             {
                 UserId = userId,

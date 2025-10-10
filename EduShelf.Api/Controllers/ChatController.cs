@@ -1,7 +1,9 @@
+using EduShelf.Api.Exceptions;
 using EduShelf.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using System.ComponentModel.DataAnnotations;
 
 namespace EduShelf.Api.Controllers
 {
@@ -27,15 +29,8 @@ namespace EduShelf.Api.Controllers
                 return Unauthorized();
             }
 
-            try
-            {
-                var response = await _chatService.GetResponseAsync(request.Message, int.Parse(userId), request.ChatSessionId);
-                return Ok(new { response });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { response = "An error occurred while processing your request." });
-            }
+            var response = await _chatService.GetResponseAsync(request.Message, int.Parse(userId), request.ChatSessionId);
+            return Ok(new { response });
         }
 
         [HttpGet("sessions")]
@@ -107,12 +102,16 @@ namespace EduShelf.Api.Controllers
 
     public class ChatRequest
     {
+        [Required]
+        [MaxLength(2000)]
         public string Message { get; set; }
         public int ChatSessionId { get; set; }
     }
 
     public class CreateSessionRequest
     {
+        [Required]
+        [MaxLength(100)]
         public string Title { get; set; }
     }
 }
