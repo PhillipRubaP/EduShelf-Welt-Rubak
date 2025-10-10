@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using EduShelf.Api.Exceptions;
 
 namespace EduShelf.Api.Middleware;
 
@@ -29,8 +30,21 @@ public class ErrorHandlingMiddleware
 
     private static Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        var code = HttpStatusCode.InternalServerError; // 500 if unexpected
+        var code = HttpStatusCode.InternalServerError;
         var result = JsonSerializer.Serialize(new { error = "An unexpected error occurred." });
+
+        switch (exception)
+        {
+            case NotFoundException notFoundException:
+                code = HttpStatusCode.NotFound;
+                result = JsonSerializer.Serialize(new { error = notFoundException.Message });
+                break;
+            case BadRequestException badRequestException:
+                code = HttpStatusCode.BadRequest;
+                result = JsonSerializer.Serialize(new { error = badRequestException.Message });
+                break;
+        }
+
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)code;
         return context.Response.WriteAsync(result);
