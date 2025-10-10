@@ -151,7 +151,10 @@ namespace EduShelf.Api.Controllers
         [HttpPatch("{id}")]
         public async Task<IActionResult> PatchQuiz(int id, QuizUpdateDto quizUpdate)
         {
-            var quiz = await _context.Quizzes.FindAsync(id);
+            var quiz = await _context.Quizzes
+                .Include(q => q.Questions)
+                .ThenInclude(q => q.Answers)
+                .FirstOrDefaultAsync(q => q.Id == id);
 
             if (quiz == null)
             {
@@ -173,6 +176,52 @@ namespace EduShelf.Api.Controllers
             if (!string.IsNullOrEmpty(quizUpdate.Title))
             {
                 quiz.Title = quizUpdate.Title;
+            }
+
+            if (quizUpdate.Questions != null)
+            {
+                var questionIdsToKeep = quizUpdate.Questions.Select(q => q.Id).ToList();
+                var questionsToRemove = quiz.Questions.Where(q => !questionIdsToKeep.Contains(q.Id)).ToList();
+                _context.Questions.RemoveRange(questionsToRemove);
+
+                foreach (var questionDto in quizUpdate.Questions)
+                {
+                    var existingQuestion = quiz.Questions.FirstOrDefault(q => q.Id == questionDto.Id);
+                    if (existingQuestion != null)
+                    {
+                        existingQuestion.Text = questionDto.Text;
+
+                        if (questionDto.Answers != null)
+                        {
+                            var answerIdsToKeep = questionDto.Answers.Select(a => a.Id).ToList();
+                            var answersToRemove = existingQuestion.Answers.Where(a => !answerIdsToKeep.Contains(a.Id)).ToList();
+                            _context.Answers.RemoveRange(answersToRemove);
+
+                            foreach (var answerDto in questionDto.Answers)
+                            {
+                                var existingAnswer = existingQuestion.Answers.FirstOrDefault(a => a.Id == answerDto.Id);
+                                if (existingAnswer != null)
+                                {
+                                    existingAnswer.Text = answerDto.Text;
+                                    existingAnswer.IsCorrect = answerDto.IsCorrect;
+                                }
+                                else
+                                {
+                                    existingQuestion.Answers.Add(new Answer { Text = answerDto.Text, IsCorrect = answerDto.IsCorrect });
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var newQuestion = new Question
+                        {
+                            Text = questionDto.Text,
+                            Answers = questionDto.Answers?.Select(a => new Answer { Text = a.Text, IsCorrect = a.IsCorrect }).ToList() ?? new List<Answer>()
+                        };
+                        quiz.Questions.Add(newQuestion);
+                    }
+                }
             }
 
             try
@@ -227,8 +276,23 @@ namespace EduShelf.Api.Controllers
         }
     }
 
+    public class AnswerUpdateDto
+    {
+        public int Id { get; set; }
+        public string Text { get; set; }
+        public bool IsCorrect { get; set; }
+    }
+
+    public class QuestionUpdateDto
+    {
+        public int Id { get; set; }
+        public string Text { get; set; }
+        public ICollection<AnswerUpdateDto> Answers { get; set; }
+    }
+
     public class QuizUpdateDto
     {
         public string Title { get; set; }
+        public ICollection<QuestionUpdateDto> Questions { get; set; }
     }
 }
