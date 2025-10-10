@@ -1,4 +1,5 @@
 using EduShelf.Api.Data;
+using EduShelf.Api.Middleware;
 using Microsoft.EntityFrameworkCore;
 using Pgvector.EntityFrameworkCore;
 using Microsoft.SemanticKernel;
@@ -114,6 +115,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
 app.UseCors("AllowWebApp");
 
