@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getQuizzes } from '../services/api';
+import { getQuizzes, deleteQuiz } from '../services/api';
 import QuizModal from './QuizModal';
+import { FaPen, FaTrash } from 'react-icons/fa';
+import './Files.css';
 
 const Quiz = () => {
     const { quizTitle } = useParams();
@@ -12,6 +14,7 @@ const Quiz = () => {
     const [score, setScore] = useState(0);
     const [showScore, setShowScore] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [openMenuId, setOpenMenuId] = useState(null);
     useEffect(() => {
         const fetchQuizzes = async () => {
             try {
@@ -70,6 +73,24 @@ const Quiz = () => {
         navigate('/quizzes');
     };
 
+    const handleDelete = async (quizId) => {
+        try {
+            await deleteQuiz(quizId);
+            setQuizzes(quizzes.filter(q => q.id !== quizId));
+        } catch (error) {
+            console.error('Error deleting quiz:', error);
+        }
+    };
+
+    const handleEdit = (quiz) => {
+        // Logic to open edit modal or navigate to edit page
+        console.log('Editing quiz:', quiz);
+    };
+
+    const toggleMenu = (quizId) => {
+        setOpenMenuId(openMenuId === quizId ? null : quizId);
+    };
+
     if (showScore) {
         return (
             <div className="p-4">
@@ -103,17 +124,34 @@ const Quiz = () => {
     }
 
     return (
-        <div className="p-4">
-            <h2 className="text-2xl font-bold mb-4">Available Quizzes</h2>
-            <button onClick={() => setIsModalOpen(true)}>Create Quiz</button>
-            {isModalOpen && <QuizModal onClose={() => setIsModalOpen(false)} onQuizCreated={handleQuizCreated} />}
-            <ul>
-                {quizzes.map((quiz) => (
-                    <li key={quiz.id} onClick={() => selectQuiz(quiz)} className="cursor-pointer hover:underline">
-                        {quiz.title}
-                    </li>
-                ))}
-            </ul>
+        <div className="files-container">
+            <div className="file-list">
+                <div className="file-list-header">
+                    <h2>Available Quizzes</h2>
+                    <button onClick={() => setIsModalOpen(true)} className="add-file-button">+</button>
+                </div>
+                {isModalOpen && <QuizModal onClose={() => setIsModalOpen(false)} onQuizCreated={handleQuizCreated} />}
+                <div className="file-grid">
+                    {quizzes.map((quiz) => (
+                        <div key={quiz.id} className="file-card" onClick={() => selectQuiz(quiz)}>
+                            <p>{quiz.title}</p>
+                            <div className="file-card-buttons">
+                                <button className="menu-button" onClick={(e) => { e.stopPropagation(); toggleMenu(quiz.id); }}>
+                                    <div className="menu-icon"></div>
+                                    <div className="menu-icon"></div>
+                                    <div className="menu-icon"></div>
+                                </button>
+                                {openMenuId === quiz.id && (
+                                    <div className="dropdown-menu">
+                                        <button onClick={(e) => { e.stopPropagation(); handleEdit(quiz); }} title="Edit"><FaPen /></button>
+                                        <button onClick={(e) => { e.stopPropagation(); handleDelete(quiz.id); }} title="Delete" className="delete-button"><FaTrash /></button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 };
