@@ -85,6 +85,41 @@ namespace EduShelf.Api.Controllers
             return NoContent();
         }
 
+        // PATCH: api/Tags/5
+        [HttpPatch("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> PatchTag(int id, TagUpdateDto tagUpdate)
+        {
+            var tag = await _context.Tags.FindAsync(id);
+
+            if (tag == null)
+            {
+                return NotFound();
+            }
+
+            if (!string.IsNullOrEmpty(tagUpdate.Name))
+            {
+                tag.Name = tagUpdate.Name;
+            }
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!TagExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
         // DELETE: api/Tags/5
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
@@ -106,5 +141,10 @@ namespace EduShelf.Api.Controllers
         {
             return _context.Tags.Any(e => e.Id == id);
         }
+    }
+
+    public class TagUpdateDto
+    {
+        public string Name { get; set; }
     }
 }

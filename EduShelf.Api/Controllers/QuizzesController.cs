@@ -147,6 +147,52 @@ namespace EduShelf.Api.Controllers
             return NoContent();
         }
 
+        // PATCH: api/Quizzes/5
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> PatchQuiz(int id, QuizUpdateDto quizUpdate)
+        {
+            var quiz = await _context.Quizzes.FindAsync(id);
+
+            if (quiz == null)
+            {
+                return NotFound();
+            }
+
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+            var isAdmin = User.IsInRole("Admin");
+
+            if (!isAdmin && quiz.UserId != userId)
+            {
+                return Forbid();
+            }
+
+            if (!string.IsNullOrEmpty(quizUpdate.Title))
+            {
+                quiz.Title = quizUpdate.Title;
+            }
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!QuizExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
         // DELETE: api/Quizzes/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteQuiz(int id)
@@ -179,5 +225,10 @@ namespace EduShelf.Api.Controllers
         {
             return _context.Quizzes.Any(e => e.Id == id);
         }
+    }
+
+    public class QuizUpdateDto
+    {
+        public string Title { get; set; }
     }
 }

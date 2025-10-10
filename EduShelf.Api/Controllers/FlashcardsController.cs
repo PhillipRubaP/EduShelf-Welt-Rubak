@@ -205,6 +205,74 @@ namespace EduShelf.Api.Controllers
             return NoContent();
         }
 
+        // PATCH: api/Flashcards/5
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> PatchFlashcard(int id, FlashcardUpdateDto flashcardUpdate)
+        {
+            var flashcard = await _context.Flashcards
+                .Include(f => f.FlashcardTags)
+                .FirstOrDefaultAsync(f => f.Id == id);
+
+            if (flashcard == null)
+            {
+                return NotFound();
+            }
+
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+            var isAdmin = User.IsInRole("Admin");
+
+            if (!isAdmin && flashcard.UserId != userId)
+            {
+                return Forbid();
+            }
+
+            if (!string.IsNullOrEmpty(flashcardUpdate.Question))
+            {
+                flashcard.Question = flashcardUpdate.Question;
+            }
+
+            if (!string.IsNullOrEmpty(flashcardUpdate.Answer))
+            {
+                flashcard.Answer = flashcardUpdate.Answer;
+            }
+
+            if (flashcardUpdate.Tags != null)
+            {
+                flashcard.FlashcardTags.Clear();
+                foreach (var tagName in flashcardUpdate.Tags)
+                {
+                    var tag = await _context.Tags.FirstOrDefaultAsync(t => t.Name == tagName);
+                    if (tag == null)
+                    {
+                        tag = new Tag { Name = tagName };
+                        _context.Tags.Add(tag);
+                    }
+                    flashcard.FlashcardTags.Add(new FlashcardTag { Tag = tag });
+                }
+            }
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!FlashcardExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
         // DELETE: api/Flashcards/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFlashcard(int id)
@@ -237,5 +305,12 @@ namespace EduShelf.Api.Controllers
         {
             return _context.Flashcards.Any(e => e.Id == id);
         }
+    }
+
+    public class FlashcardUpdateDto
+    {
+        public string Question { get; set; }
+        public string Answer { get; set; }
+        public List<string> Tags { get; set; }
     }
 }

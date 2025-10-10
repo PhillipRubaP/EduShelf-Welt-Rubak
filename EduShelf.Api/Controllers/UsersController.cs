@@ -279,6 +279,52 @@ namespace EduShelf.Api.Controllers
             return NoContent();
         }
 
+        // PATCH: api/Users/5
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> PatchUser(int id, [FromBody] UserUpdateDto userUpdate)
+        {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
+
+            if (currentUserId != id.ToString() && !isAdmin)
+            {
+                return Forbid();
+            }
+
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            if (!string.IsNullOrEmpty(userUpdate.Username))
+            {
+                user.Username = userUpdate.Username;
+            }
+
+            if (!string.IsNullOrEmpty(userUpdate.Email))
+            {
+                user.Email = userUpdate.Email;
+            }
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!UserExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
@@ -369,6 +415,11 @@ namespace EduShelf.Api.Controllers
 
             return NoContent();
         }
+    }
+    public class UserUpdateDto
+    {
+        public string Username { get; set; }
+        public string Email { get; set; }
     }
 
     public class PasswordChangeDto
