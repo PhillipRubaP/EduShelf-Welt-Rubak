@@ -92,7 +92,7 @@ namespace EduShelf.Api.Services
 
                 var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
                 var chatHistory = new ChatHistory();
-                chatHistory.AddSystemMessage("You are a learning assistant...");
+                chatHistory.AddSystemMessage(_configuration.GetValue<string>("AIService:Prompts:System"));
 
                 foreach (var message in chatSession.ChatMessages.OrderBy(m => m.CreatedAt))
                 {
@@ -195,22 +195,7 @@ namespace EduShelf.Api.Services
         {
             var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
             var chatHistory = new ChatHistory();
-            chatHistory.AddSystemMessage("""
-                You are an intent detection agent. Your job is to analyze the user's prompt and determine their intent and the document they are referring to.
-                - The possible intents are: "summarize", "question".
-                - If the user wants a general overview, a summary, or to know what a document is about, the intent is "summarize".
-                - If the user is asking a specific question that can be answered from a small part of the document, the intent is "question".
-                - Your output must be a single, valid JSON object with two properties: "Type" (string) and "DocumentName" (string or null).
-                - Extract the filename, including its extension. Look for names in quotes, or phrases like "file named X", "document Y".
-                - If no specific document is mentioned, "DocumentName" must be null.
-
-                Examples:
-                - User: "Summarize the file 'my_document.pdf'" -> {"Type": "summarize", "DocumentName": "my_document.pdf"}
-                - User: "What is the capital of France according to the text?" -> {"Type": "question", "DocumentName": null}
-                - User: "Tell me everything about 'chapter1.docx'" -> {"Type": "summarize", "DocumentName": "chapter1.docx"}
-                - User: "Read the file named czech.txt and summarize its contents" -> {"Type": "summarize", "DocumentName": "czech.txt"}
-                - User: "where is the name Czechia first mentioned" -> {"Type": "question", "DocumentName": null}
-            """);
+            chatHistory.AddSystemMessage(_configuration.GetValue<string>("AIService:Prompts:Intent"));
             chatHistory.AddUserMessage(userInput);
 
             var result = await chatCompletionService.GetChatMessageContentAsync(chatHistory);

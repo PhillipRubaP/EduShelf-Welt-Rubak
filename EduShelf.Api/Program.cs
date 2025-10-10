@@ -3,6 +3,8 @@ using EduShelf.Api.Middleware;
 using Microsoft.EntityFrameworkCore;
 using Pgvector.EntityFrameworkCore;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Embeddings;
+using Microsoft.Extensions.AI;
 using EduShelf.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -26,6 +28,23 @@ kernelBuilder.AddOllamaTextEmbeddingGeneration(
 
 builder.Services.AddScoped<IndexingService>();
 builder.Services.AddScoped<ChatService>();
+builder.Services.AddScoped<IRAGService, RAGService>();
+
+// This is a temporary workaround to bridge ITextEmbeddingGenerationService to IEmbeddingGenerator
+// This should be replaced if a better adapter or direct registration becomes available.
+#pragma warning disable SKEXP0001
+builder.Services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp =>
+{
+    var kernel = sp.GetRequiredService<Kernel>();
+    var textEmbeddingService = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
+    return new TextEmbeddingGenerationServiceAdapter(textEmbeddingService);
+});
+builder.Services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp =>
+{
+    var kernel = sp.GetRequiredService<Kernel>();
+    var embeddingService = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
+    return new TextEmbeddingGenerationServiceAdapter(embeddingService);
+});
 
 builder.Services.AddDbContext<ApiDbContext>((serviceProvider, options) =>
 {

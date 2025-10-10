@@ -4,6 +4,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel.Embeddings;
+using Microsoft.Extensions.Configuration;
 using Pgvector.EntityFrameworkCore;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -14,12 +15,13 @@ namespace EduShelf.Api.Services
     {
         private readonly ApiDbContext _context;
         private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingService;
-        private const int MaxContextLength = 4096;
+        private readonly int _maxContextLength;
 
-        public RAGService(ApiDbContext context, IEmbeddingGenerator<string, Embedding<float>> embeddingService)
+        public RAGService(ApiDbContext context, IEmbeddingGenerator<string, Embedding<float>> embeddingService, IConfiguration configuration)
         {
             _context = context;
             _embeddingService = embeddingService;
+            _maxContextLength = configuration.GetValue<int>("AIService:ContextLengthLimit", 4096);
         }
 
         public async Task<(string, List<string>)> GetContextAndSourcesAsync(string query, int userId)
@@ -51,12 +53,12 @@ namespace EduShelf.Api.Services
 
         private string TruncateContext(string context)
         {
-            if (context.Length <= MaxContextLength)
+            if (context.Length <= _maxContextLength)
             {
                 return context;
             }
 
-            var truncated = context.Substring(0, MaxContextLength);
+            var truncated = context.Substring(0, _maxContextLength);
             var lastSentenceEnd = Math.Max(truncated.LastIndexOf('.'), Math.Max(truncated.LastIndexOf('?'), truncated.LastIndexOf('!')));
 
             if (lastSentenceEnd > -1)
