@@ -141,12 +141,17 @@ namespace EduShelf.Api.Services
 
             _context.ChatSessions.Add(chatSession);
             await _context.SaveChangesAsync();
+
+            // Explicitly load the User navigation property before returning
+            await _context.Entry(chatSession).Reference(cs => cs.User).LoadAsync();
+
             return chatSession;
         }
 
         public async Task<List<ChatSession>> GetChatSessionsAsync(int userId)
         {
             return await _context.ChatSessions
+                .Include(cs => cs.User) // Eagerly load the User property
                 .Where(cs => cs.UserId == userId)
                 .OrderByDescending(cs => cs.CreatedAt)
                 .ToListAsync();
