@@ -94,7 +94,6 @@ namespace EduShelf.Api.Services
                 var chatHistory = new ChatHistory();
                 chatHistory.AddSystemMessage("You are a learning assistant...");
 
-                // Add previous messages from the session to the history
                 foreach (var message in chatSession.ChatMessages.OrderBy(m => m.CreatedAt))
                 {
                     chatHistory.AddUserMessage(message.Message);
@@ -110,7 +109,6 @@ namespace EduShelf.Api.Services
                 var result = await chatCompletionService.GetChatMessageContentAsync(chatHistory);
                 var responseContent = result.Content ?? "I'm sorry, I couldn't generate a response.";
 
-                // Save the new message and response
                 var chatMessage = new ChatMessage
                 {
                     ChatSessionId = chatSessionId,
@@ -142,7 +140,6 @@ namespace EduShelf.Api.Services
             _context.ChatSessions.Add(chatSession);
             await _context.SaveChangesAsync();
 
-            // Explicitly load the User navigation property before returning
             await _context.Entry(chatSession).Reference(cs => cs.User).LoadAsync();
 
             return chatSession;
@@ -151,10 +148,47 @@ namespace EduShelf.Api.Services
         public async Task<List<ChatSession>> GetChatSessionsAsync(int userId)
         {
             return await _context.ChatSessions
-                .Include(cs => cs.User) // Eagerly load the User property
+                .Include(cs => cs.User)
                 .Where(cs => cs.UserId == userId)
                 .OrderByDescending(cs => cs.CreatedAt)
                 .ToListAsync();
+        }
+
+        public async Task<List<ChatMessage>> GetMessagesForSessionAsync(int userId, int chatSessionId)
+        {
+            var session = await _context.ChatSessions
+                .FirstOrDefaultAsync(cs => cs.Id == chatSessionId && cs.UserId == userId);
+
+            if (session == null)
+            {
+                throw new Exception("Chat session not found.");
+            }
+
+            return await _context.ChatMessages
+                .Where(cm => cm.ChatSessionId == chatSessionId)
+                .OrderBy(cm => cm.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<ChatMessage> GetMessageAsync(int userId, int chatSessionId, int messageId)
+        {
+            var session = await _context.ChatSessions
+                .FirstOrDefaultAsync(cs => cs.Id == chatSessionId && cs.UserId == userId);
+
+            if (session == null)
+            {
+                throw new Exception("Chat session not found.");
+            }
+
+            var message = await _context.ChatMessages
+                .FirstOrDefaultAsync(cm => cm.Id == messageId && cm.ChatSessionId == chatSessionId);
+
+            if (message == null)
+            {
+                throw new Exception("Message not found.");
+            }
+
+            return message;
         }
 
         private async Task<Intent> GetIntentAsync(string userInput)
@@ -183,7 +217,6 @@ namespace EduShelf.Api.Services
             var rawContent = result.Content ?? string.Empty;
             _logger.LogInformation("Intent detection raw response: {IntentResponse}", rawContent);
 
-            // Clean the response to remove markdown code blocks
             var cleanedJson = rawContent.Trim();
             if (cleanedJson.StartsWith("```json"))
             {
@@ -208,7 +241,6 @@ namespace EduShelf.Api.Services
             catch (JsonException ex)
             {
                 _logger.LogError(ex, "Failed to parse intent JSON: {JsonContent}", result.Content);
-                // If JSON parsing fails, default to a general question
                 return new Intent { Type = "question", DocumentName = null };
             }
         }
@@ -224,7 +256,6 @@ namespace EduShelf.Api.Services
 
         private string TruncateToTokenLimit(string text, int tokenLimit)
         {
-            // Simple heuristic: 1 token ~= 4 characters
             if (text.Length <= tokenLimit) return text;
 
             var sentences = text.Split(new[] { ". ", "! ", "? " }, StringSplitOptions.RemoveEmptyEntries);
@@ -243,6 +274,5 @@ namespace EduShelf.Api.Services
 
             return truncatedText.ToString().TrimEnd() + "...";
         }
-
     }
 }

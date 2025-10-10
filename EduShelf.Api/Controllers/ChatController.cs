@@ -63,6 +63,46 @@ namespace EduShelf.Api.Controllers
             var session = await _chatService.CreateChatSessionAsync(int.Parse(userId), request.Title);
             return Ok(session);
         }
+
+        [HttpGet("sessions/{sessionId}/messages")]
+        public async Task<IActionResult> GetMessages(int sessionId)
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                var messages = await _chatService.GetMessagesForSessionAsync(int.Parse(userId), sessionId);
+                return Ok(messages);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { response = ex.Message });
+            }
+        }
+
+        [HttpGet("sessions/{sessionId}/messages/{messageId}")]
+        public async Task<IActionResult> GetMessage(int sessionId, int messageId)
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                var message = await _chatService.GetMessageAsync(int.Parse(userId), sessionId, messageId);
+                return Ok(message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { response = ex.Message });
+            }
+        }
     }
 
     public class ChatRequest
