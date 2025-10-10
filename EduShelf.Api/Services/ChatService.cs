@@ -40,6 +40,24 @@ namespace EduShelf.Api.Services
         {
             try
             {
+                var chatSession = await _context.ChatSessions
+                    .Include(cs => cs.ChatMessages)
+                    .Where(cs => cs.UserId == userId)
+                    .OrderByDescending(cs => cs.CreatedAt)
+                    .FirstOrDefaultAsync();
+
+                if (chatSession == null)
+                {
+                    chatSession = new ChatSession
+                    {
+                        UserId = userId,
+                        Title = "Default Chat",
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.ChatSessions.Add(chatSession);
+                    await _context.SaveChangesAsync();
+                }
+
                 var contextText = new StringBuilder();
                 List<DocumentChunk> relevantChunks;
 
@@ -52,37 +70,12 @@ namespace EduShelf.Api.Services
                         .Include(dc => dc.Document)
                         .Where(dc => dc.Document.UserId == userId && EF.Functions.ILike(dc.Document.Title, documentNameWithoutExtension))
                         .ToListAsync();
-
-                    // If no chunks are found, try to re-index the document
-                    if (!relevantChunks.Any())
-                    {
-                        _logger.LogWarning("No chunks found for document '{DocumentName}'. Attempting to re-index.", documentNameWithoutExtension);
-                        var documentToIndex = await _context.Documents
-                            .FirstOrDefaultAsync(d => d.UserId == userId && EF.Functions.ILike(d.Title, documentNameWithoutExtension));
-
-                        if (documentToIndex != null)
-                        {
-                            await _indexingService.IndexDocumentAsync(documentToIndex.Id, documentToIndex.Path);
-                            // Re-query for the chunks after indexing
-                            relevantChunks = await _context.DocumentChunks
-                                .Include(dc => dc.Document)
-                                .Where(dc => dc.Document.UserId == userId && EF.Functions.ILike(dc.Document.Title, documentNameWithoutExtension))
-                                .ToListAsync();
-                            _logger.LogInformation("Re-indexing complete. Found {ChunkCount} chunks.", relevantChunks.Count);
-                        }
-                        else
-                        {
-                            _logger.LogError("Could not find document '{DocumentName}' to re-index.", documentNameWithoutExtension);
-                        }
-                    }
                 }
                 else
                 {
                     var embeddingGenerator = _kernel.GetRequiredService<ITextEmbeddingGenerationService>();
                     var promptEmbedding = await embeddingGenerator.GenerateEmbeddingAsync(userInput);
-
                     var k = GetDynamicK(userInput);
-
                     relevantChunks = await _context.DocumentChunks
                         .Include(dc => dc.Document)
                         .Where(dc => dc.Document.UserId == userId)
@@ -91,49 +84,51 @@ namespace EduShelf.Api.Services
                         .ToListAsync();
                 }
 
-                if (!relevantChunks.Any())
-                {
-                    contextText.AppendLine("No relevant documents found.");
-                }
-                else
+                if (relevantChunks.Any())
                 {
                     foreach (var chunk in relevantChunks)
                     {
-                        // Titel hinzufügen für besseren Kontext
                         contextText.AppendLine($"[{chunk.Document.Title}] {chunk.Content}");
                     }
                 }
 
-                // Promptgröße begrenzen (z. B. 4000 Zeichen)
                 var contextString = contextText.ToString();
                 var contextLengthLimit = _configuration.GetValue<int>("AIService:ContextLengthLimit", 4096);
-
                 if (contextString.Length > contextLengthLimit)
                 {
                     contextString = TruncateToTokenLimit(contextString, contextLengthLimit);
                 }
 
                 var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
-
-                // ChatHistory statt einfachem Prompt
                 var chatHistory = new ChatHistory();
-                chatHistory.AddSystemMessage("""
-                    You are a learning assistant on the EduShelf platform. 
-                    Your primary role is to help users study and learn from the documents they upload. 
-                    - Always prioritize using the content of the provided documents. 
-                    - If the answer is not in the documents, clearly say: "This is not in your documents," and then you may provide general knowledge if it is accurate and helpful. 
-                    - When you mix document-based information and general knowledge, always separate them clearly. 
-                    - Be neutral, concise, and explanatory — never inject your own opinions or judge the document content. 
-                    - If asked to summarize or explain, always mention which document the content came from when possible.
+                chatHistory.AddSystemMessage("You are a learning assistant...");
 
-                """);
+                foreach (var message in chatSession.ChatMessages.OrderBy(m => m.CreatedAt))
+                {
+                    chatHistory.AddUserMessage(message.Message);
+                    if (!string.IsNullOrEmpty(message.Response))
+                    {
+                        chatHistory.AddAssistantMessage(message.Response);
+                    }
+                }
 
                 chatHistory.AddSystemMessage($"Context:\n{contextString}");
                 chatHistory.AddUserMessage(userInput);
 
                 var result = await chatCompletionService.GetChatMessageContentAsync(chatHistory);
+                var responseContent = result.Content ?? "I'm sorry, I couldn't generate a response.";
 
-                return result.Content ?? "I'm sorry, I couldn't generate a response.";
+                var chatMessage = new ChatMessage
+                {
+                    ChatSessionId = chatSession.Id,
+                    Message = userInput,
+                    Response = responseContent,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.ChatMessages.Add(chatMessage);
+                await _context.SaveChangesAsync();
+
+                return responseContent;
             }
             catch (Exception ex)
             {

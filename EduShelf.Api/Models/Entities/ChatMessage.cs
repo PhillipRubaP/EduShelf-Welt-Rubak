@@ -10,10 +10,7 @@ public class ChatMessage
     public int Id { get; set; }
 
     [Required]
-    public int UserId { get; set; }
-
-    [Required]
-    public int DocumentId { get; set; }
+    public int ChatSessionId { get; set; }
 
     [Required]
     public string Message { get; set; }
@@ -22,9 +19,6 @@ public class ChatMessage
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    [ForeignKey("UserId")]
-    public virtual User User { get; set; }
-
-    [ForeignKey("DocumentId")]
-    public virtual Document Document { get; set; }
+    [ForeignKey("ChatSessionId")]
+    public virtual ChatSession ChatSession { get; set; }
 }

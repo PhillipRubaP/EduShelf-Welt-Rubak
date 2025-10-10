@@ -3,6 +3,7 @@ using System;
 using EduShelf.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -12,9 +13,11 @@ using Pgvector;
 namespace EduShelf.Api.Migrations
 {
     [DbContext(typeof(ApiDbContext))]
-    partial class ApiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251010083931_AddChatSessions")]
+    partial class AddChatSessions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -190,7 +193,7 @@ namespace EduShelf.Api.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 10, 10, 8, 49, 2, 556, DateTimeKind.Utc).AddTicks(1976),
+                            CreatedAt = new DateTime(2025, 10, 10, 8, 39, 30, 209, DateTimeKind.Utc).AddTicks(5224),
                             FileType = "pdf",
                             Path = "/documents/algebra.pdf",
                             Title = "Algebra Basics",
@@ -199,7 +202,7 @@ namespace EduShelf.Api.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 10, 10, 8, 49, 2, 556, DateTimeKind.Utc).AddTicks(1981),
+                            CreatedAt = new DateTime(2025, 10, 10, 8, 39, 30, 209, DateTimeKind.Utc).AddTicks(5229),
                             FileType = "pdf",
                             Path = "/documents/physics.pdf",
                             Title = "Introduction to Physics",
@@ -327,7 +330,7 @@ namespace EduShelf.Api.Migrations
                         {
                             Id = 1,
                             Answer = "4",
-                            CreatedAt = new DateTime(2025, 10, 10, 8, 49, 2, 556, DateTimeKind.Utc).AddTicks(2359),
+                            CreatedAt = new DateTime(2025, 10, 10, 8, 39, 30, 209, DateTimeKind.Utc).AddTicks(5476),
                             Question = "What is 2+2?",
                             UserId = 1
                         },
@@ -335,7 +338,7 @@ namespace EduShelf.Api.Migrations
                         {
                             Id = 2,
                             Answer = "5",
-                            CreatedAt = new DateTime(2025, 10, 10, 8, 49, 2, 556, DateTimeKind.Utc).AddTicks(2363),
+                            CreatedAt = new DateTime(2025, 10, 10, 8, 39, 30, 209, DateTimeKind.Utc).AddTicks(5481),
                             Question = "What is x in x+5=10?",
                             UserId = 1
                         });
@@ -426,7 +429,7 @@ namespace EduShelf.Api.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 10, 10, 8, 49, 2, 556, DateTimeKind.Utc).AddTicks(2664),
+                            CreatedAt = new DateTime(2025, 10, 10, 8, 39, 30, 209, DateTimeKind.Utc).AddTicks(5702),
                             Title = "Math Quiz",
                             UserId = 2
                         });
@@ -560,17 +563,17 @@ namespace EduShelf.Api.Migrations
                         new
                         {
                             UserId = 1,
-                            CreatedAt = new DateTime(2025, 10, 10, 8, 49, 2, 293, DateTimeKind.Utc).AddTicks(3554),
+                            CreatedAt = new DateTime(2025, 10, 10, 8, 39, 29, 866, DateTimeKind.Utc).AddTicks(7403),
                             Email = "admin@edushelf.com",
-                            PasswordHash = "$2a$11$xGnd9duz1xV4XlqVsBRp7OWGNxARF4ClN9NdXNS8V38U7QoJhPDm.",
+                            PasswordHash = "$2a$11$GM9SjJiLHPXQeCX.mbTUMeYfdtBk6qi0p/WVvVHfpORtZ/7pYoDOC",
                             Username = "Admin User"
                         },
                         new
                         {
                             UserId = 2,
-                            CreatedAt = new DateTime(2025, 10, 10, 8, 49, 2, 556, DateTimeKind.Utc).AddTicks(649),
+                            CreatedAt = new DateTime(2025, 10, 10, 8, 39, 30, 209, DateTimeKind.Utc).AddTicks(3704),
                             Email = "student@edushelf.com",
-                            PasswordHash = "$2a$11$T8Nlzt6Tw1Blg/Xs2w4Yi.MJslszTmAKEMH71JerGlxRHlLThZfCC",
+                            PasswordHash = "$2a$11$KSbrB6yv4pufjAHzPxFWWOCAK9lYWsUaTmrYo.hQH1dkD..yTgi9S",
                             Username = "Student User"
                         });
                 });

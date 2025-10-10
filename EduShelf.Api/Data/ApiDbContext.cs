@@ -20,6 +20,7 @@ public class ApiDbContext : DbContext
     public DbSet<Favourite> Favourites { get; set; }
     public DbSet<AccessLog> AccessLogs { get; set; }
     public DbSet<ChatMessage> ChatMessages { get; set; }
+    public DbSet<ChatSession> ChatSessions { get; set; }
     public DbSet<Flashcard> Flashcards { get; set; }
     public DbSet<Quiz> Quizzes { get; set; }
     public DbSet<Question> Questions { get; set; }
@@ -82,10 +83,16 @@ public class ApiDbContext : DbContext
             .HasForeignKey(a => a.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<ChatMessage>()
-            .HasOne(c => c.User)
+        modelBuilder.Entity<ChatSession>()
+            .HasOne(cs => cs.User)
             .WithMany()
-            .HasForeignKey(c => c.UserId)
+            .HasForeignKey(cs => cs.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ChatMessage>()
+            .HasOne(cm => cm.ChatSession)
+            .WithMany(cs => cs.ChatMessages)
+            .HasForeignKey(cm => cm.ChatSessionId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Flashcard>()
@@ -112,7 +119,7 @@ public class ApiDbContext : DbContext
                 UserId = 1,
                 Username = "Admin User",
                 Email = "admin@edushelf.com",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(_configuration["Seeding:AdminPassword"] ?? throw new InvalidOperationException("Admin password not found in configuration.")),
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("AdminPassword123!"),
                 CreatedAt = DateTime.UtcNow
             },
             new User
@@ -120,7 +127,7 @@ public class ApiDbContext : DbContext
                 UserId = 2,
                 Username = "Student User",
                 Email = "student@edushelf.com",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(_configuration["Seeding:StudentPassword"] ?? throw new InvalidOperationException("Student password not found in configuration.")),
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("StudentPassword123!"),
                 CreatedAt = DateTime.UtcNow
             }
         );
