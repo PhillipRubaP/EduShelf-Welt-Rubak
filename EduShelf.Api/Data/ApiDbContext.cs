@@ -112,7 +112,7 @@ public class ApiDbContext : DbContext
                 UserId = 1,
                 Username = "Admin User",
                 Email = "admin@edushelf.com",
-                PasswordHash = _configuration["Seeding:AdminPasswordHash"] ?? throw new InvalidOperationException("Admin password hash not found in configuration."),
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(_configuration["Seeding:AdminPassword"] ?? throw new InvalidOperationException("Admin password not found in configuration.")),
                 CreatedAt = DateTime.UtcNow
             },
             new User
@@ -120,7 +120,7 @@ public class ApiDbContext : DbContext
                 UserId = 2,
                 Username = "Student User",
                 Email = "student@edushelf.com",
-                PasswordHash = _configuration["Seeding:StudentPasswordHash"] ?? throw new InvalidOperationException("Student password hash not found in configuration."),
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(_configuration["Seeding:StudentPassword"] ?? throw new InvalidOperationException("Student password not found in configuration.")),
                 CreatedAt = DateTime.UtcNow
             }
         );
@@ -152,6 +152,11 @@ public class ApiDbContext : DbContext
         modelBuilder.Entity<Flashcard>().HasData(
             new Flashcard { Id = 1, UserId = 1, Question = "What is 2+2?", Answer = "4", CreatedAt = DateTime.UtcNow },
             new Flashcard { Id = 2, UserId = 1, Question = "What is x in x+5=10?", Answer = "5", CreatedAt = DateTime.UtcNow }
+        );
+
+        modelBuilder.Entity<FlashcardTag>().HasData(
+            new FlashcardTag { FlashcardId = 1, TagId = 1 },
+            new FlashcardTag { FlashcardId = 2, TagId = 1 }
         );
 
         modelBuilder.Entity<Quiz>().HasData(

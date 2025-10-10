@@ -168,7 +168,6 @@ namespace EduShelf.Api.Controllers
                 return Forbid();
             }
 
-            flashcard.UserId = flashcardDto.UserId;
             flashcard.Question = flashcardDto.Question;
             flashcard.Answer = flashcardDto.Answer;
 
