@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import LernkartenModal from './LernkartenModal';
+import { getFlashcards, createFlashcard, deleteFlashcard } from '../services/api';
 import { FaPen, FaTrash } from 'react-icons/fa';
 import './Files.css';
 
@@ -9,22 +10,30 @@ const Lernkarten = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [openMenuId, setOpenMenuId] = useState(null);
 
-    const addCard = (card) => {
-        setCards([...cards, card]);
+    useEffect(() => {
+        const fetchFlashcards = async () => {
+            const fetchedCards = await getFlashcards();
+            setCards(fetchedCards);
+        };
+        fetchFlashcards();
+    }, []);
+
+    const addCard = async (card) => {
+        const newCard = await createFlashcard(card);
+        setCards([...cards, newCard]);
     };
 
-    const deleteCard = (index) => {
-        const newCards = [...cards];
-        newCards.splice(index, 1);
-        setCards(newCards);
+    const deleteCard = async (id) => {
+        await deleteFlashcard(id);
+        setCards(cards.filter(card => card.id !== id));
     };
 
-    const flipCard = (index) => {
-        setFlippedCard(flippedCard === index ? null : index);
+    const flipCard = (id) => {
+        setFlippedCard(flippedCard === id ? null : id);
     };
 
-    const toggleMenu = (index) => {
-        setOpenMenuId(openMenuId === index ? null : index);
+    const toggleMenu = (id) => {
+        setOpenMenuId(openMenuId === id ? null : id);
     };
 
     return (
@@ -36,19 +45,19 @@ const Lernkarten = () => {
                 </div>
                 {isModalOpen && <LernkartenModal addCard={addCard} closeModal={() => setIsModalOpen(false)} />}
                 <div className="file-grid">
-                    {cards.map((card, index) => (
-                        <div key={index} className="file-card lernkarte" onClick={() => flipCard(index)}>
-                            <p>{flippedCard === index ? card.back : card.front}</p>
+                    {Array.isArray(cards) && cards.map((card, index) => (
+                        <div key={card.id || index} className="file-card lernkarte" onClick={() => flipCard(card.id)}>
+                            <p>{flippedCard === card.id ? card.answer : card.question}</p>
                             <div className="file-card-buttons">
-                                <button className="menu-button" onClick={(e) => { e.stopPropagation(); toggleMenu(index); }}>
+                                <button className="menu-button" onClick={(e) => { e.stopPropagation(); toggleMenu(card.id); }}>
                                     <div className="menu-icon"></div>
                                     <div className="menu-icon"></div>
                                     <div className="menu-icon"></div>
                                 </button>
-                                {openMenuId === index && (
+                                {openMenuId === card.id && (
                                     <div className="dropdown-menu">
-                                        <button onClick={(e) => { e.stopPropagation(); /* handleEdit(index) */ }} title="Edit"><FaPen /></button>
-                                        <button onClick={(e) => { e.stopPropagation(); deleteCard(index); }} title="Delete" className="delete-button"><FaTrash /></button>
+                                        <button onClick={(e) => { e.stopPropagation(); /* handleEdit(card.id) */ }} title="Edit"><FaPen /></button>
+                                        <button onClick={(e) => { e.stopPropagation(); deleteCard(card.id); }} title="Delete" className="delete-button"><FaTrash /></button>
                                     </div>
                                 )}
                             </div>

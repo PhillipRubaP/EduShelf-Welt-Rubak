@@ -4,11 +4,13 @@ import './LernkartenModal.css';
 const LernkartenModal = ({ addCard, closeModal }) => {
   const [front, setFront] = useState('');
   const [back, setBack] = useState('');
+  const [tags, setTags] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (front.trim() !== '' && back.trim() !== '') {
-      addCard({ front, back });
+      const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      addCard({ front, back, tags: tagsArray });
       closeModal();
     }
   };
@@ -38,6 +40,17 @@ const LernkartenModal = ({ addCard, closeModal }) => {
               onChange={(e) => setBack(e.target.value)}
               className="p-2 border rounded lernkarten-input"
               placeholder="Antwort"
+            />
+          </div>
+          <div className="flex flex-col mb-2">
+            <label htmlFor="tags" className="mb-1 text-white">Tags (kommagetrennt):</label>
+            <input
+              type="text"
+              id="tags"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              className="p-2 border rounded lernkarten-input"
+              placeholder="z.B. Mathe, Formeln"
             />
           </div>
           <div className="flex justify-end gap-2 mt-4">

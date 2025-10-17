@@ -100,15 +100,16 @@ namespace EduShelf.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<FlashcardDto>> PostFlashcard(FlashcardCreateDto flashcardDto)
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdString, out var userId))
+            Console.WriteLine($"Received Flashcard DTO: UserId={flashcardDto.UserId}, Question={flashcardDto.Question}, Answer={flashcardDto.Answer}");
+
+            if (!ModelState.IsValid)
             {
-                return Unauthorized("Invalid user identifier.");
+                return BadRequest(ModelState);
             }
 
             var flashcard = new Flashcard
             {
-                UserId = userId,
+                UserId = flashcardDto.UserId,
                 Question = flashcardDto.Question,
                 Answer = flashcardDto.Answer
             };
