@@ -64,7 +64,14 @@ namespace EduShelf.Api.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(tag).State = EntityState.Modified;
+            var existingTag = await _context.Tags.FindAsync(id);
+            if (existingTag == null)
+            {
+                return NotFound();
+            }
+
+            existingTag.Name = tag.Name;
+            _context.Entry(existingTag).State = EntityState.Modified;
 
             try
             {
