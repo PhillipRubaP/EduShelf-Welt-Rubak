@@ -23,54 +23,34 @@ namespace EduShelf.Api.Controllers
         [HttpPost("message")]
         public async Task<IActionResult> PostMessage([FromBody] ChatRequest request)
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
-            {
-                return Unauthorized();
-            }
-
-            var response = await _chatService.GetResponseAsync(request.Message, int.Parse(userId), request.ChatSessionId);
+            var userId = GetUserId();
+            var response = await _chatService.GetResponseAsync(request.Message, userId, request.ChatSessionId);
             return Ok(new { response });
         }
 
         [HttpGet("sessions")]
         public async Task<IActionResult> GetSessions()
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
-            {
-                return Unauthorized();
-            }
-
-            var sessions = await _chatService.GetChatSessionsAsync(int.Parse(userId));
+            var userId = GetUserId();
+            var sessions = await _chatService.GetChatSessionsAsync(userId);
             return Ok(sessions);
         }
 
         [HttpPost("sessions")]
         public async Task<IActionResult> CreateSession([FromBody] CreateSessionRequest request)
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
-            {
-                return Unauthorized();
-            }
-
-            var session = await _chatService.CreateChatSessionAsync(int.Parse(userId), request.Title);
+            var userId = GetUserId();
+            var session = await _chatService.CreateChatSessionAsync(userId, request.Title);
             return Ok(session);
         }
 
         [HttpGet("sessions/{sessionId}/messages")]
         public async Task<IActionResult> GetMessages(int sessionId)
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
-            {
-                return Unauthorized();
-            }
-
+            var userId = GetUserId();
             try
             {
-                var messages = await _chatService.GetMessagesForSessionAsync(int.Parse(userId), sessionId);
+                var messages = await _chatService.GetMessagesForSessionAsync(userId, sessionId);
                 return Ok(messages);
             }
             catch (Exception ex)
@@ -82,21 +62,26 @@ namespace EduShelf.Api.Controllers
         [HttpGet("sessions/{sessionId}/messages/{messageId}")]
         public async Task<IActionResult> GetMessage(int sessionId, int messageId)
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
-            {
-                return Unauthorized();
-            }
-
+            var userId = GetUserId();
             try
             {
-                var message = await _chatService.GetMessageAsync(int.Parse(userId), sessionId, messageId);
+                var message = await _chatService.GetMessageAsync(userId, sessionId, messageId);
                 return Ok(message);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { response = ex.Message });
             }
+        }
+
+        private int GetUserId()
+        {
+            var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
+            {
+                throw new UnauthorizedAccessException("User is not authenticated or user ID is invalid.");
+            }
+            return userId;
         }
     }
 
