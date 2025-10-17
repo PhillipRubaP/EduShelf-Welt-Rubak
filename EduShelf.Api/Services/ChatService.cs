@@ -17,24 +17,27 @@ namespace EduShelf.Api.Services
 {
     public class ChatService
     {
-        private class Intent
-        {
-            public string Type { get; set; }
-            public string DocumentName { get; set; }
-        }
         private readonly ApiDbContext _context;
         private readonly Kernel _kernel;
         private readonly ILogger<ChatService> _logger;
-        private readonly IConfiguration _configuration;
-        private readonly IndexingService _indexingService;
+        private readonly IntentDetectionService _intentDetectionService;
+        private readonly RetrievalService _retrievalService;
+        private readonly PromptGenerationService _promptGenerationService;
 
-        public ChatService(ApiDbContext context, Kernel kernel, ILogger<ChatService> logger, IConfiguration configuration, IndexingService indexingService)
+        public ChatService(
+            ApiDbContext context,
+            Kernel kernel,
+            ILogger<ChatService> logger,
+            IntentDetectionService intentDetectionService,
+            RetrievalService retrievalService,
+            PromptGenerationService promptGenerationService)
         {
             _context = context;
             _kernel = kernel;
             _logger = logger;
-            _configuration = configuration;
-            _indexingService = indexingService;
+            _intentDetectionService = intentDetectionService;
+            _retrievalService = retrievalService;
+            _promptGenerationService = promptGenerationService;
         }
 
         public async Task<string> GetResponseAsync(string userInput, int userId, int chatSessionId)
@@ -60,63 +63,11 @@ namespace EduShelf.Api.Services
                     throw new Exception("Chat session not found.");
                 }
 
-                var contextText = new StringBuilder();
-                List<DocumentChunk> relevantChunks;
-
-                var intent = await GetIntentAsync(userInput);
-
-                if (intent.Type == "summarize" && !string.IsNullOrEmpty(intent.DocumentName))
-                {
-                    var documentNameWithoutExtension = Path.GetFileNameWithoutExtension(intent.DocumentName);
-                    relevantChunks = await _context.DocumentChunks
-                        .Include(dc => dc.Document)
-                        .Where(dc => dc.Document.UserId == userId && EF.Functions.ILike(dc.Document.Title, documentNameWithoutExtension))
-                        .ToListAsync();
-                }
-                else
-                {
-                    var embeddingGenerator = _kernel.GetRequiredService<ITextEmbeddingGenerationService>();
-                    var promptEmbedding = await embeddingGenerator.GenerateEmbeddingAsync(userInput);
-                    var k = GetDynamicK(userInput);
-                    relevantChunks = await _context.DocumentChunks
-                        .Include(dc => dc.Document)
-                        .Where(dc => dc.Document.UserId == userId)
-                        .OrderBy(dc => dc.Embedding.L2Distance(new Vector(promptEmbedding)))
-                        .Take(k)
-                        .ToListAsync();
-                }
-
-                if (relevantChunks.Any())
-                {
-                    foreach (var chunk in relevantChunks)
-                    {
-                        contextText.AppendLine($"[{chunk.Document.Title}] {chunk.Content}");
-                    }
-                }
-
-                var contextString = contextText.ToString();
-                var contextLengthLimit = _configuration.GetValue<int>("AIService:ContextLengthLimit", 4096);
-                if (contextString.Length > contextLengthLimit)
-                {
-                    contextString = TruncateToTokenLimit(contextString, contextLengthLimit);
-                }
+                var intent = await _intentDetectionService.GetIntentAsync(userInput);
+                var relevantChunks = await _retrievalService.GetRelevantChunksAsync(userInput, userId, intent);
+                var chatHistory = _promptGenerationService.BuildChatHistory(chatSession, relevantChunks, userInput);
 
                 var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
-                var chatHistory = new ChatHistory();
-                chatHistory.AddSystemMessage(_configuration.GetValue<string>("AIService:Prompts:System"));
-
-                foreach (var message in chatSession.ChatMessages.OrderBy(m => m.CreatedAt))
-                {
-                    chatHistory.AddUserMessage(message.Message);
-                    if (!string.IsNullOrEmpty(message.Response))
-                    {
-                        chatHistory.AddAssistantMessage(message.Response);
-                    }
-                }
-
-                chatHistory.AddSystemMessage($"Context:\n{contextString}");
-                chatHistory.AddUserMessage(userInput);
-
                 var result = await chatCompletionService.GetChatMessageContentAsync(chatHistory);
                 var responseContent = result.Content ?? "I'm sorry, I couldn't generate a response.";
 
@@ -212,73 +163,5 @@ namespace EduShelf.Api.Services
             return message;
         }
 
-        private async Task<Intent> GetIntentAsync(string userInput)
-        {
-            var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
-            var chatHistory = new ChatHistory();
-            chatHistory.AddSystemMessage(_configuration.GetValue<string>("AIService:Prompts:Intent"));
-            chatHistory.AddUserMessage(userInput);
-
-            var result = await chatCompletionService.GetChatMessageContentAsync(chatHistory);
-            var rawContent = result.Content ?? string.Empty;
-            _logger.LogInformation("Intent detection raw response: {IntentResponse}", rawContent);
-
-            var cleanedJson = rawContent.Trim();
-            if (cleanedJson.StartsWith("```json"))
-            {
-                cleanedJson = cleanedJson.Substring(7);
-            }
-            if (cleanedJson.StartsWith("```"))
-            {
-                cleanedJson = cleanedJson.Substring(3);
-            }
-            if (cleanedJson.EndsWith("```"))
-            {
-                cleanedJson = cleanedJson.Substring(0, cleanedJson.Length - 3);
-            }
-            cleanedJson = cleanedJson.Trim();
-
-            try
-            {
-                var intent = JsonSerializer.Deserialize<Intent>(cleanedJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new Intent { Type = "question", DocumentName = null };
-                _logger.LogInformation("Parsed intent: Type={IntentType}, DocumentName={DocumentName}", intent.Type, intent.DocumentName);
-                return intent;
-            }
-            catch (JsonException ex)
-            {
-                _logger.LogError(ex, "Failed to parse intent JSON: {JsonContent}", result.Content);
-                return new Intent { Type = "question", DocumentName = null };
-            }
-        }
-
-        private int GetDynamicK(string userInput)
-        {
-            var wordCount = userInput.Split(new[] { ' ', '\t', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
-
-            if (wordCount < 10) return 5;
-            if (wordCount <= 30) return 10;
-            return 20;
-        }
-
-        private string TruncateToTokenLimit(string text, int tokenLimit)
-        {
-            if (text.Length <= tokenLimit) return text;
-
-            var sentences = text.Split(new[] { ". ", "! ", "? " }, StringSplitOptions.RemoveEmptyEntries);
-            var truncatedText = new StringBuilder();
-            var currentLength = 0;
-
-            foreach (var sentence in sentences)
-            {
-                if (currentLength + sentence.Length + 2 > tokenLimit)
-                {
-                    break;
-                }
-                truncatedText.Append(sentence).Append(". ");
-                currentLength += sentence.Length + 2;
-            }
-
-            return truncatedText.ToString().TrimEnd() + "...";
-        }
     }
 }

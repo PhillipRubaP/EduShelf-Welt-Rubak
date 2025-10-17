@@ -28,6 +28,9 @@ kernelBuilder.AddOllamaTextEmbeddingGeneration(
 
 builder.Services.AddScoped<IndexingService>();
 builder.Services.AddScoped<ChatService>();
+builder.Services.AddScoped<IntentDetectionService>();
+builder.Services.AddScoped<RetrievalService>();
+builder.Services.AddScoped<PromptGenerationService>();
 builder.Services.AddScoped<IRAGService, RAGService>();
 
 // This is a temporary workaround to bridge ITextEmbeddingGenerationService to IEmbeddingGenerator
