@@ -10,33 +10,36 @@ using EduShelf.Api.Models.Entities;
 using System.Threading.Tasks;
 using System.Threading;
 using System;
+using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Generic;
 
 namespace EduShelf.Api.Tests
 {
     public class IntentDetectionServiceTests
     {
-        private readonly Mock<Kernel> _kernelMock;
+        private readonly Kernel _kernel;
         private readonly Mock<ILogger<IntentDetectionService>> _loggerMock;
         private readonly Mock<IConfiguration> _configurationMock;
         private readonly Mock<IChatCompletionService> _chatCompletionServiceMock;
         private readonly IntentDetectionService _service;
-        private readonly Mock<IServiceProvider> _serviceProviderMock;
 
         public IntentDetectionServiceTests()
         {
-            _serviceProviderMock = new Mock<IServiceProvider>();
-            _kernelMock = new Mock<Kernel>(_serviceProviderMock.Object);
+            _chatCompletionServiceMock = new Mock<IChatCompletionService>();
+            
+            var kernelBuilder = Kernel.CreateBuilder();
+            kernelBuilder.Services.AddSingleton(_chatCompletionServiceMock.Object);
+            _kernel = kernelBuilder.Build();
+            
             _loggerMock = new Mock<ILogger<IntentDetectionService>>();
             _configurationMock = new Mock<IConfiguration>();
-            _chatCompletionServiceMock = new Mock<IChatCompletionService>();
 
-            // Setup Kernel mock to return the mocked chat completion service
-            _serviceProviderMock.Setup(sp => sp.GetService(typeof(IChatCompletionService))).Returns(_chatCompletionServiceMock.Object);
+            // Setup Configuration mock for the specific key
+            var configSectionMock = new Mock<IConfigurationSection>();
+            configSectionMock.Setup(s => s.Value).Returns("system_prompt_here");
+            _configurationMock.Setup(c => c.GetSection("AIService:Prompts:Intent")).Returns(configSectionMock.Object);
 
-            // Setup Configuration mock
-            _configurationMock.Setup(c => c.GetValue<string>("AIService:Prompts:Intent")).Returns("system_prompt_here");
-
-            _service = new IntentDetectionService(_kernelMock.Object, _loggerMock.Object, _configurationMock.Object);
+            _service = new IntentDetectionService(_kernel, _loggerMock.Object, _configurationMock.Object);
         }
 
         [Fact]
@@ -48,14 +51,15 @@ namespace EduShelf.Api.Tests
             var aiResponseJson = JsonSerializer.Serialize(expectedIntent);
             
             var chatMessageContent = new ChatMessageContent(AuthorRole.Assistant, aiResponseJson);
+            var responseList = new List<ChatMessageContent> { chatMessageContent };
 
             _chatCompletionServiceMock
-                .Setup(c => c.GetChatMessageContentAsync(
+                .Setup(c => c.GetChatMessageContentsAsync(
                     It.IsAny<ChatHistory>(),
                     It.IsAny<PromptExecutionSettings>(),
                     It.IsAny<Kernel>(),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(chatMessageContent);
+                .ReturnsAsync(responseList);
 
             // Act
             var result = await _service.GetIntentAsync(userInput);
@@ -74,14 +78,15 @@ namespace EduShelf.Api.Tests
             var aiResponseJson = "this is not json";
 
             var chatMessageContent = new ChatMessageContent(AuthorRole.Assistant, aiResponseJson);
+            var responseList = new List<ChatMessageContent> { chatMessageContent };
 
             _chatCompletionServiceMock
-                .Setup(c => c.GetChatMessageContentAsync(
+                .Setup(c => c.GetChatMessageContentsAsync(
                     It.IsAny<ChatHistory>(),
                     It.IsAny<PromptExecutionSettings>(),
                     It.IsAny<Kernel>(),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(chatMessageContent);
+                .ReturnsAsync(responseList);
 
             // Act
             var result = await _service.GetIntentAsync(userInput);
