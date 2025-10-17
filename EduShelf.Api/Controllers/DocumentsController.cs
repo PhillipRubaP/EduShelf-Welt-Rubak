@@ -260,6 +260,13 @@ namespace EduShelf.Api.Controllers
                 return Forbid();
             }
 
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), _uploadPath, document.Path);
+
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+
             _context.Documents.Remove(document);
             await _context.SaveChangesAsync();
 
