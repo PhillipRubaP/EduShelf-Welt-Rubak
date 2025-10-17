@@ -1,145 +1,94 @@
 using Xunit;
 using EduShelf.Api.Controllers;
-using EduShelf.Api.Data;
+using EduShelf.Api.Models.Dtos;
 using EduShelf.Api.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Moq;
+using System.Threading.Tasks;
+using EduShelf.Api.Services;
 using System;
-using EduShelf.Api.Models.Dtos;
-using System.Collections.Generic;
+using EduShelf.Api.Exceptions;
 
 namespace EduShelf.Api.Tests
 {
     public class UsersControllerTests
     {
-        private async Task<(ApiDbContext, UsersController)> SetupTest()
+        private readonly Mock<IUserService> _mockUserService;
+        private readonly UsersController _controller;
+
+        public UsersControllerTests()
         {
-            var dbContextOptions = new DbContextOptionsBuilder<ApiDbContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
-
-            var inMemorySettings = new Dictionary<string, string> {
-                {"Jwt:Key", "your_super_secret_key_that_is_long_enough"},
-                {"Jwt:Issuer", "your_issuer"},
-                {"Jwt:Audience", "your_audience"},
-            };
-
-            IConfiguration configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(inMemorySettings)
-                .Build();
-
-            var context = new TestApiDbContext(dbContextOptions, configuration);
-            
-            // Seed with a default role and an existing user
-            var role = new Role { RoleId = 1, Name = "Schüler" };
-            context.Roles.Add(role);
-            var user = new User { UserId = 1, Username = "testuser", Email = "test@example.com", PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123") };
-            user.UserRoles.Add(new UserRole { Role = role });
-            context.Users.Add(user);
-            await context.SaveChangesAsync();
-
-            var controller = new UsersController(context, configuration);
-            
-            return (context, controller);
+            _mockUserService = new Mock<IUserService>();
+            _controller = new UsersController(_mockUserService.Object);
         }
 
         [Fact]
         public async Task PostUser_ShouldCreateUser_WhenUsernameAndEmailAreUnique()
         {
             // Arrange
-            var (context, controller) = await SetupTest();
             var newUser = new UserRegister { Username = "newuser", Email = "new@example.com", Password = "password123" };
+            var userDto = new UserDto { UserId = 1, Username = "newuser", Email = "new@example.com" };
+            _mockUserService.Setup(service => service.RegisterUserAsync(newUser)).ReturnsAsync(userDto);
 
             // Act
-            var result = await controller.PostUser(newUser);
+            var result = await _controller.PostUser(newUser);
 
             // Assert
             var actionResult = Assert.IsType<ActionResult<UserDto>>(result);
             var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(actionResult.Result);
-            var userDto = Assert.IsType<UserDto>(createdAtActionResult.Value);
-            Assert.Equal("newuser", userDto.Username);
-
-            // Cleanup
-            await context.DisposeAsync();
+            var returnedUserDto = Assert.IsType<UserDto>(createdAtActionResult.Value);
+            Assert.Equal("newuser", returnedUserDto.Username);
         }
 
         [Fact]
         public async Task PostUser_ShouldReturnConflict_WhenUsernameExists()
         {
             // Arrange
-            var (context, controller) = await SetupTest();
             var existingUser = new UserRegister { Username = "testuser", Email = "another@example.com", Password = "password123" };
+            _mockUserService.Setup(service => service.RegisterUserAsync(existingUser)).ThrowsAsync(new BadRequestException("Username already exists."));
 
-            // Act
-            var result = await controller.PostUser(existingUser);
-
-            // Assert
-            var actionResult = Assert.IsType<ActionResult<UserDto>>(result);
-            var conflictResult = Assert.IsType<ConflictObjectResult>(actionResult.Result);
-            Assert.Equal("Username already exists.", conflictResult.Value);
-
-            // Cleanup
-            await context.DisposeAsync();
+            // Act & Assert
+            await Assert.ThrowsAsync<BadRequestException>(() => _controller.PostUser(existingUser));
         }
 
         [Fact]
         public async Task PostUser_ShouldReturnConflict_WhenEmailExists()
         {
             // Arrange
-            var (context, controller) = await SetupTest();
             var existingUser = new UserRegister { Username = "anotheruser", Email = "test@example.com", Password = "password123" };
+            _mockUserService.Setup(service => service.RegisterUserAsync(existingUser)).ThrowsAsync(new BadRequestException("Email already exists."));
 
-            // Act
-            var result = await controller.PostUser(existingUser);
-
-            // Assert
-            var actionResult = Assert.IsType<ActionResult<UserDto>>(result);
-            var conflictResult = Assert.IsType<ConflictObjectResult>(actionResult.Result);
-            Assert.Equal("Email already exists.", conflictResult.Value);
-
-            // Cleanup
-            await context.DisposeAsync();
+            // Act & Assert
+            await Assert.ThrowsAsync<BadRequestException>(() => _controller.PostUser(existingUser));
         }
 
         [Fact]
         public async Task Login_ShouldReturnToken_WhenCredentialsAreValid()
         {
             // Arrange
-            var (context, controller) = await SetupTest();
             var login = new UserLogin { Email = "test@example.com", Password = "password123" };
+            var loginResponse = new LoginResponseDto { Token = "some.jwt.token", User = new UserDto { UserId = 1, Username = "testuser", Email = "test@example.com" } };
+            _mockUserService.Setup(service => service.LoginAsync(login)).ReturnsAsync(loginResponse);
 
             // Act
-            var result = await controller.Login(login);
+            var result = await _controller.Login(login);
 
             // Assert
             var actionResult = Assert.IsType<ActionResult<LoginResponseDto>>(result);
             var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var loginResponse = Assert.IsType<LoginResponseDto>(okResult.Value);
-            Assert.NotNull(loginResponse.Token);
-
-            // Cleanup
-            await context.DisposeAsync();
+            var returnedLoginResponse = Assert.IsType<LoginResponseDto>(okResult.Value);
+            Assert.NotNull(returnedLoginResponse.Token);
         }
 
         [Fact]
         public async Task Login_ShouldReturnUnauthorized_WhenCredentialsAreInvalid()
         {
             // Arrange
-            var (context, controller) = await SetupTest();
             var login = new UserLogin { Email = "test@example.com", Password = "wrongpassword" };
+            _mockUserService.Setup(service => service.LoginAsync(login)).ThrowsAsync(new UnauthorizedAccessException());
 
-            // Act
-            var result = await controller.Login(login);
-
-            // Assert
-            var actionResult = Assert.IsType<ActionResult<LoginResponseDto>>(result);
-            Assert.IsType<UnauthorizedResult>(actionResult.Result);
-
-            // Cleanup
-            await context.DisposeAsync();
+            // Act & Assert
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _controller.Login(login));
         }
     }
 }

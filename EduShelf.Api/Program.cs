@@ -32,6 +32,7 @@ builder.Services.AddScoped<IntentDetectionService>();
 builder.Services.AddScoped<RetrievalService>();
 builder.Services.AddScoped<PromptGenerationService>();
 builder.Services.AddScoped<IRAGService, RAGService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 // This is a temporary workaround to bridge ITextEmbeddingGenerationService to IEmbeddingGenerator
 // This should be replaced if a better adapter or direct registration becomes available.
