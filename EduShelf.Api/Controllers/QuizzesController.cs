@@ -1,12 +1,13 @@
 using EduShelf.Api.Data;
+using EduShelf.Api.Models.Dtos;
 using EduShelf.Api.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 
 namespace EduShelf.Api.Controllers
 {
@@ -25,7 +26,7 @@ namespace EduShelf.Api.Controllers
 
         // GET: api/Quizzes
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Quiz>>> GetQuizzes()
+        public async Task<ActionResult<IEnumerable<QuizDto>>> GetQuizzes()
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdString, out var userId))
@@ -41,15 +42,35 @@ namespace EduShelf.Api.Controllers
                 query = query.Where(q => q.UserId == userId);
             }
 
-            return await query
+            var quizzes = await query
                 .Include(q => q.Questions)
                 .ThenInclude(q => q.Answers)
                 .ToListAsync();
+
+            var quizDtos = quizzes.Select(q => new QuizDto
+            {
+                Id = q.Id,
+                Title = q.Title,
+                CreatedAt = q.CreatedAt,
+                Questions = q.Questions.Select(qu => new QuestionDto
+                {
+                    Id = qu.Id,
+                    Text = qu.Text,
+                    Answers = qu.Answers.Select(a => new AnswerDto
+                    {
+                        Id = a.Id,
+                        Text = a.Text,
+                        IsCorrect = a.IsCorrect
+                    }).ToList()
+                }).ToList()
+            }).ToList();
+
+            return quizDtos;
         }
 
         // GET: api/Quizzes/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Quiz>> GetQuiz(int id)
+        public async Task<ActionResult<QuizDto>> GetQuiz(int id)
         {
             var quiz = await _context.Quizzes
                 .Include(q => q.Questions)
@@ -73,12 +94,30 @@ namespace EduShelf.Api.Controllers
                 return Forbid();
             }
 
-            return quiz;
+            var quizDto = new QuizDto
+            {
+                Id = quiz.Id,
+                Title = quiz.Title,
+                CreatedAt = quiz.CreatedAt,
+                Questions = quiz.Questions.Select(q => new QuestionDto
+                {
+                    Id = q.Id,
+                    Text = q.Text,
+                    Answers = q.Answers.Select(a => new AnswerDto
+                    {
+                        Id = a.Id,
+                        Text = a.Text,
+                        IsCorrect = a.IsCorrect
+                    }).ToList()
+                }).ToList()
+            };
+
+            return quizDto;
         }
 
         // POST: api/Quizzes
         [HttpPost]
-        public async Task<ActionResult<Quiz>> PostQuiz(Quiz quiz)
+        public async Task<ActionResult<QuizDto>> PostQuiz(QuizCreateDto quizDto)
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdString, out var userId))
@@ -88,24 +127,55 @@ namespace EduShelf.Api.Controllers
 
             var newQuiz = new Quiz
             {
-                Title = quiz.Title,
+                Title = quizDto.Title,
                 UserId = userId,
-                Questions = quiz.Questions
+                Questions = quizDto.Questions?.Select(q => new Question
+                {
+                    Text = q.Text,
+                    Answers = q.Answers?.Select(a => new Answer
+                    {
+                        Text = a.Text,
+                        IsCorrect = a.IsCorrect
+                    }).ToList() ?? new List<Answer>()
+                }).ToList() ?? new List<Question>()
             };
 
             _context.Quizzes.Add(newQuiz);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetQuiz", new { id = newQuiz.Id }, newQuiz);
+            var resultDto = new QuizDto
+            {
+                Id = newQuiz.Id,
+                Title = newQuiz.Title,
+                CreatedAt = newQuiz.CreatedAt,
+                Questions = newQuiz.Questions.Select(q => new QuestionDto
+                {
+                    Id = q.Id,
+                    Text = q.Text,
+                    Answers = q.Answers.Select(a => new AnswerDto
+                    {
+                        Id = a.Id,
+                        Text = a.Text,
+                        IsCorrect = a.IsCorrect
+                    }).ToList()
+                }).ToList()
+            };
+
+            return CreatedAtAction("GetQuiz", new { id = newQuiz.Id }, resultDto);
         }
 
         // PUT: api/Quizzes/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutQuiz(int id, Quiz quiz)
+        public async Task<IActionResult> PutQuiz(int id, QuizUpdateDto quizUpdateDto)
         {
-            if (id != quiz.Id)
+            var quiz = await _context.Quizzes
+                .Include(q => q.Questions)
+                .ThenInclude(q => q.Answers)
+                .FirstOrDefaultAsync(q => q.Id == id);
+
+            if (quiz == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -114,19 +184,55 @@ namespace EduShelf.Api.Controllers
                 return Unauthorized("Invalid user identifier.");
             }
             var isAdmin = User.IsInRole("Admin");
-            var q = await _context.Quizzes.FindAsync(id);
 
-            if (q == null)
-            {
-                return NotFound();
-            }
-
-            if (!isAdmin && q.UserId != userId)
+            if (!isAdmin && quiz.UserId != userId)
             {
                 return Forbid();
             }
 
-            _context.Entry(quiz).State = EntityState.Modified;
+            quiz.Title = quizUpdateDto.Title;
+
+            // Remove questions that are not in the DTO
+            var questionsToRemove = quiz.Questions
+                .Where(q => !quizUpdateDto.Questions.Any(dto => dto.Id == q.Id))
+                .ToList();
+            _context.Questions.RemoveRange(questionsToRemove);
+
+            foreach (var questionDto in quizUpdateDto.Questions)
+            {
+                var question = quiz.Questions.FirstOrDefault(q => q.Id == questionDto.Id);
+                if (question == null)
+                {
+                    // Add new question
+                    question = new Question { Text = questionDto.Text, Answers = new List<Answer>() };
+                    quiz.Questions.Add(question);
+                }
+                else
+                {
+                    question.Text = questionDto.Text;
+                }
+
+                // Remove answers that are not in the DTO
+                var answersToRemove = question.Answers
+                    .Where(a => !questionDto.Answers.Any(dto => dto.Id == a.Id))
+                    .ToList();
+                _context.Answers.RemoveRange(answersToRemove);
+
+                foreach (var answerDto in questionDto.Answers)
+                {
+                    var answer = question.Answers.FirstOrDefault(a => a.Id == answerDto.Id);
+                    if (answer == null)
+                    {
+                        // Add new answer
+                        question.Answers.Add(new Answer { Text = answerDto.Text, IsCorrect = answerDto.IsCorrect });
+                    }
+                    else
+                    {
+                        answer.Text = answerDto.Text;
+                        answer.IsCorrect = answerDto.IsCorrect;
+                    }
+                }
+            }
 
             try
             {
@@ -180,46 +286,31 @@ namespace EduShelf.Api.Controllers
 
             if (quizUpdate.Questions != null)
             {
-                var questionIdsToKeep = quizUpdate.Questions.Select(q => q.Id).ToList();
-                var questionsToRemove = quiz.Questions.Where(q => !questionIdsToKeep.Contains(q.Id)).ToList();
-                _context.Questions.RemoveRange(questionsToRemove);
-
                 foreach (var questionDto in quizUpdate.Questions)
                 {
-                    var existingQuestion = quiz.Questions.FirstOrDefault(q => q.Id == questionDto.Id);
-                    if (existingQuestion != null)
+                    var question = quiz.Questions.FirstOrDefault(q => q.Id == questionDto.Id);
+                    if (question != null)
                     {
-                        existingQuestion.Text = questionDto.Text;
+                        if (questionDto.Text != null)
+                        {
+                            question.Text = questionDto.Text;
+                        }
 
                         if (questionDto.Answers != null)
                         {
-                            var answerIdsToKeep = questionDto.Answers.Select(a => a.Id).ToList();
-                            var answersToRemove = existingQuestion.Answers.Where(a => !answerIdsToKeep.Contains(a.Id)).ToList();
-                            _context.Answers.RemoveRange(answersToRemove);
-
                             foreach (var answerDto in questionDto.Answers)
                             {
-                                var existingAnswer = existingQuestion.Answers.FirstOrDefault(a => a.Id == answerDto.Id);
-                                if (existingAnswer != null)
+                                var answer = question.Answers.FirstOrDefault(a => a.Id == answerDto.Id);
+                                if (answer != null)
                                 {
-                                    existingAnswer.Text = answerDto.Text;
-                                    existingAnswer.IsCorrect = answerDto.IsCorrect;
-                                }
-                                else
-                                {
-                                    existingQuestion.Answers.Add(new Answer { Text = answerDto.Text, IsCorrect = answerDto.IsCorrect });
+                                    if (answerDto.Text != null)
+                                    {
+                                        answer.Text = answerDto.Text;
+                                    }
+                                    answer.IsCorrect = answerDto.IsCorrect;
                                 }
                             }
                         }
-                    }
-                    else
-                    {
-                        var newQuestion = new Question
-                        {
-                            Text = questionDto.Text,
-                            Answers = questionDto.Answers?.Select(a => new Answer { Text = a.Text, IsCorrect = a.IsCorrect }).ToList() ?? new List<Answer>()
-                        };
-                        quiz.Questions.Add(newQuestion);
                     }
                 }
             }
@@ -276,23 +367,4 @@ namespace EduShelf.Api.Controllers
         }
     }
 
-    public class AnswerUpdateDto
-    {
-        public int Id { get; set; }
-        public string Text { get; set; }
-        public bool IsCorrect { get; set; }
-    }
-
-    public class QuestionUpdateDto
-    {
-        public int Id { get; set; }
-        public string Text { get; set; }
-        public ICollection<AnswerUpdateDto> Answers { get; set; }
-    }
-
-    public class QuizUpdateDto
-    {
-        public string Title { get; set; }
-        public ICollection<QuestionUpdateDto> Questions { get; set; }
-    }
 }
