@@ -3,10 +3,11 @@ import LernkartenModal from './LernkartenModal';
 import { getFlashcards, createFlashcard, deleteFlashcard } from '../services/api';
 import { FaPen, FaTrash } from 'react-icons/fa';
 import './Files.css';
+import './Lernkarten.css';
 
 const Lernkarten = () => {
     const [cards, setCards] = useState([]);
-    const [flippedCard, setFlippedCard] = useState(null);
+    const [flippedCards, setFlippedCards] = useState(new Set());
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [openMenuId, setOpenMenuId] = useState(null);
 
@@ -29,7 +30,15 @@ const Lernkarten = () => {
     };
 
     const flipCard = (id) => {
-        setFlippedCard(flippedCard === id ? null : id);
+        setFlippedCards(prevFlippedCards => {
+            const newFlippedCards = new Set(prevFlippedCards);
+            if (newFlippedCards.has(id)) {
+                newFlippedCards.delete(id);
+            } else {
+                newFlippedCards.add(id);
+            }
+            return newFlippedCards;
+        });
     };
 
     const toggleMenu = (id) => {
@@ -44,10 +53,17 @@ const Lernkarten = () => {
                     <button onClick={() => setIsModalOpen(true)} className="add-file-button">+</button>
                 </div>
                 {isModalOpen && <LernkartenModal addCard={addCard} closeModal={() => setIsModalOpen(false)} />}
-                <div className="file-grid">
-                    {Array.isArray(cards) && cards.map((card, index) => (
-                        <div key={card.id || index} className="file-card lernkarte" onClick={() => flipCard(card.id)}>
-                            <p>{flippedCard === card.id ? card.answer : card.question}</p>
+                <div className="lernkarten-grid">
+                    {Array.isArray(cards) && cards.map((card) => (
+                        <div key={card.id} className={`lernkarte-scene ${flippedCards.has(card.id) ? 'flipped' : ''}`} onClick={() => flipCard(card.id)}>
+                            <div className="lernkarte-container">
+                                <div className="lernkarte-face lernkarte-front">
+                                    <p>{card.question}</p>
+                                </div>
+                                <div className="lernkarte-face lernkarte-back">
+                                    <p>{card.answer}</p>
+                                </div>
+                            </div>
                             <div className="file-card-buttons">
                                 <button className="menu-button" onClick={(e) => { e.stopPropagation(); toggleMenu(card.id); }}>
                                     <div className="menu-icon"></div>
