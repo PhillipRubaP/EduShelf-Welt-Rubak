@@ -52,6 +52,14 @@ namespace EduShelf.Api.Controllers
             return NoContent();
         }
 
+        [HttpPatch("sessions/{sessionId}")]
+        public async Task<IActionResult> UpdateSession(int sessionId, [FromBody] UpdateSessionRequest request)
+        {
+            var userId = GetUserId();
+            var session = await _chatService.UpdateChatSessionAsync(userId, sessionId, request.Title);
+            return Ok(session);
+        }
+ 
         [HttpGet("sessions/{sessionId}/messages")]
         public async Task<IActionResult> GetMessages(int sessionId)
         {
@@ -102,6 +110,13 @@ namespace EduShelf.Api.Controllers
     }
 
     public class CreateSessionRequest
+    {
+        [Required]
+        [MaxLength(100)]
+        public string Title { get; set; }
+    }
+
+    public class UpdateSessionRequest
     {
         [Required]
         [MaxLength(100)]
