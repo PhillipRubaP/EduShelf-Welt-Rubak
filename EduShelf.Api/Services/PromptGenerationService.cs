@@ -1,6 +1,9 @@
 using EduShelf.Api.Models.Entities;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.Text;
+using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace EduShelf.Api.Services
 {
@@ -11,6 +14,15 @@ namespace EduShelf.Api.Services
         public PromptGenerationService(IConfiguration configuration)
         {
             _configuration = configuration;
+        }
+
+        public ChatHistory GeneratePrompt(string query, string context)
+        {
+            var chatHistory = new ChatHistory();
+            chatHistory.AddSystemMessage(_configuration.GetValue<string>("AIService:Prompts:System"));
+            chatHistory.AddSystemMessage($"Context:\n{context}");
+            chatHistory.AddUserMessage(query);
+            return chatHistory;
         }
 
         public ChatHistory BuildChatHistory(ChatSession chatSession, List<DocumentChunk> relevantChunks, string userInput)

@@ -27,7 +27,7 @@ kernelBuilder.AddOllamaTextEmbeddingGeneration(
     .Services.AddHttpClient("Ollama", c => c.Timeout = TimeSpan.FromMinutes(5));
 
 builder.Services.AddScoped<IndexingService>();
-builder.Services.AddScoped<ChatService>();
+builder.Services.AddScoped<EduShelf.Api.Services.ChatService>();
 builder.Services.AddScoped<IntentDetectionService>();
 builder.Services.AddScoped<RetrievalService>();
 builder.Services.AddScoped<PromptGenerationService>();

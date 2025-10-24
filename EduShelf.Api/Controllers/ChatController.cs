@@ -15,7 +15,7 @@ namespace EduShelf.Api.Controllers
     {
         private readonly ChatService _chatService;
 
-        public ChatController(ChatService chatService)
+        public ChatController(EduShelf.Api.Services.ChatService chatService)
         {
             _chatService = chatService;
         }

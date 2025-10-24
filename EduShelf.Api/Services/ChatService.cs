@@ -2,42 +2,30 @@ using EduShelf.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.Ollama;
-using Microsoft.SemanticKernel.Embeddings;
-using System.IO;
-using Pgvector;
-using Pgvector.EntityFrameworkCore;
-using System.Text;
 using EduShelf.Api.Exceptions;
 using EduShelf.Api.Models.Entities;
-using Microsoft.Extensions.Configuration;
-using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
+using System;
 
 namespace EduShelf.Api.Services
 {
     public class ChatService
     {
         private readonly ApiDbContext _context;
-        private readonly Kernel _kernel;
+        private readonly IRAGService _ragService;
         private readonly ILogger<ChatService> _logger;
-        private readonly IntentDetectionService _intentDetectionService;
-        private readonly RetrievalService _retrievalService;
-        private readonly PromptGenerationService _promptGenerationService;
 
         public ChatService(
             ApiDbContext context,
-            Kernel kernel,
-            ILogger<ChatService> logger,
-            IntentDetectionService intentDetectionService,
-            RetrievalService retrievalService,
-            PromptGenerationService promptGenerationService)
+            IRAGService ragService,
+            ILogger<ChatService> logger)
         {
             _context = context;
-            _kernel = kernel;
+            _ragService = ragService;
             _logger = logger;
-            _intentDetectionService = intentDetectionService;
-            _retrievalService = retrievalService;
-            _promptGenerationService = promptGenerationService;
         }
 
         public async Task<string> GetResponseAsync(string userInput, int userId, int chatSessionId)
@@ -55,21 +43,14 @@ namespace EduShelf.Api.Services
             try
             {
                 var chatSession = await _context.ChatSessions
-                    .Include(cs => cs.ChatMessages)
                     .FirstOrDefaultAsync(cs => cs.Id == chatSessionId && cs.UserId == userId);
 
                 if (chatSession == null)
                 {
-                    throw new Exception("Chat session not found.");
+                    throw new NotFoundException("Chat session not found.");
                 }
 
-                var intent = await _intentDetectionService.GetIntentAsync(userInput);
-                var relevantChunks = await _retrievalService.GetRelevantChunksAsync(userInput, userId, intent);
-                var chatHistory = _promptGenerationService.BuildChatHistory(chatSession, relevantChunks, userInput);
-
-                var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
-                var result = await chatCompletionService.GetChatMessageContentAsync(chatHistory);
-                var responseContent = result.Content ?? "I'm sorry, I couldn't generate a response.";
+                var responseContent = await _ragService.GetResponseAsync(userInput, userId);
 
                 var chatMessage = new ChatMessage
                 {
@@ -133,7 +114,7 @@ namespace EduShelf.Api.Services
 
             if (session == null)
             {
-                throw new Exception("Chat session not found.");
+                throw new NotFoundException("Chat session not found.");
             }
 
             return await _context.ChatMessages
@@ -149,7 +130,7 @@ namespace EduShelf.Api.Services
 
             if (session == null)
             {
-                throw new Exception("Chat session not found.");
+                throw new NotFoundException("Chat session not found.");
             }
 
             var message = await _context.ChatMessages
@@ -157,7 +138,7 @@ namespace EduShelf.Api.Services
 
             if (message == null)
             {
-                throw new Exception("Message not found.");
+                throw new NotFoundException("Message not found.");
             }
 
             return message;

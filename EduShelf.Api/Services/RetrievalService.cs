@@ -3,54 +3,73 @@ using EduShelf.Api.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Embeddings;
-using Pgvector;
 using Pgvector.EntityFrameworkCore;
-using System.IO;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.AI;
 
 namespace EduShelf.Api.Services
 {
     public class RetrievalService
     {
         private readonly ApiDbContext _context;
-        private readonly Kernel _kernel;
+        private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingService;
+        private readonly int _maxContextLength;
 
-        public RetrievalService(ApiDbContext context, Kernel kernel)
+        public RetrievalService(ApiDbContext context, IEmbeddingGenerator<string, Embedding<float>> embeddingService, IConfiguration configuration)
         {
             _context = context;
-            _kernel = kernel;
+            _embeddingService = embeddingService;
+            _maxContextLength = configuration.GetValue<int>("AIService:ContextLengthLimit", 4096);
         }
 
-        public async Task<List<DocumentChunk>> GetRelevantChunksAsync(string userInput, int userId, Intent intent)
+        public async Task<(string, List<string>)> GetContextAndSourcesAsync(string query, int userId)
         {
-            if (intent.Type == "summarize" && !string.IsNullOrEmpty(intent.DocumentName))
-            {
-                var documentNameWithoutExtension = Path.GetFileNameWithoutExtension(intent.DocumentName);
-                return await _context.DocumentChunks
-                    .Include(dc => dc.Document)
-                    .Where(dc => dc.Document.UserId == userId && EF.Functions.ILike(dc.Document.Title, documentNameWithoutExtension))
-                    .ToListAsync();
-            }
-            else
-            {
-                var embeddingGenerator = _kernel.GetRequiredService<ITextEmbeddingGenerationService>();
-                var promptEmbedding = await embeddingGenerator.GenerateEmbeddingAsync(userInput);
-                var k = GetDynamicK(userInput);
-                return await _context.DocumentChunks
-                    .Include(dc => dc.Document)
-                    .Where(dc => dc.Document.UserId == userId)
-                    .OrderBy(dc => dc.Embedding.L2Distance(new Vector(promptEmbedding)))
-                    .Take(k)
-                    .ToListAsync();
-            }
+            var queryEmbedding = await _embeddingService.GenerateAsync(query);
+
+            var chunks = await _context.DocumentChunks
+                .Where(dc => dc.Document.UserId == userId)
+                .OrderBy(dc => dc.Embedding.L2Distance(queryEmbedding))
+                .Take(10)
+                .Include(dc => dc.Document)
+                .ToListAsync();
+
+            var sources = chunks.Select(c => c.Document.Title).Distinct().ToList();
+            var context = CombineAndOrderChunks(chunks);
+
+            return (context, sources);
         }
 
-        private int GetDynamicK(string userInput)
+        private string CombineAndOrderChunks(List<DocumentChunk> chunks)
         {
-            var wordCount = userInput.Split(new[] { ' ', '\t', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
+            var orderedChunks = chunks.OrderBy(c => c.DocumentId).ThenBy(c => c.Page);
+            var contextBuilder = new StringBuilder();
+            foreach (var chunk in orderedChunks)
+            {
+                contextBuilder.AppendLine(chunk.Content);
+            }
+            return TruncateContext(contextBuilder.ToString());
+        }
 
-            if (wordCount < 10) return 5;
-            if (wordCount <= 30) return 10;
-            return 20;
+        private string TruncateContext(string context)
+        {
+            if (context.Length <= _maxContextLength)
+            {
+                return context;
+            }
+
+            var truncated = context.Substring(0, _maxContextLength);
+            var lastSentenceEnd = Math.Max(truncated.LastIndexOf('.'), Math.Max(truncated.LastIndexOf('?'), truncated.LastIndexOf('!')));
+
+            if (lastSentenceEnd > -1)
+            {
+                return truncated.Substring(0, lastSentenceEnd + 1);
+            }
+
+            return truncated;
         }
     }
 }

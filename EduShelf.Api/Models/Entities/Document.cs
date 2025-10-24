@@ -18,7 +18,7 @@ public class Document
     public string Title { get; set; }
 
     [Required]
-    public string Path { get; set; }
+    public string FileName { get; set; }
 
     [Required]
     [MaxLength(50)]
