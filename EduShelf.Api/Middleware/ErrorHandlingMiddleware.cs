@@ -43,6 +43,30 @@ public class ErrorHandlingMiddleware
                 code = HttpStatusCode.BadRequest;
                 result = JsonSerializer.Serialize(new { error = badRequestException.Message });
                 break;
+            case KernelServiceException kernelServiceException:
+                code = HttpStatusCode.InternalServerError;
+                result = JsonSerializer.Serialize(new { error = kernelServiceException.Message });
+                break;
+            case DatabaseException databaseException:
+                code = HttpStatusCode.InternalServerError;
+                result = JsonSerializer.Serialize(new { error = databaseException.Message });
+                break;
+            case AuthenticationException authenticationException:
+                code = HttpStatusCode.Unauthorized;
+                result = JsonSerializer.Serialize(new { error = authenticationException.Message });
+                break;
+            case AuthorizationException authorizationException:
+                code = HttpStatusCode.Forbidden;
+                result = JsonSerializer.Serialize(new { error = authorizationException.Message });
+                break;
+            case IndexingServiceException indexingServiceException:
+                code = HttpStatusCode.InternalServerError;
+                result = JsonSerializer.Serialize(new { error = indexingServiceException.Message });
+                break;
+            case FileProcessingException fileProcessingException:
+                code = HttpStatusCode.InternalServerError;
+                result = JsonSerializer.Serialize(new { error = fileProcessingException.Message });
+                break;
         }
 
         context.Response.ContentType = "application/json";
