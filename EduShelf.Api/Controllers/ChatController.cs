@@ -44,6 +44,14 @@ namespace EduShelf.Api.Controllers
             return Ok(session);
         }
 
+        [HttpDelete("sessions/{sessionId}")]
+        public async Task<IActionResult> DeleteSession(int sessionId)
+        {
+            var userId = GetUserId();
+            await _chatService.DeleteChatSessionAsync(userId, sessionId);
+            return NoContent();
+        }
+
         [HttpGet("sessions/{sessionId}/messages")]
         public async Task<IActionResult> GetMessages(int sessionId)
         {
