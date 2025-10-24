@@ -2,9 +2,8 @@
     display: flex;
     flex-direction: column;
     position: relative;
-    height: 72vh;
+    height: 100%;
     background-color: var(--neutral-anthracite);
-    padding-bottom: 80px; /* Add padding to prevent content from being hidden behind the fixed input */
 }
 
 .chat-header {
@@ -46,16 +45,10 @@
 }
 
 .chat-input-form {
-    position: fixed;
-    bottom: 0;
-    left: 2rem; /* Align with main-content padding */
-    right: 2rem; /* Align with main-content padding */
     display: flex;
     padding: 1rem;
     background-color: var(--neutral-anthracite);
     border-top: 1px solid #4a4a4a;
-    box-sizing: border-box;
-    width: calc(100% - 4rem); /* Adjust width to account for padding */
 }
 
 .chat-input {

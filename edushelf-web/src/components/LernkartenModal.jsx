@@ -4,11 +4,13 @@ import './LernkartenModal.css';
 const LernkartenModal = ({ addCard, closeModal }) => {
   const [front, setFront] = useState('');
   const [back, setBack] = useState('');
+  const [tags, setTags] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (front.trim() !== '' && back.trim() !== '') {
-      addCard({ front, back });
+      const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      addCard({ front, back, tags: tagsArray });
       closeModal();
     }
   };
@@ -16,35 +18,42 @@ const LernkartenModal = ({ addCard, closeModal }) => {
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <h2 className="text-2xl font-bold mb-4">Neue Lernkarte erstellen</h2>
+        <h2>Neue Lernkarte erstellen</h2>
         <form onSubmit={handleSubmit}>
-          <div className="flex flex-col mb-2">
-            <label htmlFor="front" className="mb-1 text-white">Vorderseite:</label>
+          <div className="form-group">
+            <label htmlFor="front">Vorderseite:</label>
             <input
               type="text"
               id="front"
               value={front}
               onChange={(e) => setFront(e.target.value)}
-              className="p-2 border rounded lernkarten-input"
               placeholder="Frage"
             />
           </div>
-          <div className="flex flex-col mb-2">
-            <label htmlFor="back" className="mb-1 text-white">Rückseite:</label>
-            <input
-              type="text"
+          <div className="form-group">
+            <label htmlFor="back">Rückseite:</label>
+            <textarea
               id="back"
               value={back}
               onChange={(e) => setBack(e.target.value)}
-              className="p-2 border rounded lernkarten-input"
               placeholder="Antwort"
             />
           </div>
-          <div className="flex justify-end gap-2 mt-4">
-            <button type="button" onClick={closeModal} className="bg-green-500 text-white p-2 rounded">
+          <div className="form-group">
+            <label htmlFor="tags">Tags:</label>
+            <input
+              type="text"
+              id="tags"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              placeholder="z.B. Mathe, Formeln"
+            />
+          </div>
+          <div className="modal-actions">
+            <button type="button" onClick={closeModal}>
               Abbrechen
             </button>
-            <button type="submit" className="bg-green-500 text-white p-2 rounded">
+            <button type="submit">
               Karte hinzufügen
             </button>
           </div>

@@ -14,5 +14,5 @@ public class FlashcardCreateDto
     [Required]
     public string Answer { get; set; }
 
-    public ICollection<string> Tags { get; set; }
+    public ICollection<string> Tags { get; set; } = new List<string>();
 }
