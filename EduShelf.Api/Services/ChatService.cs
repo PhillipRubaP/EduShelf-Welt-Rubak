@@ -163,5 +163,44 @@ namespace EduShelf.Api.Services
             return message;
         }
 
+        public async Task DeleteChatSessionAsync(int userId, int chatSessionId)
+        {
+            var chatSession = await _context.ChatSessions
+                .FirstOrDefaultAsync(cs => cs.Id == chatSessionId && cs.UserId == userId);
+
+            if (chatSession == null)
+            {
+                throw new NotFoundException("Chat session not found.");
+            }
+
+            _context.ChatSessions.Remove(chatSession);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<ChatSession> UpdateChatSessionAsync(int userId, int sessionId, string title)
+        {
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                throw new BadRequestException("Title cannot be empty.");
+            }
+
+            if (title.Length > 100)
+            {
+                throw new BadRequestException("Title cannot exceed 100 characters.");
+            }
+
+            var chatSession = await _context.ChatSessions
+                .FirstOrDefaultAsync(cs => cs.Id == sessionId && cs.UserId == userId);
+
+            if (chatSession == null)
+            {
+                throw new NotFoundException("Chat session not found.");
+            }
+
+            chatSession.Title = title;
+            await _context.SaveChangesAsync();
+
+            return chatSession;
+        }
     }
 }
