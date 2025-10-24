@@ -1,9 +1,50 @@
 .chat-container {
     display: flex;
-    flex-direction: column;
-    position: relative;
+    flex-direction: row;
     height: 100%;
     background-color: var(--neutral-anthracite);
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #2c2c2c;
+    color: white;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar button {
+    background-color: var(--primary-green);
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+}
+
+.sidebar li {
+    padding: 0.75rem;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.sidebar li:hover, .sidebar li.active {
+    background-color: #4a4a4a;
+}
+
+.chat-window {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .chat-header {
