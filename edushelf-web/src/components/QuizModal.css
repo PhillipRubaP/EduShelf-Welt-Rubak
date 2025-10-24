@@ -28,8 +28,9 @@
     margin-bottom: 5px;
 }
 
-.form-group input {
+.modal-content .form-group input {
     width: 100%;
+    color: black;
     padding: 8px;
     box-sizing: border-box;
 }
@@ -77,7 +78,6 @@
 
     .form-group input {
         background-color: var(--neutral-blue-gray);
-        color: var(--neutral-anthracite);
         border-color: var(--primary-green);
     }
 

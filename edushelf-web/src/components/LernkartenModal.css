@@ -57,7 +57,7 @@
     .form-group input,
     .form-group textarea {
         background-color: var(--neutral-blue-gray);
-        color: var(--neutral-white);
+        color: black;
         border-color: var(--primary-green);
     }
 
