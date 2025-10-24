@@ -34,6 +34,18 @@ builder.Services.AddScoped<PromptGenerationService>();
 builder.Services.AddScoped<IRAGService, RAGService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
+// Register the ImageProcessingService as a singleton
+builder.Services.AddSingleton(sp =>
+{
+    // TODO: Replace with the actual path to your ONNX model file
+    var modelPath = "path/to/your/model.onnx";
+
+    // TODO: Replace with the actual labels for your model
+    var modelLabels = new[] { "label1", "label2", "label3" };
+
+    return new ImageProcessingService(modelPath, modelLabels);
+});
+
 // This is a temporary workaround to bridge ITextEmbeddingGenerationService to IEmbeddingGenerator
 // This should be replaced if a better adapter or direct registration becomes available.
 #pragma warning disable SKEXP0001
