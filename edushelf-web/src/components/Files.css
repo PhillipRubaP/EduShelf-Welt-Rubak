@@ -76,8 +76,7 @@
   cursor: pointer;
   display: flex;
   justify-content: center;
-  align-items: flex-end;
-  padding-bottom: 2px;
+  align-items: center;
 }
 
 .add-file-button:hover {
