@@ -33,6 +33,7 @@ builder.Services.AddScoped<RetrievalService>();
 builder.Services.AddScoped<PromptGenerationService>();
 builder.Services.AddScoped<IRAGService, RAGService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<PdfImageExtractionService>();
 
 // Register the ImageProcessingService as a singleton
 builder.Services.AddSingleton(sp =>
