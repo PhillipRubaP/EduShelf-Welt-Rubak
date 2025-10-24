@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import './LernkartenModal.css';
+import './FlashcardsModal.css';
 
-const LernkartenModal = ({ addCard, closeModal }) => {
+const FlashcardsModal = ({ addCard, closeModal }) => {
   const [front, setFront] = useState('');
   const [back, setBack] = useState('');
   const [tags, setTags] = useState('');
@@ -18,25 +18,25 @@ const LernkartenModal = ({ addCard, closeModal }) => {
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <h2>Neue Lernkarte erstellen</h2>
+        <h2>Create New Flashcard</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="front">Vorderseite:</label>
+            <label htmlFor="front">Front:</label>
             <input
               type="text"
               id="front"
               value={front}
               onChange={(e) => setFront(e.target.value)}
-              placeholder="Frage"
+              placeholder="Question"
             />
           </div>
           <div className="form-group">
-            <label htmlFor="back">Rückseite:</label>
+            <label htmlFor="back">Back:</label>
             <textarea
               id="back"
               value={back}
               onChange={(e) => setBack(e.target.value)}
-              placeholder="Antwort"
+              placeholder="Answer"
             />
           </div>
           <div className="form-group">
@@ -46,15 +46,15 @@ const LernkartenModal = ({ addCard, closeModal }) => {
               id="tags"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              placeholder="z.B. Mathe, Formeln"
+              placeholder="e.g. Math, Formulas"
             />
           </div>
           <div className="modal-actions">
-            <button type="button" onClick={closeModal}>
-              Abbrechen
-            </button>
             <button type="submit">
-              Karte hinzufügen
+              Add Card
+            </button>
+            <button type="button" onClick={closeModal}>
+              Cancel
             </button>
           </div>
         </form>
@@ -63,4 +63,4 @@ const LernkartenModal = ({ addCard, closeModal }) => {
   );
 };
 
-export default LernkartenModal;
+export default FlashcardsModal;

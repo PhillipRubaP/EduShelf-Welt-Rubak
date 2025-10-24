@@ -102,5 +102,6 @@ export const createFlashcard = (flashcardData) => {
     return api.post('/flashcards', dataToSend);
 };
 export const deleteFlashcard = (flashcardId) => api.delete(`/flashcards/${flashcardId}`);
+export const getDocuments = () => api.get('/documents');
 
 export default api;
