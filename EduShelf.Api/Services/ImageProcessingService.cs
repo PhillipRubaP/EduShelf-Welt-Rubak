@@ -17,12 +17,25 @@ namespace EduShelf.Api.Services
 
         public ImageProcessingService(string modelPath, string[] modelLabels)
         {
-            _session = new InferenceSession(modelPath);
+            if (File.Exists(modelPath) && new FileInfo(modelPath).Length > 0)
+            {
+                _session = new InferenceSession(modelPath);
+            }
+            else
+            {
+                // Log a warning that the model is not available
+                Console.WriteLine($"Warning: ONNX model not found at path: {modelPath}. Image processing will be disabled.");
+            }
             _modelLabels = modelLabels;
         }
 
         public async Task<IEnumerable<string>> ProcessImageAsync(Stream imageStream)
         {
+            if (_session == null)
+            {
+                return new[] { "Image processing is disabled because the model is not available." };
+            }
+
             using var image = await Image.LoadAsync<Rgb24>(imageStream);
             
             // Pre-process the image (example for a 416x416 model)

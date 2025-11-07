@@ -38,11 +38,13 @@ builder.Services.AddScoped<PdfImageExtractionService>();
 // Register the ImageProcessingService as a singleton
 builder.Services.AddSingleton(sp =>
 {
-    // TODO: Replace with the actual path to your ONNX model file
-    var modelPath = "path/to/your/model.onnx";
+    var modelPath = builder.Configuration["ImageProcessing:ModelPath"];
+    var modelLabels = builder.Configuration.GetSection("ImageProcessing:ModelLabels").Get<string[]>();
 
-    // TODO: Replace with the actual labels for your model
-    var modelLabels = new[] { "label1", "label2", "label3" };
+    if (string.IsNullOrEmpty(modelPath) || modelLabels == null || modelLabels.Length == 0)
+    {
+        throw new InvalidOperationException("Image processing service is not configured correctly.");
+    }
 
     return new ImageProcessingService(modelPath, modelLabels);
 });
