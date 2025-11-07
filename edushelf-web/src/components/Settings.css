@@ -1,0 +1,19 @@
+.settings-container {
+    padding: 2rem;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+}
+
+.settings-container h2 {
+    margin-bottom: 1.5rem;
+}
+
+.settings-option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.settings-option label {
+    margin-right: 1rem;
+}

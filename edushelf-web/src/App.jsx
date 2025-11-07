@@ -8,6 +8,7 @@ import Flashcards from './components/Flashcards';
 import Login from './components/Login';
 import Register from './components/Register';
 import EditUser from './components/EditUser';
+import Settings from './components/Settings';
 import MainDashboard from './components/MainDashboard';
 import MainLayout from './components/MainLayout';
 
@@ -46,6 +47,7 @@ function App() {
                   <Route path="quiz/:quizTitle" element={<Quiz />} />
                   <Route path="flashcards" element={<Flashcards />} />
                   <Route path="edit-user" element={<EditUser loggedInUser={loggedInUser} setLoggedInUser={setLoggedInUser} />} />
+                  <Route path="settings" element={<Settings />} />
                   <Route path="*" element={<Navigate to="/" />} />
                 </Route>
               </Routes>
