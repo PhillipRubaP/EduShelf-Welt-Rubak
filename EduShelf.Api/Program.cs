@@ -19,12 +19,20 @@ var kernelBuilder = builder.Services.AddKernel();
 kernelBuilder.AddOllamaChatCompletion(
     modelId: builder.Configuration["AIService:ChatModel"]!,
     endpoint: new Uri(builder.Configuration["AIService:Endpoint"]!))
-    .Services.AddHttpClient("Ollama", c => c.Timeout = TimeSpan.FromMinutes(5));
+    .Services.AddHttpClient("Ollama", c =>
+    {
+        c.BaseAddress = new Uri(builder.Configuration["AIService:Endpoint"]!);
+        c.Timeout = TimeSpan.FromMinutes(5);
+    });
 #pragma warning disable SKEXP0070
 kernelBuilder.AddOllamaTextEmbeddingGeneration(
     modelId: builder.Configuration["AIService:EmbeddingModel"]!,
     endpoint: new Uri(builder.Configuration["AIService:Endpoint"]!))
-    .Services.AddHttpClient("Ollama", c => c.Timeout = TimeSpan.FromMinutes(5));
+    .Services.AddHttpClient("Ollama", c =>
+    {
+        c.BaseAddress = new Uri(builder.Configuration["AIService:Endpoint"]!);
+        c.Timeout = TimeSpan.FromMinutes(5);
+    });
 
 builder.Services.AddScoped<IndexingService>();
 builder.Services.AddScoped<ChatService>();

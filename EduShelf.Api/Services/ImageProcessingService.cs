@@ -12,13 +12,11 @@ namespace EduShelf.Api.Services
     {
         private readonly HttpClient _httpClient;
         private readonly string _visionModel;
-        private readonly string _ollamaEndpoint;
 
         public ImageProcessingService(IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _httpClient = httpClientFactory.CreateClient("Ollama");
             _visionModel = configuration["AIService:VisionModel"] ?? "llava:latest";
-            _ollamaEndpoint = configuration["AIService:Endpoint"];
         }
 
         public async Task<string> ProcessImageAsync(byte[] imageData, string prompt)
@@ -36,7 +34,7 @@ namespace EduShelf.Api.Services
             var jsonBody = JsonSerializer.Serialize(requestBody);
             var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync($"{_ollamaEndpoint}/api/generate", content);
+            var response = await _httpClient.PostAsync("/api/generate", content);
 
             response.EnsureSuccessStatusCode();
 

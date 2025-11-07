@@ -8,3 +8,8 @@ RUN /bin/sh -c 'ollama serve & \
     sleep 5 && \
     ollama pull gemma3:1b && \
     ollama pull nomic-embed-text'
+
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+ENTRYPOINT ["/start.sh"]
