@@ -64,7 +64,7 @@ namespace EduShelf.Api.Services
 
             var inputs = new List<NamedOnnxValue>
             {
-                NamedOnnxValue.CreateFromTensor("input", inputTensor)
+                NamedOnnxValue.CreateFromTensor("pixel_values", inputTensor)
             };
 
             // Run inference
