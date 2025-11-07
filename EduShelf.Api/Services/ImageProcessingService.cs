@@ -39,7 +39,7 @@ namespace EduShelf.Api.Services
             using var image = await Image.LoadAsync<Rgb24>(imageStream);
             
             // Pre-process the image (example for a 416x416 model)
-            var inputSize = 416;
+            var inputSize = 224;
             image.Mutate(x => x.Resize(new ResizeOptions
             {
                 Size = new Size(inputSize, inputSize),
