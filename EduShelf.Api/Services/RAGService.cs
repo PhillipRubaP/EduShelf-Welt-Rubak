@@ -88,26 +88,16 @@ namespace EduShelf.Api.Services
                 return $"I did not find any images in the document '{intent.DocumentName}'.";
             }
 
-            var allKeywords = new List<string>();
-            foreach (var imageData in images)
+            var firstImage = images.FirstOrDefault();
+            if (firstImage == null)
             {
-                using var imageStream = new MemoryStream(imageData);
-                var keywords = await _imageProcessingService.ProcessImageAsync(imageStream);
-                allKeywords.AddRange(keywords);
+                return "I found images, but could not process them.";
             }
 
-            var distinctKeywords = allKeywords.Distinct().ToList();
-            if (!distinctKeywords.Any())
-            {
-                return "I was able to extract images, but I could not identify any specific objects in them.";
-            }
+            using var imageStream = new MemoryStream(firstImage);
+            var description = await _imageProcessingService.ProcessImageAsync(imageStream, "Describe this image in detail.");
 
-            var imageContentPrompt = $"The user wants a description of an image. The image contains the following elements: {string.Join(", ", distinctKeywords)}. Based on these elements, provide a concise, one-sentence description of the image.";
-            
-            var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
-            var result = await chatCompletionService.GetChatMessageContentAsync(imageContentPrompt);
-
-            return result.Content ?? "I found some objects in the image, but I couldn't generate a description.";
+            return description ?? "I was able to extract an image, but I could not generate a description for it.";
         }
     }
 }

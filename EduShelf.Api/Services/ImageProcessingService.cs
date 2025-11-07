@@ -1,93 +1,46 @@
-using Microsoft.ML.OnnxRuntime;
-using Microsoft.ML.OnnxRuntime.Tensors;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.PixelFormats;
-using System.Collections.Generic;
+using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
 
 namespace EduShelf.Api.Services
 {
     public class ImageProcessingService
     {
-        private readonly InferenceSession _session;
-        private readonly string[] _modelLabels;
+        private readonly Kernel _kernel;
 
-        public ImageProcessingService(string modelPath, string[] modelLabels)
+        public ImageProcessingService(Kernel kernel)
         {
-            if (File.Exists(modelPath) && new FileInfo(modelPath).Length > 0)
-            {
-                _session = new InferenceSession(modelPath);
-            }
-            else
-            {
-                // Log a warning that the model is not available
-                Console.WriteLine($"Warning: ONNX model not found at path: {modelPath}. Image processing will be disabled.");
-            }
-            _modelLabels = modelLabels;
+            _kernel = kernel;
         }
 
-        public async Task<IEnumerable<string>> ProcessImageAsync(Stream imageStream)
+        public async Task<string> ProcessImageAsync(Stream imageStream, string prompt)
         {
-            if (_session == null)
+            var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
+
+            // Convert the image stream to a byte array
+            byte[] imageBytes;
+            using (var memoryStream = new MemoryStream())
             {
-                return new[] { "Image processing is disabled because the model is not available." };
+                await imageStream.CopyToAsync(memoryStream);
+                imageBytes = memoryStream.ToArray();
             }
 
-            using var image = await Image.LoadAsync<Rgb24>(imageStream);
-            
-            // Pre-process the image (example for a 416x416 model)
-            var inputSize = 224;
-            image.Mutate(x => x.Resize(new ResizeOptions
+            // Create the chat history with the prompt and the image
+            var chatHistory = new ChatHistory();
+            var promptMessage = new ChatMessageContentItemCollection
             {
-                Size = new Size(inputSize, inputSize),
-                Mode = ResizeMode.Pad
-            }));
-
-            var inputTensor = new DenseTensor<float>(new[] { 1, 3, inputSize, inputSize });
-            image.ProcessPixelRows(accessor =>
-            {
-                for (int y = 0; y < accessor.Height; y++)
-                {
-                    var pixelRow = accessor.GetRowSpan(y);
-                    for (int x = 0; x < accessor.Width; x++)
-                    {
-                        var pixel = pixelRow[x];
-                        inputTensor[0, 0, y, x] = pixel.R / 255.0f;
-                        inputTensor[0, 1, y, x] = pixel.G / 255.0f;
-                        inputTensor[0, 2, y, x] = pixel.B / 255.0f;
-                    }
-                }
-            });
-
-            var inputs = new List<NamedOnnxValue>
-            {
-                NamedOnnxValue.CreateFromTensor("pixel_values", inputTensor)
+                new TextContent(prompt),
+                new ImageContent(imageBytes, "image/jpeg") // Assuming JPEG, adjust if needed
             };
+            chatHistory.AddUserMessage(promptMessage);
 
-            // Run inference
-            using var results = _session.Run(inputs);
+            // Get the response from the multimodal model
+            var result = await chatCompletionService.GetChatMessageContentAsync(chatHistory);
 
-            // Post-process the results (this is a placeholder)
-            // The actual implementation depends on the model's output format.
-            // This example assumes the model outputs a list of detected class indices.
-            var output = results.FirstOrDefault();
-            if (output?.Value is not DenseTensor<float> outputTensor)
-            {
-                return new[] { "Could not process model output." };
-            }
-
-            // Placeholder: return the top 5 labels with highest scores
-            var topResults = outputTensor.Buffer.ToArray()
-                .Select((score, index) => new { score, index })
-                .OrderByDescending(item => item.score)
-                .Take(5)
-                .Select(item => _modelLabels[item.index])
-                .ToList();
-
-            return topResults;
+            return result.Content;
         }
     }
 }

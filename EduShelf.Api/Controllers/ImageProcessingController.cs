@@ -17,17 +17,22 @@ namespace EduShelf.Api.Controllers
         }
 
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadImage(IFormFile file)
+        public async Task<IActionResult> UploadImage([FromForm] IFormFile file, [FromForm] string prompt)
         {
             if (file == null || file.Length == 0)
             {
                 return BadRequest("No file uploaded.");
             }
 
-            using var stream = file.OpenReadStream();
-            var results = await _imageProcessingService.ProcessImageAsync(stream);
+            if (string.IsNullOrEmpty(prompt))
+            {
+                return BadRequest("A prompt is required.");
+            }
 
-            return Ok(results);
+            using var stream = file.OpenReadStream();
+            var result = await _imageProcessingService.ProcessImageAsync(stream, prompt);
+
+            return Ok(new { response = result });
         }
     }
 }

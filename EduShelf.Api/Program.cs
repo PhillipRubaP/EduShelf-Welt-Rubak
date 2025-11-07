@@ -36,18 +36,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<PdfImageExtractionService>();
 
 // Register the ImageProcessingService as a singleton
-builder.Services.AddSingleton(sp =>
-{
-    var modelPath = Path.Combine(AppContext.BaseDirectory, "model.onnx");
-    var modelLabels = builder.Configuration.GetSection("ImageProcessing:ModelLabels").Get<string[]>();
-
-    if (string.IsNullOrEmpty(modelPath) || modelLabels == null || modelLabels.Length == 0)
-    {
-        throw new InvalidOperationException("Image processing service is not configured correctly.");
-    }
-
-    return new ImageProcessingService(modelPath, modelLabels);
-});
+builder.Services.AddScoped<ImageProcessingService>();
 
 // This is a temporary workaround to bridge ITextEmbeddingGenerationService to IEmbeddingGenerator
 // This should be replaced if a better adapter or direct registration becomes available.

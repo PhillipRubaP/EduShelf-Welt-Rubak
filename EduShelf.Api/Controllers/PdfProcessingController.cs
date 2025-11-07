@@ -24,11 +24,16 @@ namespace EduShelf.Api.Controllers
         }
 
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadPdf(IFormFile file)
+        public async Task<IActionResult> UploadPdf([FromForm] IFormFile file, [FromForm] string prompt)
         {
             if (file == null || file.Length == 0)
             {
                 return BadRequest("No file uploaded.");
+            }
+
+            if (string.IsNullOrEmpty(prompt))
+            {
+                return BadRequest("A prompt is required.");
             }
 
             if (Path.GetExtension(file.FileName).ToLower() != ".pdf")
@@ -52,8 +57,8 @@ namespace EduShelf.Api.Controllers
                 {
                     using (var imageStream = new MemoryStream(imageData))
                     {
-                        var results = await _imageProcessingService.ProcessImageAsync(imageStream);
-                        allResults.Add(new { image = imageIndex++, results });
+                        var result = await _imageProcessingService.ProcessImageAsync(imageStream, prompt);
+                        allResults.Add(new { image = imageIndex++, response = result });
                     }
                 }
             }
