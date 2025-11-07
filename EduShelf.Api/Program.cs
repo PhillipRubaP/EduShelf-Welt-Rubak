@@ -33,6 +33,7 @@ builder.Services.AddScoped<RetrievalService>();
 builder.Services.AddScoped<PromptGenerationService>();
 builder.Services.AddScoped<IRAGService, RAGService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IImageProcessingService, ImageProcessingService>();
 
 // This is a temporary workaround to bridge ITextEmbeddingGenerationService to IEmbeddingGenerator
 // This should be replaced if a better adapter or direct registration becomes available.

@@ -16,6 +16,8 @@ using Docnet.Core.Models;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Text;
+using UglyToad.PdfPig;
+using UglyToad.PdfPig.Content;
 
 namespace EduShelf.Api.Controllers
 {
@@ -27,12 +29,14 @@ namespace EduShelf.Api.Controllers
     {
         private readonly ApiDbContext _context;
         private readonly IndexingService _indexingService;
+        private readonly IImageProcessingService _imageProcessingService;
         private readonly string _uploadPath;
 
-        public DocumentsController(ApiDbContext context, IndexingService indexingService, IConfiguration configuration)
+        public DocumentsController(ApiDbContext context, IndexingService indexingService, IImageProcessingService imageProcessingService, IConfiguration configuration)
         {
             _context = context;
             _indexingService = indexingService;
+            _imageProcessingService = imageProcessingService;
             _uploadPath = configuration["FileStorage:UploadPath"] ?? "Uploads";
         }
 
@@ -504,18 +508,39 @@ namespace EduShelf.Api.Controllers
 
             if (fileExtension == ".pdf")
             {
-                using (var docReader = DocLib.Instance.GetDocReader(filePath, new PageDimensions()))
+                var stringBuilder = new StringBuilder();
+                using (var pdf = PdfDocument.Open(filePath))
                 {
-                    var stringBuilder = new StringBuilder();
-                    for (var i = 0; i < docReader.GetPageCount(); i++)
+                    foreach (var page in pdf.GetPages())
                     {
-                        using (var pageReader = docReader.GetPageReader(i))
+                        stringBuilder.AppendLine($"--- Page {page.Number} ---");
+                        stringBuilder.AppendLine(page.Text);
+
+                        foreach (var image in page.GetImages())
                         {
-                            stringBuilder.AppendLine(pageReader.GetText());
+                            var imageData = image.RawBytes.ToArray();
+                            if (imageData != null && imageData.Length > 0)
+                            {
+                                var ocrText = await _imageProcessingService.ProcessImageAsync(imageData, "Extract all text from this image.");
+                                var description = await _imageProcessingService.ProcessImageAsync(imageData, "Describe this image in detail.");
+
+                                stringBuilder.AppendLine("--- Image Content ---");
+                                if (!string.IsNullOrWhiteSpace(ocrText))
+                                {
+                                    stringBuilder.AppendLine("Extracted Text:");
+                                    stringBuilder.AppendLine(ocrText);
+                                }
+                                if (!string.IsNullOrWhiteSpace(description))
+                                {
+                                    stringBuilder.AppendLine("Image Description:");
+                                    stringBuilder.AppendLine(description);
+                                }
+                                stringBuilder.AppendLine("--- End Image Content ---");
+                            }
                         }
                     }
-                    content = stringBuilder.ToString();
                 }
+                content = stringBuilder.ToString();
             }
             else if (fileExtension == ".docx" || fileExtension == ".doc")
             {

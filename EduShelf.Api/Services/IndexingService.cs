@@ -15,12 +15,14 @@ namespace EduShelf.Api.Services
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<IndexingService> _logger;
+        private readonly IImageProcessingService _imageProcessingService;
         private readonly string _uploadPath;
 
-        public IndexingService(IServiceScopeFactory scopeFactory, ILogger<IndexingService> logger, IConfiguration configuration)
+        public IndexingService(IServiceScopeFactory scopeFactory, ILogger<IndexingService> logger, IImageProcessingService imageProcessingService, IConfiguration configuration)
         {
             _scopeFactory = scopeFactory;
             _logger = logger;
+            _imageProcessingService = imageProcessingService;
             _uploadPath = configuration["FileStorage:UploadPath"] ?? "Uploads";
         }
 
@@ -36,7 +38,7 @@ namespace EduShelf.Api.Services
                     return;
                 }
 
-                var content = ExtractTextFromFile(fullPath);
+                var content = await ExtractTextFromFileAsync(fullPath);
                 if (string.IsNullOrWhiteSpace(content))
                 {
                     _logger.LogWarning("No content extracted from document {DocumentId}", documentId);
@@ -160,32 +162,58 @@ namespace EduShelf.Api.Services
             _logger.LogInformation("Successfully indexed a total of {TotalChunks} chunks for document ID {DocumentId}", totalChunks, documentId);
         }
 
-        private string ExtractTextFromFile(string filePath)
+        private async Task<string> ExtractTextFromFileAsync(string filePath)
         {
             var extension = Path.GetExtension(filePath).ToLowerInvariant();
             switch (extension)
             {
                 case ".pdf":
-                    return ExtractTextFromPdf(filePath);
+                    return await ExtractTextFromPdfAsync(filePath);
                 case ".docx":
                     return ExtractTextFromDocx(filePath);
                 case ".txt":
-                    return File.ReadAllText(filePath);
+                    return await File.ReadAllTextAsync(filePath);
                 default:
                     _logger.LogWarning("Unsupported file type for text extraction: {Extension}", extension);
                     return string.Empty;
             }
         }
 
-        private string ExtractTextFromPdf(string filePath)
+        private async Task<string> ExtractTextFromPdfAsync(string filePath)
         {
-            using var pdf = PdfDocument.Open(filePath);
-            var text = new StringBuilder();
-            foreach (var page in pdf.GetPages())
+            var stringBuilder = new StringBuilder();
+            using (var pdf = PdfDocument.Open(filePath))
             {
-                text.Append(page.Text);
+                foreach (var page in pdf.GetPages())
+                {
+                    stringBuilder.AppendLine($"--- Page {page.Number} ---");
+                    stringBuilder.AppendLine(page.Text);
+
+                    foreach (var image in page.GetImages())
+                    {
+                        var imageData = image.RawBytes.ToArray();
+                        if (imageData != null && imageData.Length > 0)
+                        {
+                            var ocrText = await _imageProcessingService.ProcessImageAsync(imageData, "Extract all text from this image.");
+                            var description = await _imageProcessingService.ProcessImageAsync(imageData, "Describe this image in detail.");
+
+                            stringBuilder.AppendLine("--- Image Content ---");
+                            if (!string.IsNullOrWhiteSpace(ocrText))
+                            {
+                                stringBuilder.AppendLine("Extracted Text:");
+                                stringBuilder.AppendLine(ocrText);
+                            }
+                            if (!string.IsNullOrWhiteSpace(description))
+                            {
+                                stringBuilder.AppendLine("Image Description:");
+                                stringBuilder.AppendLine(description);
+                            }
+                            stringBuilder.AppendLine("--- End Image Content ---");
+                        }
+                    }
+                }
             }
-            return text.ToString();
+            return stringBuilder.ToString();
         }
 
         private string ExtractTextFromDocx(string filePath)
