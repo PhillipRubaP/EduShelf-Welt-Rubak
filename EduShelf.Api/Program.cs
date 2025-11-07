@@ -38,7 +38,7 @@ builder.Services.AddScoped<PdfImageExtractionService>();
 // Register the ImageProcessingService as a singleton
 builder.Services.AddSingleton(sp =>
 {
-    var modelPath = builder.Configuration["ImageProcessing:ModelPath"];
+    var modelPath = Path.Combine(AppContext.BaseDirectory, "model.onnx");
     var modelLabels = builder.Configuration.GetSection("ImageProcessing:ModelLabels").Get<string[]>();
 
     if (string.IsNullOrEmpty(modelPath) || modelLabels == null || modelLabels.Length == 0)
