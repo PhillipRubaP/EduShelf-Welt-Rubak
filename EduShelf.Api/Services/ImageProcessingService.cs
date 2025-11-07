@@ -47,16 +47,20 @@ namespace EduShelf.Api.Services
             }));
 
             var inputTensor = new DenseTensor<float>(new[] { 1, 3, inputSize, inputSize });
-            for (int y = 0; y < image.Height; y++)
+            image.ProcessPixelRows(accessor =>
             {
-                for (int x = 0; x < image.Width; x++)
+                for (int y = 0; y < accessor.Height; y++)
                 {
-                    var pixel = image[x, y];
-                    inputTensor[0, 0, y, x] = pixel.R / 255.0f;
-                    inputTensor[0, 1, y, x] = pixel.G / 255.0f;
-                    inputTensor[0, 2, y, x] = pixel.B / 255.0f;
+                    var pixelRow = accessor.GetRowSpan(y);
+                    for (int x = 0; x < accessor.Width; x++)
+                    {
+                        var pixel = pixelRow[x];
+                        inputTensor[0, 0, y, x] = pixel.R / 255.0f;
+                        inputTensor[0, 1, y, x] = pixel.G / 255.0f;
+                        inputTensor[0, 2, y, x] = pixel.B / 255.0f;
+                    }
                 }
-            }
+            });
 
             var inputs = new List<NamedOnnxValue>
             {
