@@ -42,3 +42,6 @@
 .docx-container {
     padding-top: 40px;
 }
+[data-theme='light'] .file-viewer-content {
+  background-color: var(--primary-color);
+}

@@ -133,3 +133,24 @@
     background-color: var(--primary-green);
     color: var(--neutral-white);
 }
+[data-theme='light'] .modal-content {
+    background: var(--primary-color);
+    color: var(--text-color);
+}
+
+[data-theme='light'] .question-block {
+    border-color: var(--secondary-color);
+}
+
+[data-theme='light'] .form-group input {
+    background-color: var(--secondary-color);
+    border-color: var(--primary-green);
+}
+
+[data-theme='light'] .answer-button {
+    color: var(--text-color);
+}
+
+[data-theme='light'] .answer-circle {
+    border: 2px solid var(--text-color);
+}

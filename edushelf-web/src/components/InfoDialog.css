@@ -42,3 +42,11 @@
 .dialog-buttons button.primary:hover {
   filter: brightness(90%);
 }
+[data-theme='light'] .info-dialog {
+  background-color: var(--primary-color);
+  color: var(--text-color);
+}
+
+[data-theme='light'] .dialog-buttons button.primary {
+  color: var(--text-color);
+}

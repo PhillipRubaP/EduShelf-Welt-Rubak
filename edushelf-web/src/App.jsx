@@ -23,6 +23,13 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    const currentTheme = localStorage.getItem('theme');
+    if (currentTheme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+    }
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');

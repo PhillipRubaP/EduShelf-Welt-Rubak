@@ -56,3 +56,16 @@
     right: 10px;
     z-index: 10; /* Ensure buttons are on top */
 }
+[data-theme='light'] .flashcard-face {
+    color: var(--text-color);
+}
+
+[data-theme='light'] .flashcard-front {
+    background-color: var(--secondary-color);
+    border: 1px solid var(--primary-color);
+}
+
+[data-theme='light'] .flashcard-back {
+    background-color: var(--primary-color);
+    border: 1px solid var(--secondary-color);
+}

@@ -63,3 +63,7 @@
 .close-button:hover {
   color: #800000;
 }
+[data-theme='light'] .auth-box {
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+}
