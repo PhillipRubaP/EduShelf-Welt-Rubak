@@ -40,7 +40,7 @@
 }
 
 .flashcard-front {
-    background-color: #2d3748; /* A dark blue-gray */
+    background-color: var(--neutral-anthracite);
     border: 1px solid #4a5568;
 }
 

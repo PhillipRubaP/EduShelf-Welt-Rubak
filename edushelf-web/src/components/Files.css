@@ -15,7 +15,7 @@
 }
 
 .file-card {
-  background-color: #2d3748; /* Dark gray-blue */
+  background-color: var(--neutral-anthracite);
   border: 1px solid #4a5568; /* Lighter gray-blue */
   border-radius: 8px;
   padding: 1.5rem;

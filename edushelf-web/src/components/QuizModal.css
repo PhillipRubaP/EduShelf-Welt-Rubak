@@ -30,7 +30,7 @@
 
 .modal-content .form-group input {
     width: 100%;
-    color: black;
+    color: var(--neutral-white);
     padding: 8px;
     box-sizing: border-box;
 }
