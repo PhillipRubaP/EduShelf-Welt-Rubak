@@ -24,7 +24,7 @@ namespace EduShelf.Api.Controllers
         }
 
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadPdf([FromForm] IFormFile file, [FromForm] string prompt)
+        public async Task<IActionResult> UploadPdf(IFormFile file, string prompt)
         {
             if (file == null || file.Length == 0)
             {

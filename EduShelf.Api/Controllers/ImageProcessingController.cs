@@ -17,7 +17,7 @@ namespace EduShelf.Api.Controllers
         }
 
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadImage([FromForm] IFormFile file, [FromForm] string prompt)
+        public async Task<IActionResult> UploadImage(IFormFile file, string prompt)
         {
             if (file == null || file.Length == 0)
             {
