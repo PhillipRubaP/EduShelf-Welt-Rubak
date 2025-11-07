@@ -8,4 +8,5 @@ public class DocumentDto
     public DateTime CreatedAt { get; set; }
     public List<TagDto> Tags { get; set; }
     public int UserId { get; set; }
+    public string FilePath { get; set; }
 }

@@ -18,10 +18,7 @@ namespace EduShelf.Api.Services
                     foreach (var image in page.GetImages())
                     {
                         // TryGetContent is preferred to avoid exceptions for certain image types
-                        if (image.TryGetContent(out var bytes))
-                        {
-                            images.Add(bytes.ToArray());
-                        }
+                        images.Add(image.RawBytes.ToArray());
                     }
                 }
             }

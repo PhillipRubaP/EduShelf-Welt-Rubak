@@ -147,7 +147,7 @@ namespace EduShelf.Api.Controllers
             {
                 UserId = userId,
                 Title = Path.GetFileNameWithoutExtension(originalFileName),
-                Path = uniqueFileName,
+                FilePath = uniqueFileName,
                 FileType = fileExtension.TrimStart('.')
             };
 
@@ -177,7 +177,7 @@ namespace EduShelf.Api.Controllers
             {
                 try
                 {
-                    await _indexingService.IndexDocumentAsync(document.Id, document.Path);
+                    await _indexingService.IndexDocumentAsync(document.Id, document.FilePath);
                 }
                 catch (Exception ex)
                 {
@@ -260,7 +260,7 @@ namespace EduShelf.Api.Controllers
                 return Forbid();
             }
 
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), _uploadPath, document.Path);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), _uploadPath, document.FilePath);
 
             if (System.IO.File.Exists(filePath))
             {
@@ -453,7 +453,7 @@ namespace EduShelf.Api.Controllers
                 return NotFound();
             }
 
-            var filePath = Path.Combine(_uploadPath, document.Path);
+            var filePath = Path.Combine(_uploadPath, document.FilePath);
             if (!System.IO.File.Exists(filePath))
             {
                 return NotFound("File not found.");
@@ -480,7 +480,15 @@ namespace EduShelf.Api.Controllers
 
             var userRole = User.FindFirstValue(ClaimTypes.Role);
 
-            var document = await _context.Documents.FindAsync(id);
+            var document = await _context.Documents
+                .Where(d => d.Id == id)
+                .Select(d => new DocumentDto
+                {
+                    Id = d.Id,
+                    UserId = d.UserId,
+                    FilePath = d.FilePath
+                })
+                .FirstOrDefaultAsync();
 
             if (document == null)
             {
@@ -492,15 +500,15 @@ namespace EduShelf.Api.Controllers
                 return Forbid();
             }
 
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), _uploadPath, document.Path);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), _uploadPath, document.FilePath);
 
             if (!System.IO.File.Exists(filePath))
             {
                 return NotFound("File not found.");
             }
 
-            string content;
-            var fileExtension = Path.GetExtension(document.Path).ToLowerInvariant();
+            string content = string.Empty;
+            var fileExtension = Path.GetExtension(document.FilePath).ToLowerInvariant();
 
             if (fileExtension == ".pdf")
             {
@@ -552,7 +560,17 @@ namespace EduShelf.Api.Controllers
 
             var userRole = User.FindFirstValue(ClaimTypes.Role);
 
-            var document = await _context.Documents.FindAsync(id);
+            var document = await _context.Documents
+                .Where(d => d.Id == id)
+                .Select(d => new DocumentDto
+                {
+                    Id = d.Id,
+                    UserId = d.UserId,
+                    FilePath = d.FilePath,
+                    Title = d.Title,
+                    FileType = d.FileType
+                })
+                .FirstOrDefaultAsync();
 
             if (document == null)
             {
@@ -564,7 +582,7 @@ namespace EduShelf.Api.Controllers
                 return Forbid();
             }
 
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), _uploadPath, document.Path);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), _uploadPath, document.FilePath);
 
             if (!System.IO.File.Exists(filePath))
             {
@@ -591,7 +609,17 @@ namespace EduShelf.Api.Controllers
 
             var userRole = User.FindFirstValue(ClaimTypes.Role);
 
-            var document = await _context.Documents.FindAsync(id);
+            var document = await _context.Documents
+                .Where(d => d.Id == id)
+                .Select(d => new DocumentDto
+                {
+                    Id = d.Id,
+                    UserId = d.UserId,
+                    FilePath = d.FilePath,
+                    Title = d.Title,
+                    FileType = d.FileType
+                })
+                .FirstOrDefaultAsync();
 
             if (document == null)
             {
@@ -603,14 +631,14 @@ namespace EduShelf.Api.Controllers
                 return Forbid();
             }
 
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), _uploadPath, document.Path);
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), _uploadPath, document.FilePath);
 
             if (!System.IO.File.Exists(filePath))
             {
                 return NotFound("File not found.");
             }
 
-            var fileExtension = Path.GetExtension(document.Path).ToLowerInvariant();
+            var fileExtension = Path.GetExtension(document.FilePath).ToLowerInvariant();
 
             if (fileExtension == ".pdf")
             {
@@ -643,7 +671,7 @@ namespace EduShelf.Api.Controllers
             {
                 try
                 {
-                    await _indexingService.IndexDocumentAsync(document.Id, document.Path);
+                    await _indexingService.IndexDocumentAsync(document.Id, document.FilePath);
                 }
                 catch (Exception ex)
                 {

@@ -74,7 +74,7 @@ namespace EduShelf.Api.Services
                 return $"I could not find the document named '{intent.DocumentName}'.";
             }
 
-            var filePath = Path.Combine("Uploads", document.FileName);
+            var filePath = Path.Combine("Uploads", document.FilePath);
             if (!File.Exists(filePath))
             {
                 return $"I'm sorry, the file for document '{intent.DocumentName}' is missing.";

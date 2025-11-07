@@ -147,8 +147,8 @@ public class ApiDbContext : DbContext
         );
 
         modelBuilder.Entity<Document>().HasData(
-            new Document { Id = 1, UserId = 1, Title = "Algebra Basics", Path = "/documents/algebra.pdf", FileType = "pdf", CreatedAt = DateTime.UtcNow },
-            new Document { Id = 2, UserId = 2, Title = "Introduction to Physics", Path = "/documents/physics.pdf", FileType = "pdf", CreatedAt = DateTime.UtcNow }
+            new Document { Id = 1, UserId = 1, Title = "Algebra Basics", FilePath = "/documents/algebra.pdf", FileType = "pdf", CreatedAt = DateTime.UtcNow },
+            new Document { Id = 2, UserId = 2, Title = "Introduction to Physics", FilePath = "/documents/physics.pdf", FileType = "pdf", CreatedAt = DateTime.UtcNow }
         );
 
         modelBuilder.Entity<DocumentTag>().HasData(
