@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Settings.css';
 
-const Settings = () => {
+const Settings = ({ onClose }) => {
     const [lightMode, setLightMode] = useState(false);
 
     useEffect(() => {
@@ -25,15 +25,18 @@ const Settings = () => {
 
     return (
         <div className="settings-container">
-            <h2>Einstellungen</h2>
-            <div className="settings-option">
-                <label htmlFor="light-mode-switch">Light Mode</label>
-                <input
-                    type="checkbox"
-                    id="light-mode-switch"
-                    checked={lightMode}
-                    onChange={handleLightModeToggle}
-                />
+            <div className="settings-box">
+                <span className="close-button" onClick={onClose}>&times;</span>
+                <h2>Einstellungen</h2>
+                <div className="form-group">
+                    <label htmlFor="light-mode-switch">Light Mode</label>
+                    <input
+                        type="checkbox"
+                        id="light-mode-switch"
+                        checked={lightMode}
+                        onChange={handleLightModeToggle}
+                    />
+                </div>
             </div>
         </div>
     );
