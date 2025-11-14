@@ -12,6 +12,7 @@ using EduShelf.Api.Exceptions;
 using EduShelf.Api.Models.Entities;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 
 namespace EduShelf.Api.Services
 {
@@ -23,6 +24,7 @@ namespace EduShelf.Api.Services
         private readonly IntentDetectionService _intentDetectionService;
         private readonly RetrievalService _retrievalService;
         private readonly PromptGenerationService _promptGenerationService;
+        private readonly IImageProcessingService _imageProcessingService;
 
         public ChatService(
             ApiDbContext context,
@@ -30,7 +32,8 @@ namespace EduShelf.Api.Services
             ILogger<ChatService> logger,
             IntentDetectionService intentDetectionService,
             RetrievalService retrievalService,
-            PromptGenerationService promptGenerationService)
+            PromptGenerationService promptGenerationService,
+            IImageProcessingService imageProcessingService)
         {
             _context = context;
             _kernel = kernel;
@@ -38,10 +41,20 @@ namespace EduShelf.Api.Services
             _intentDetectionService = intentDetectionService;
             _retrievalService = retrievalService;
             _promptGenerationService = promptGenerationService;
+            _imageProcessingService = imageProcessingService;
         }
 
-        public async Task<string> GetResponseAsync(string userInput, int userId, int chatSessionId)
+        public async Task<string> GetResponseAsync(string userInput, int userId, int chatSessionId, IFormFile? image = null)
         {
+            if (image != null)
+            {
+                using var memoryStream = new MemoryStream();
+                await image.CopyToAsync(memoryStream);
+                var imageData = memoryStream.ToArray();
+                var imageDescription = await _imageProcessingService.ProcessImageAsync(imageData, "Describe this image:");
+                userInput = $"{imageDescription}\n\n{userInput}";
+            }
+
             if (string.IsNullOrWhiteSpace(userInput))
             {
                 throw new BadRequestException("User input cannot be empty.");

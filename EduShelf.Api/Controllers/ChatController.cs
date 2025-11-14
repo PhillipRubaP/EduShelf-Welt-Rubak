@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace EduShelf.Api.Controllers
 {
@@ -21,10 +22,10 @@ namespace EduShelf.Api.Controllers
         }
 
         [HttpPost("message")]
-        public async Task<IActionResult> PostMessage([FromBody] ChatRequest request)
+        public async Task<IActionResult> PostMessage([FromForm] ChatRequest request)
         {
             var userId = GetUserId();
-            var response = await _chatService.GetResponseAsync(request.Message, userId, request.ChatSessionId);
+            var response = await _chatService.GetResponseAsync(request.Message, userId, request.ChatSessionId, request.Image);
             return Ok(new { response });
         }
 
@@ -107,6 +108,7 @@ namespace EduShelf.Api.Controllers
         [MaxLength(2000)]
         public string Message { get; set; }
         public int ChatSessionId { get; set; }
+        public IFormFile? Image { get; set; }
     }
 
     public class CreateSessionRequest

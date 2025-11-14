@@ -14,7 +14,12 @@ using System.Text.Json.Serialization;
  
  var builder = WebApplication.CreateBuilder(args);
 
-// Add Semantic Kernel
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.Limits.MinRequestBodyDataRate = new Microsoft.AspNetCore.Server.Kestrel.Core.MinDataRate(100, TimeSpan.FromSeconds(30));
+});
+ 
+ // Add Semantic Kernel
 var kernelBuilder = builder.Services.AddKernel();
 kernelBuilder.AddOllamaChatCompletion(
     modelId: builder.Configuration["AIService:ChatModel"]!,
