@@ -4,10 +4,11 @@ import './App.css';
 import Files from './components/Files';
 import Chat from './components/Chat';
 import Quiz from './components/Quiz';
-import Lernkarten from './components/Lernkarten';
+import Flashcards from './components/Flashcards';
 import Login from './components/Login';
 import Register from './components/Register';
 import EditUser from './components/EditUser';
+import Settings from './components/Settings';
 import MainDashboard from './components/MainDashboard';
 import MainLayout from './components/MainLayout';
 
@@ -19,6 +20,13 @@ function App() {
     const user = localStorage.getItem('user');
     if (user) {
       setLoggedInUser(JSON.parse(user));
+    }
+  }, []);
+
+  useEffect(() => {
+    const currentTheme = localStorage.getItem('theme');
+    if (currentTheme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
     }
   }, []);
 
@@ -44,8 +52,9 @@ function App() {
                   <Route path="chat" element={<Chat />} />
                   <Route path="quizzes" element={<Quiz />} />
                   <Route path="quiz/:quizTitle" element={<Quiz />} />
-                  <Route path="lernkarten" element={<Lernkarten />} />
+                  <Route path="flashcards" element={<Flashcards />} />
                   <Route path="edit-user" element={<EditUser loggedInUser={loggedInUser} setLoggedInUser={setLoggedInUser} />} />
+                  <Route path="settings" element={<Settings />} />
                   <Route path="*" element={<Navigate to="/" />} />
                 </Route>
               </Routes>

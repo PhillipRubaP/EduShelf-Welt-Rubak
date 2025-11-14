@@ -49,7 +49,8 @@ const api = {
       },
       body: JSON.stringify(body),
     });
-    return response.json();
+    const text = await response.text();
+    return text ? JSON.parse(text) : {};
   },
 
   delete: async (endpoint) => {
@@ -72,6 +73,7 @@ export const postChatMessage = (sessionId, message) => api.post('/Chat/message',
 export const getQuizzes = () => api.get('/quizzes');
 export const createQuiz = (quizData) => api.post('/quizzes', quizData);
 export const deleteQuiz = (quizId) => api.delete(`/quizzes/${quizId}`);
+export const updateQuiz = (quizId, quizData) => api.put(`/quizzes/${quizId}`, quizData);
 
 export const getFlashcards = () => api.get('/flashcards');
 const decodeToken = (token) => {
@@ -102,5 +104,6 @@ export const createFlashcard = (flashcardData) => {
     return api.post('/flashcards', dataToSend);
 };
 export const deleteFlashcard = (flashcardId) => api.delete(`/flashcards/${flashcardId}`);
+export const getDocuments = () => api.get('/documents');
 
 export default api;

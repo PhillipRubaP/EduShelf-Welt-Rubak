@@ -1,10 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './QuizModal.css';
-import { createQuiz } from '../services/api';
+import { createQuiz, updateQuiz } from '../services/api';
 
-const QuizModal = ({ onClose, onQuizCreated }) => {
+const QuizModal = ({ onClose, onQuizSaved, quiz }) => {
     const [title, setTitle] = useState('');
     const [questions, setQuestions] = useState([{ text: '', answers: [{ text: '', isCorrect: false }] }]);
+
+    useEffect(() => {
+        if (quiz) {
+            setTitle(quiz.title);
+            setQuestions(quiz.questions);
+        }
+    }, [quiz]);
 
     const handleAddQuestion = () => {
         setQuestions([...questions, { text: '', answers: [{ text: '', isCorrect: false }] }]);
@@ -43,18 +50,22 @@ const QuizModal = ({ onClose, onQuizCreated }) => {
             questions,
         };
         try {
-            const newQuiz = await createQuiz({ title: quizData.title, questions: quizData.questions });
-            onQuizCreated(newQuiz);
+            if (quiz) {
+                await updateQuiz(quiz.id, quizData);
+            } else {
+                const newQuiz = await createQuiz({ title: quizData.title, questions: quizData.questions });
+                onQuizSaved(newQuiz);
+            }
             onClose();
         } catch (error) {
-            console.error('Error creating quiz:', error);
+            console.error('Error saving quiz:', error);
         }
     };
 
     return (
         <div className="modal-overlay">
             <div className="modal-content">
-                <h2>Create Quiz</h2>
+                <h2>{quiz ? 'Edit Quiz' : 'Create Quiz'}</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label>Title</label>
@@ -88,7 +99,7 @@ const QuizModal = ({ onClose, onQuizCreated }) => {
                     ))}
                     <button type="button" onClick={handleAddQuestion} className="add-question-btn">Add Question</button>
                     <div className="modal-actions">
-                        <button type="submit">Create</button>
+                        <button type="submit">{quiz ? 'Save' : 'Create'}</button>
                         <button type="button" onClick={onClose}>Cancel</button>
                     </div>
                 </form>

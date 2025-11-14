@@ -1,4 +1,4 @@
-.edit-user-container {
+.settings-container {
   position: fixed;
   top: 0;
   left: 0;
@@ -11,7 +11,7 @@
   z-index: 1000; /* Ensures it's on top of other content */
 }
 
-.auth-box {
+.settings-box {
   text-align: center;
   width: 100%;
   max-width: 24rem; /* Equivalent to max-w-md */
@@ -46,7 +46,7 @@
     margin: 0 auto;
     width: 100%;
 }
-.auth-box {
+.settings-box {
   position: relative;
   /* ... other styles ... */
 }
@@ -63,7 +63,12 @@
 .close-button:hover {
   color: #800000;
 }
-[data-theme='light'] .auth-box {
+[data-theme='light'] .settings-box {
   background-color: var(--secondary-color);
   color: var(--text-color);
+}
+
+#light-mode-switch {
+  width: 20px;
+  height: 20px;
 }

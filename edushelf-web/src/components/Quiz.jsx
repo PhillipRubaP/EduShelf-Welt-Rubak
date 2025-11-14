@@ -10,6 +10,7 @@ const Quiz = () => {
     const navigate = useNavigate();
     const [quizzes, setQuizzes] = useState([]);
     const [selectedQuiz, setSelectedQuiz] = useState(null);
+    const [editingQuiz, setEditingQuiz] = useState(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [score, setScore] = useState(0);
     const [showScore, setShowScore] = useState(false);
@@ -60,8 +61,13 @@ const Quiz = () => {
         }
     };
 
-    const handleQuizCreated = (newQuiz) => {
-        setQuizzes([...quizzes, newQuiz]);
+    const handleQuizSaved = (savedQuiz) => {
+        const existingQuiz = quizzes.find(q => q.id === savedQuiz.id);
+        if (existingQuiz) {
+            setQuizzes(quizzes.map(q => q.id === savedQuiz.id ? savedQuiz : q));
+        } else {
+            setQuizzes([...quizzes, savedQuiz]);
+        }
     };
 
     const selectQuiz = (quiz) => {
@@ -83,8 +89,8 @@ const Quiz = () => {
     };
 
     const handleEdit = (quiz) => {
-        // Logic to open edit modal or navigate to edit page
-        console.log('Editing quiz:', quiz);
+        setEditingQuiz(quiz);
+        setIsModalOpen(true);
     };
 
     const toggleMenu = (quizId) => {
@@ -130,7 +136,7 @@ const Quiz = () => {
                     <h2>Available Quizzes</h2>
                     <button onClick={() => setIsModalOpen(true)} className="add-file-button">+</button>
                 </div>
-                {isModalOpen && <QuizModal onClose={() => setIsModalOpen(false)} onQuizCreated={handleQuizCreated} />}
+                {isModalOpen && <QuizModal onClose={() => { setIsModalOpen(false); setEditingQuiz(null); }} onQuizSaved={handleQuizSaved} quiz={editingQuiz} />}
                 <div className="file-grid">
                     {quizzes.map((quiz) => (
                         <div key={quiz.id} className="file-card" onClick={() => selectQuiz(quiz)}>

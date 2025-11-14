@@ -1,8 +1,22 @@
+:root {
+    --primary-color: #2d3748;
+    --secondary-color: #2d3748;
+    --text-color: #ffffff;
+    --sidebar-background: #2c2c2c;
+    --neutral-white: #ffffff;
+    --neutral-anthracite: #1a202c;
+    --primary-green: #38a169;
+    --primary-green-dark: #2f855a;
+    --secondary-mint: #68d391;
+    --neutral-blue-gray: #4a5568;
+}
+
 .app-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: var(--neutral-white);
+  background-color: var(--primary-color);
+  color: var(--text-color);
 }
 
 .navbar {
@@ -127,7 +141,7 @@
   min-height: 150px;
 }
 
-.lernkarten-container {
+.flashcards-container {
 }
 
 .lernkarte:hover {
@@ -163,4 +177,11 @@
 
 .lernkarte:hover {
   transform: translateY(-5px);
+}
+
+[data-theme='light'] {
+    --primary-color: #ffffff;
+    --secondary-color: #f0f0f0;
+    --text-color: #000000;
+    --sidebar-background: #e0e0e0;
 }

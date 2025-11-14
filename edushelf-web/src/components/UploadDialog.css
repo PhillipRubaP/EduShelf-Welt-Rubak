@@ -37,7 +37,7 @@
 
     .upload-dialog input[type="file"] {
         background-color: var(--neutral-blue-gray);
-        color: var(--neutral-anthracite);
+        color: var(--neutral-white);
         border-color: var(--primary-green);
     }
 
@@ -81,4 +81,18 @@
 .dialog-buttons button.primary:hover {
     background-color: var(--secondary-mint);
     color: var(--primary-green);
+}
+[data-theme='light'] .upload-dialog {
+  background: var(--primary-color);
+  color: var(--text-color);
+}
+
+[data-theme='light'] .upload-dialog input[type="file"] {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border-color: var(--primary-green);
+}
+
+[data-theme='light'] .dialog-buttons button.primary {
+    color: var(--text-color);
 }

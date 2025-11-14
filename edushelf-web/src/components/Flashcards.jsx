@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import LernkartenModal from './LernkartenModal';
+import FlashcardsModal from './FlashcardsModal';
 import { getFlashcards, createFlashcard, deleteFlashcard } from '../services/api';
 import { FaPen, FaTrash } from 'react-icons/fa';
 import './Files.css';
-import './Lernkarten.css';
+import './Flashcards.css';
 
-const Lernkarten = () => {
+const Flashcards = () => {
     const [cards, setCards] = useState([]);
     const [flippedCards, setFlippedCards] = useState(new Set());
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,18 +49,18 @@ const Lernkarten = () => {
         <div className="files-container">
             <div className="file-list">
                 <div className="file-list-header">
-                    <h2>Lernkarten</h2>
+                    <h2>Flashcards</h2>
                     <button onClick={() => setIsModalOpen(true)} className="add-file-button">+</button>
                 </div>
-                {isModalOpen && <LernkartenModal addCard={addCard} closeModal={() => setIsModalOpen(false)} />}
-                <div className="lernkarten-grid">
+                {isModalOpen && <FlashcardsModal addCard={addCard} closeModal={() => setIsModalOpen(false)} />}
+                <div className="flashcards-grid">
                     {Array.isArray(cards) && cards.map((card) => (
-                        <div key={card.id} className={`lernkarte-scene ${flippedCards.has(card.id) ? 'flipped' : ''}`} onClick={() => flipCard(card.id)}>
-                            <div className="lernkarte-container">
-                                <div className="lernkarte-face lernkarte-front">
+                        <div key={card.id} className={`flashcard-scene ${flippedCards.has(card.id) ? 'flipped' : ''}`} onClick={() => flipCard(card.id)}>
+                            <div className="flashcard-container">
+                                <div className="flashcard-face flashcard-front">
                                     <p>{card.question}</p>
                                 </div>
-                                <div className="lernkarte-face lernkarte-back">
+                                <div className="flashcard-face flashcard-back">
                                     <p>{card.answer}</p>
                                 </div>
                             </div>
@@ -85,4 +85,4 @@ const Lernkarten = () => {
     );
 };
 
-export default Lernkarten;
+export default Flashcards;

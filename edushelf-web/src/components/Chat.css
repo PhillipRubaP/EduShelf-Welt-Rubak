@@ -114,3 +114,33 @@
 .send-button:hover {
     background-color: var(--primary-green-dark);
 }
+[data-theme='light'] .chat-container {
+    background-color: var(--primary-color);
+}
+
+[data-theme='light'] .sidebar {
+    background-color: var(--sidebar-background);
+    color: var(--text-color);
+}
+
+[data-theme='light'] .sidebar button {
+    color: var(--text-color);
+}
+
+[data-theme='light'] .sidebar li:hover, [data-theme='light'] .sidebar li.active {
+    background-color: var(--secondary-color);
+}
+
+[data-theme='light'] .chat-header {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+}
+
+[data-theme='light'] .message.bot {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+}
+
+[data-theme='light'] .chat-input-form {
+    background-color: var(--primary-color);
+}

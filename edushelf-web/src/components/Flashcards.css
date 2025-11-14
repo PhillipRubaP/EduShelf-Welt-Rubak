@@ -1,10 +1,10 @@
-.lernkarten-grid {
+.flashcards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
 }
 
-.lernkarte-scene {
+.flashcard-scene {
     width: 100%;
     height: 150px;
     perspective: 600px;
@@ -12,7 +12,7 @@
     border: none;
 }
 
-.lernkarte-container {
+.flashcard-container {
     width: 100%;
     height: 100%;
     position: relative;
@@ -20,11 +20,11 @@
     transform-style: preserve-3d;
 }
 
-.lernkarte-scene.flipped .lernkarte-container {
+.flashcard-scene.flipped .flashcard-container {
     transform: rotateY(180deg);
 }
 
-.lernkarte-face {
+.flashcard-face {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -39,12 +39,12 @@
     font-size: 1.1rem;
 }
 
-.lernkarte-front {
-    background-color: #2d3748; /* A dark blue-gray */
+.flashcard-front {
+    background-color: var(--neutral-anthracite);
     border: 1px solid #4a5568;
 }
 
-.lernkarte-back {
+.flashcard-back {
     background-color: #4a5568; /* A slightly lighter gray */
     border: 1px solid #2d3748;
     transform: rotateY(180deg);
@@ -55,4 +55,17 @@
     bottom: 10px;
     right: 10px;
     z-index: 10; /* Ensure buttons are on top */
+}
+[data-theme='light'] .flashcard-face {
+    color: var(--text-color);
+}
+
+[data-theme='light'] .flashcard-front {
+    background-color: var(--secondary-color);
+    border: 1px solid var(--primary-color);
+}
+
+[data-theme='light'] .flashcard-back {
+    background-color: var(--primary-color);
+    border: 1px solid var(--secondary-color);
 }
