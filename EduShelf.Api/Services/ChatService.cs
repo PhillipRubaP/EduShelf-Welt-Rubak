@@ -46,16 +46,31 @@ namespace EduShelf.Api.Services
 
         public async Task<string> GetResponseAsync(string userInput, int userId, int chatSessionId, IFormFile? image = null)
         {
+            var imageUrl = string.Empty;
+            var augmentedUserInput = userInput;
+
             if (image != null)
             {
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads", fileName);
+
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await image.CopyToAsync(stream);
+                }
+
+                imageUrl = $"/api/files/{fileName}";
+
                 using var memoryStream = new MemoryStream();
                 await image.CopyToAsync(memoryStream);
                 var imageData = memoryStream.ToArray();
                 var imageDescription = await _imageProcessingService.ProcessImageAsync(imageData, "Describe this image:");
-                userInput = $"{imageDescription}\n\n{userInput}";
+                augmentedUserInput = $"{imageDescription}\n\n{userInput}";
             }
 
-            if (string.IsNullOrWhiteSpace(userInput))
+            if (string.IsNullOrWhiteSpace(augmentedUserInput))
             {
                 throw new BadRequestException("User input cannot be empty.");
             }
@@ -76,9 +91,9 @@ namespace EduShelf.Api.Services
                     throw new Exception("Chat session not found.");
                 }
 
-                var intent = await _intentDetectionService.GetIntentAsync(userInput);
-                var relevantChunks = await _retrievalService.GetRelevantChunksAsync(userInput, userId, intent);
-                var chatHistory = _promptGenerationService.BuildChatHistory(chatSession, relevantChunks, userInput);
+                var intent = await _intentDetectionService.GetIntentAsync(augmentedUserInput);
+                var relevantChunks = await _retrievalService.GetRelevantChunksAsync(augmentedUserInput, userId, intent);
+                var chatHistory = _promptGenerationService.BuildChatHistory(chatSession, relevantChunks, augmentedUserInput);
 
                 var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
                 var result = await chatCompletionService.GetChatMessageContentAsync(chatHistory);
@@ -89,6 +104,7 @@ namespace EduShelf.Api.Services
                     ChatSessionId = chatSessionId,
                     Message = userInput,
                     Response = responseContent,
+                    ImageUrl = imageUrl,
                     CreatedAt = DateTime.UtcNow
                 };
                 _context.ChatMessages.Add(chatMessage);
