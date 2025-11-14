@@ -68,7 +68,15 @@ const api = {
 export const getChatSessions = () => api.get('/Chat/sessions');
 export const createChatSession = (title) => api.post('/Chat/sessions', { title });
 export const getChatMessages = (sessionId) => api.get(`/Chat/sessions/${sessionId}/messages`);
-export const postChatMessage = (sessionId, message) => api.post('/Chat/message', { chatSessionId: sessionId, message });
+export const postChatMessage = (sessionId, message, image) => {
+  const formData = new FormData();
+  formData.append('chatSessionId', sessionId);
+  formData.append('message', message);
+  if (image) {
+    formData.append('image', image);
+  }
+  return api.postForm('/Chat/message', formData);
+};
 
 export const getQuizzes = () => api.get('/quizzes');
 export const createQuiz = (quizData) => api.post('/quizzes', quizData);

@@ -7,8 +7,10 @@ const Chat = () => {
   const [currentSession, setCurrentSession] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [image, setImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchSessions();
@@ -64,15 +66,16 @@ const Chat = () => {
 
   const handleSend = async (e) => {
     e.preventDefault();
-    if (input.trim() === '' || !currentSession) return;
+    if ((input.trim() === '' && !image) || !currentSession) return;
 
-    const userMessage = { sender: 'user', text: input };
+    const userMessage = { sender: 'user', text: input, image: image ? URL.createObjectURL(image) : null };
     setMessages([...messages, userMessage]);
     setInput('');
+    setImage(null);
     setIsLoading(true);
 
     try {
-      const response = await postChatMessage(currentSession.id, input);
+      const response = await postChatMessage(currentSession.id, input, image);
       const botMessage = { sender: 'bot', text: response.response };
       setMessages(prevMessages => [...prevMessages, botMessage]);
     } catch (error) {
@@ -112,6 +115,7 @@ const Chat = () => {
           {messages.map((msg, index) => (
             <div key={index} className={`message ${msg.sender}`}>
               {msg.text}
+              {msg.image && <img src={msg.image} alt="user upload" className="chat-image" />}
             </div>
           ))}
           {isLoading && (
@@ -123,6 +127,17 @@ const Chat = () => {
         </div>
         <form className="chat-input-form" onSubmit={handleSend}>
           <input
+            type="file"
+            id="file-input"
+            ref={fileInputRef}
+            className="file-input"
+            onChange={(e) => setImage(e.target.files[0])}
+            accept="image/*"
+          />
+          <button type="button" className="upload-button" onClick={() => fileInputRef.current.click()}>
+            Upload Image
+          </button>
+          <input
             type="text"
             className="chat-input"
             value={input}
@@ -130,6 +145,12 @@ const Chat = () => {
             placeholder="Type your message..."
             disabled={isLoading || !currentSession}
           />
+          {image && (
+            <div className="image-preview">
+              <img src={URL.createObjectURL(image)} alt="preview" />
+              <button onClick={() => setImage(null)}>x</button>
+            </div>
+          )}
           <button type="submit" className="send-button" disabled={isLoading || !currentSession}>
             Send
           </button>
