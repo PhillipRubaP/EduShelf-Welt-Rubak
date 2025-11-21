@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getQuizzes, deleteQuiz } from '../services/api';
 import QuizModal from './QuizModal';
-import { FaPen, FaTrash } from 'react-icons/fa';
+import { FaPen, FaTrash, FaCheckCircle } from 'react-icons/fa';
 import './Files.css';
 import './Quiz.css';
 
@@ -114,11 +114,28 @@ const Quiz = () => {
     };
 
     if (showScore) {
+        if (!selectedQuiz) {
+            return null; // or a loading indicator
+        }
+        const percentage = Math.round((score / selectedQuiz.questions.length) * 100);
         return (
-            <div className="p-4">
-                <h2 className="text-2xl font-bold mb-4">Quiz Completed</h2>
-                <p className="text-lg">Your score is {score} out of {selectedQuiz?.questions.length}</p>
-                <button onClick={handleBackToQuizzes}>Back to Quizzes</button>
+            <div className="quiz-results-container">
+                <h2 className="quiz-results-title">Quiz Results</h2>
+                <FaCheckCircle className="quiz-results-icon" />
+                <p className="quiz-results-message">Nice job, you passed!</p>
+                <div className="quiz-results-stats">
+                    <div className="quiz-results-stat-card">
+                        <h4>YOUR SCORE</h4>
+                        <p>{percentage}%</p>
+                        <span>PASSING SCORE: 100%</span>
+                    </div>
+                    <div className="quiz-results-stat-card">
+                        <h4>YOUR POINTS</h4>
+                        <p>{score}</p>
+                        <span>PASSING POINTS: {selectedQuiz.questions.length}</span>
+                    </div>
+                </div>
+                <button onClick={handleBackToQuizzes} className="quiz-answer-btn">Back to Quizzes</button>
             </div>
         );
     }
