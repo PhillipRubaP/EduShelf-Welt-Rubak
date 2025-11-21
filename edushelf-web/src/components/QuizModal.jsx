@@ -65,6 +65,7 @@ const QuizModal = ({ onClose, onQuizSaved, quiz }) => {
     return (
         <div className="modal-overlay">
             <div className="modal-content">
+                <span className="close-button" onClick={onClose}>&times;</span>
                 <h2>{quiz ? 'Edit Quiz' : 'Create Quiz'}</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">

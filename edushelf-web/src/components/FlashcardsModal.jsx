@@ -18,6 +18,7 @@ const FlashcardsModal = ({ addCard, closeModal }) => {
   return (
     <div className="modal-overlay">
       <div className="modal-content">
+        <span className="close-button" onClick={closeModal}>&times;</span>
         <h2>Create New Flashcard</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
