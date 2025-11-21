@@ -23,12 +23,16 @@
 
 .close-button {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    border: none;
-    background: transparent;
+    top: 0.5rem;
+    right: 1rem;
     font-size: 24px;
+    color: #888;
     cursor: pointer;
+}
+
+.close-button:hover {
+    color: #800000;
+    background-color: transparent;
 }
 
 .flashcard-review-scene {
@@ -58,7 +62,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    border: 1px solid #ccc;
     border-radius: 8px;
     padding: 20px;
     box-sizing: border-box;
@@ -83,4 +86,16 @@
     flex-direction: column;
     align-items: center;
     gap: 15px;
+}
+.tag-selection select {
+    width: 80%;
+    padding: 10px;
+    font-size: 1.2em;
+    border-radius: 5px;
+}
+.tag-selection button {
+    width: 80%;
+    padding: 10px;
+    font-size: 1.2em;
+    border-radius: 5px;
 }

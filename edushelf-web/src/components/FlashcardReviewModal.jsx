@@ -57,7 +57,7 @@ const FlashcardReviewModal = ({ closeModal }) => {
     return (
         <div className="modal-backdrop">
             <div className="modal-content">
-                <button onClick={closeModal} className="close-button">&times;</button>
+                <span onClick={closeModal} className="close-button">&times;</span>
                 {!reviewStarted ? (
                     <div className="tag-selection">
                         <h2>Select a Tag to Review</h2>
@@ -82,8 +82,8 @@ const FlashcardReviewModal = ({ closeModal }) => {
                             </div>
                         </div>
                         <div className="review-buttons">
-                            <button onClick={handleNotKnow}>Didn't Know</button>
                             <button onClick={handleKnow}>Knew</button>
+                            <button onClick={handleNotKnow}>Didn't Know</button>
                         </div>
                     </div>
                 ) : (
