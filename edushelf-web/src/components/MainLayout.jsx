@@ -9,7 +9,7 @@ const MainLayout = ({ handleLogout }) => {
         <h1 className="navbar-title">EduShelf</h1>
         <nav className="navbar-nav">
           <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : '')}>Dashboard</NavLink>
-          <NavLink to="/files" className={({ isActive }) => (isActive ? 'active' : '')}>Dateien</NavLink>
+          <NavLink to="/files" className={({ isActive }) => (isActive ? 'active' : '')}>Files</NavLink>
           <NavLink to="/chat" className={({ isActive }) => (isActive ? 'active' : '')}>Chat</NavLink>
           <NavLink to="/quizzes" className={({ isActive }) => (isActive ? 'active' : '')}>Quiz</NavLink>
           <NavLink to="/flashcards" className={({ isActive }) => (isActive ? 'active' : '')}>Flashcards</NavLink>

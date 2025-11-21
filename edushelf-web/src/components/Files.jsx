@@ -73,7 +73,7 @@ const Files = () => {
       ) : (
         <div className="file-list">
           <div className="file-list-header">
-            <h2>Dateien</h2>
+            <h2>Files</h2>
             <button onClick={() => setUploadDialogOpen(true)} className="add-file-button">+</button>
           </div>
           <div className="file-grid">
