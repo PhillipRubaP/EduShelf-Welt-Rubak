@@ -96,6 +96,40 @@ namespace EduShelf.Api.Controllers
             return flashcard;
         }
 
+        // GET: api/Flashcards/tag/5
+        [HttpGet("tag/{tagId}")]
+        public async Task<ActionResult<IEnumerable<FlashcardDto>>> GetFlashcardsByTag(int tagId)
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+            var isAdmin = User.IsInRole("Admin");
+
+            var query = _context.Flashcards.AsQueryable();
+
+            if (!isAdmin)
+            {
+                query = query.Where(f => f.UserId == userId);
+            }
+
+            return await query
+                .Where(f => f.FlashcardTags.Any(ft => ft.TagId == tagId))
+                .Include(f => f.FlashcardTags)
+                .ThenInclude(ft => ft.Tag)
+                .Select(f => new FlashcardDto
+                {
+                    Id = f.Id,
+                    UserId = f.UserId,
+                    Question = f.Question,
+                    Answer = f.Answer,
+                    CreatedAt = f.CreatedAt,
+                    Tags = f.FlashcardTags.Select(ft => ft.Tag.Name).ToList()
+                })
+                .ToListAsync();
+        }
+
         // POST: api/Flashcards
         [HttpPost]
         public async Task<ActionResult<FlashcardDto>> PostFlashcard(FlashcardCreateDto flashcardDto)

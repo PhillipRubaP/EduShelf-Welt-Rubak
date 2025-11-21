@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import FlashcardsModal from './FlashcardsModal';
+import FlashcardReviewModal from './FlashcardReviewModal';
 import { getFlashcards, createFlashcard, deleteFlashcard, updateFlashcard } from '../services/api';
 import { FaPen, FaTrash } from 'react-icons/fa';
 import './Files.css';
@@ -9,6 +10,7 @@ const Flashcards = () => {
     const [cards, setCards] = useState([]);
     const [flippedCards, setFlippedCards] = useState(new Set());
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
     const [openMenuId, setOpenMenuId] = useState(null);
     const [editingCard, setEditingCard] = useState(null);
 
@@ -63,8 +65,10 @@ const Flashcards = () => {
                 <div className="file-list-header">
                     <h2>Flashcards</h2>
                     <button onClick={() => { setEditingCard(null); setIsModalOpen(true); }} className="add-file-button">+</button>
+                    <button onClick={() => setIsReviewModalOpen(true)} className="add-file-button review-button">Review</button>
                 </div>
                 {isModalOpen && <FlashcardsModal addCard={addCard} closeModal={() => setIsModalOpen(false)} card={editingCard} updateCard={updateCard} />}
+                {isReviewModalOpen && <FlashcardReviewModal closeModal={() => setIsReviewModalOpen(false)} />}
                 <div className="flashcards-grid">
                     {Array.isArray(cards) && cards.map((card) => (
                         <div key={card.id} className={`flashcard-scene ${flippedCards.has(card.id) ? 'flipped' : ''}`} onClick={() => flipCard(card.id)}>

@@ -120,5 +120,7 @@ export const updateFlashcard = (card) => {
 };
 
 export const getDocuments = () => api.get('/documents');
+export const getTags = () => api.get('/tags');
+export const getFlashcardsByTag = (tagId) => api.get(`/flashcards/tag/${tagId}`);
 
 export default api;
