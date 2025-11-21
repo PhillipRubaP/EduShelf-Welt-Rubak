@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getQuizzes, deleteQuiz } from '../services/api';
 import QuizModal from './QuizModal';
-import { FaPen, FaTrash, FaCheckCircle } from 'react-icons/fa';
+import { FaPen, FaTrash, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import './Files.css';
 import './Quiz.css';
 
@@ -118,21 +118,26 @@ const Quiz = () => {
             return null; // or a loading indicator
         }
         const percentage = Math.round((score / selectedQuiz.questions.length) * 100);
+        const passed = percentage >= 50;
         return (
             <div className="quiz-results-container">
                 <h2 className="quiz-results-title">Quiz Results</h2>
-                <FaCheckCircle className="quiz-results-icon" />
-                <p className="quiz-results-message">Nice job, you passed!</p>
+                {passed ? (
+                    <FaCheckCircle className="quiz-results-icon success" />
+                ) : (
+                    <FaTimesCircle className="quiz-results-icon failure" />
+                )}
+                <p className="quiz-results-message">{passed ? "Nice job, you passed!" : "Sadly you didn't pass!"}</p>
                 <div className="quiz-results-stats">
                     <div className="quiz-results-stat-card">
                         <h4>YOUR SCORE</h4>
                         <p>{percentage}%</p>
-                        <span>PASSING SCORE: 100%</span>
+                        <span>PASSING SCORE: 50%</span>
                     </div>
                     <div className="quiz-results-stat-card">
                         <h4>YOUR POINTS</h4>
                         <p>{score}</p>
-                        <span>PASSING POINTS: {selectedQuiz.questions.length}</span>
+                        <span>PASSING POINTS: {Math.ceil(selectedQuiz.questions.length / 2)}</span>
                     </div>
                 </div>
                 <button onClick={handleBackToQuizzes} className="quiz-answer-btn">Back to Quizzes</button>
