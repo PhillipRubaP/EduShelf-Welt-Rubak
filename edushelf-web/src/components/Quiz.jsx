@@ -4,6 +4,7 @@ import { getQuizzes, deleteQuiz } from '../services/api';
 import QuizModal from './QuizModal';
 import { FaPen, FaTrash } from 'react-icons/fa';
 import './Files.css';
+import './Quiz.css';
 
 const Quiz = () => {
     const { quizTitle } = useParams();
@@ -16,6 +17,9 @@ const Quiz = () => {
     const [showScore, setShowScore] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [openMenuId, setOpenMenuId] = useState(null);
+    const [selectedAnswerId, setSelectedAnswerId] = useState(null);
+    const [answerStatus, setAnswerStatus] = useState('');
+
     useEffect(() => {
         const fetchQuizzes = async () => {
             try {
@@ -45,20 +49,32 @@ const Quiz = () => {
             setSelectedQuiz(null);
             setCurrentQuestionIndex(0);
             setScore(0);
+            setSelectedAnswerId(null);
+            setAnswerStatus('');
         }
     }, [selectedQuiz, quizTitle]);
 
-    const handleAnswerOptionClick = (isCorrect) => {
+    const handleAnswerOptionClick = (answer) => {
+        if (selectedAnswerId) return;
+
+        setSelectedAnswerId(answer.id);
+        const isCorrect = answer.isCorrect;
+        setAnswerStatus(isCorrect ? 'correct' : 'incorrect');
+
         if (isCorrect) {
             setScore(score + 1);
         }
 
-        const nextQuestion = currentQuestionIndex + 1;
-        if (nextQuestion < selectedQuiz.questions.length) {
-            setCurrentQuestionIndex(nextQuestion);
-        } else {
-            setShowScore(true);
-        }
+        setTimeout(() => {
+            const nextQuestion = currentQuestionIndex + 1;
+            if (nextQuestion < selectedQuiz.questions.length) {
+                setCurrentQuestionIndex(nextQuestion);
+                setSelectedAnswerId(null);
+                setAnswerStatus('');
+            } else {
+                setShowScore(true);
+            }
+        }, 1000);
     };
 
     const handleQuizSaved = (savedQuiz) => {
@@ -109,21 +125,25 @@ const Quiz = () => {
 
     if (quizTitle && selectedQuiz) {
         return (
-            <div className="p-4">
-                <h2 className="text-2xl font-bold mb-4">{selectedQuiz.title}</h2>
-                <div className="mb-4">
-                    <h3 className="text-xl">{selectedQuiz.questions[currentQuestionIndex].text}</h3>
+            <div className="quiz-container">
+                <div className="quiz-question">
+                    {selectedQuiz.questions[currentQuestionIndex].text}
                 </div>
-                <div className="grid grid-cols-1 gap-4">
-                    {selectedQuiz.questions[currentQuestionIndex].answers.map((answer) => (
-                        <button
-                            key={answer.id}
-                            onClick={() => handleAnswerOptionClick(answer.isCorrect)}
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                        >
-                            {answer.text}
-                        </button>
-                    ))}
+                <div className="quiz-answers">
+                    {selectedQuiz.questions[currentQuestionIndex].answers.map((answer) => {
+                        const isSelected = selectedAnswerId === answer.id;
+                        const buttonClass = `quiz-answer-btn ${isSelected ? answerStatus : ''}`;
+                        return (
+                            <button
+                                key={answer.id}
+                                onClick={() => handleAnswerOptionClick(answer)}
+                                className={buttonClass}
+                                disabled={selectedAnswerId !== null}
+                            >
+                                {answer.text}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
         );
