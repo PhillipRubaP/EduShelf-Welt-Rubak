@@ -35,7 +35,7 @@
 
 .quiz-answer-btn:hover {
     background-color: var(--primary-color);
-    color: white;
+    color: var(--text-color-inverted);
 }
 
 .quiz-answer-btn.selected {
