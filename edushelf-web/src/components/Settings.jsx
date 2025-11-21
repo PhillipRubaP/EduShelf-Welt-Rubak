@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Settings.css';
 
-const Settings = ({ onClose }) => {
+const Settings = () => {
     const [lightMode, setLightMode] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const currentTheme = localStorage.getItem('theme');
@@ -23,10 +25,14 @@ const Settings = ({ onClose }) => {
         }
     };
 
+    const handleClose = () => {
+        navigate(-1);
+    };
+
     return (
         <div className="settings-container">
             <div className="settings-box">
-                <span className="close-button" onClick={onClose}>&times;</span>
+                <span className="close-button" onClick={handleClose}>&times;</span>
                 <h2>Einstellungen</h2>
                 <div className="form-group">
                     <label htmlFor="light-mode-switch">Light Mode</label>
