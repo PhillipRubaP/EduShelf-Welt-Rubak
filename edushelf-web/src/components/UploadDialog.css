@@ -41,15 +41,6 @@
         border-color: var(--primary-green);
     }
 
-    .dialog-buttons button.primary {
-        background-color: var(--secondary-mint);
-        color: var(--neutral-anthracite);
-    }
-
-    .dialog-buttons button.primary:hover {
-        background-color: var(--primary-green);
-        color: var(--neutral-white);
-    }
 }
 
 .upload-dialog input[type="file"] {
@@ -73,15 +64,6 @@
   cursor: pointer;
 }
 
-.dialog-buttons button.primary {
-    background-color: var(--primary-green);
-    color: var(--neutral-white);
-}
-
-.dialog-buttons button.primary:hover {
-    background-color: var(--secondary-mint);
-    color: var(--primary-green);
-}
 [data-theme='light'] .upload-dialog {
   background: var(--primary-color);
   color: var(--text-color);
@@ -93,6 +75,3 @@
     border-color: var(--primary-green);
 }
 
-[data-theme='light'] .dialog-buttons button.primary {
-    color: var(--text-color);
-}
