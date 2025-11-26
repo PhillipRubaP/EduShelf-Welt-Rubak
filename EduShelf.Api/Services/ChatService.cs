@@ -73,7 +73,7 @@ namespace EduShelf.Api.Services
 
                 if (chatSession == null)
                 {
-                    throw new Exception("Chat session not found.");
+                    throw new NotFoundException("Chat session not found.");
                 }
 
                 var intent = await _intentDetectionService.GetIntentAsync(userInput);
@@ -96,10 +96,20 @@ namespace EduShelf.Api.Services
 
                 return responseContent;
             }
+            catch (KernelException ex)
+            {
+                _logger.LogError(ex, "Semantic Kernel error in ChatService.");
+                throw new KernelServiceException("An error occurred with the AI service.", ex);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error in ChatService while saving chat message.");
+                throw new DatabaseException("An error occurred while saving the chat message.", ex);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting response from ChatService.");
-                return "An error occurred while processing your request.";
+                throw;
             }
         }
 
@@ -146,7 +156,7 @@ namespace EduShelf.Api.Services
 
             if (session == null)
             {
-                throw new Exception("Chat session not found.");
+                throw new NotFoundException("Chat session not found.");
             }
 
             return await _context.ChatMessages
@@ -162,7 +172,7 @@ namespace EduShelf.Api.Services
 
             if (session == null)
             {
-                throw new Exception("Chat session not found.");
+                throw new NotFoundException("Chat session not found.");
             }
 
             var message = await _context.ChatMessages
@@ -170,7 +180,7 @@ namespace EduShelf.Api.Services
 
             if (message == null)
             {
-                throw new Exception("Message not found.");
+                throw new NotFoundException("Message not found.");
             }
 
             return message;
