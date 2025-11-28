@@ -67,17 +67,17 @@ namespace EduShelf.Api.Tests
         {
             // Arrange
             var login = new UserLogin { Email = "test@example.com", Password = "password123" };
-            var loginResponse = new LoginResponseDto { Token = "some.jwt.token", User = new UserDto { UserId = 1, Username = "testuser", Email = "test@example.com" } };
-            _mockUserService.Setup(service => service.LoginAsync(login)).ReturnsAsync(loginResponse);
+            var userDto = new UserDto { UserId = 1, Username = "testuser", Email = "test@example.com" };
+            _mockUserService.Setup(service => service.LoginAsync(login)).ReturnsAsync(userDto);
 
             // Act
             var result = await _controller.Login(login);
 
             // Assert
-            var actionResult = Assert.IsType<ActionResult<LoginResponseDto>>(result);
+            var actionResult = Assert.IsType<ActionResult<UserDto>>(result);
             var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var returnedLoginResponse = Assert.IsType<LoginResponseDto>(okResult.Value);
-            Assert.NotNull(returnedLoginResponse.Token);
+            var returnedUser = Assert.IsType<UserDto>(okResult.Value);
+            Assert.Equal("testuser", returnedUser.Username);
         }
 
         [Fact]
