@@ -13,6 +13,7 @@ using EduShelf.Api.Models.Entities;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
 
 namespace EduShelf.Api.Services
 {
@@ -25,6 +26,7 @@ namespace EduShelf.Api.Services
         private readonly RetrievalService _retrievalService;
         private readonly PromptGenerationService _promptGenerationService;
         private readonly IImageProcessingService _imageProcessingService;
+        private readonly IWebHostEnvironment _environment;
 
         public ChatService(
             ApiDbContext context,
@@ -33,7 +35,8 @@ namespace EduShelf.Api.Services
             IntentDetectionService intentDetectionService,
             RetrievalService retrievalService,
             PromptGenerationService promptGenerationService,
-            IImageProcessingService imageProcessingService)
+            IImageProcessingService imageProcessingService,
+            IWebHostEnvironment environment)
         {
             _context = context;
             _kernel = kernel;
@@ -42,16 +45,40 @@ namespace EduShelf.Api.Services
             _retrievalService = retrievalService;
             _promptGenerationService = promptGenerationService;
             _imageProcessingService = imageProcessingService;
+            _environment = environment;
         }
 
         public async Task<string> GetResponseAsync(string userInput, int userId, int chatSessionId, IFormFile? image = null)
         {
+            string? imagePath = null;
+            string? imageDescription = null;
+
             if (image != null)
             {
+                // Save image to disk
+                var uploadsFolder = Path.Combine(_environment.ContentRootPath, "Uploads");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await image.CopyToAsync(fileStream);
+                }
+
+                imagePath = $"/uploads/{uniqueFileName}";
+
+                // Process image for description
                 using var memoryStream = new MemoryStream();
                 await image.CopyToAsync(memoryStream);
                 var imageData = memoryStream.ToArray();
-                var imageDescription = await _imageProcessingService.ProcessImageAsync(imageData, "Describe this image:");
+                imageDescription = await _imageProcessingService.ProcessImageAsync(imageData, "Describe this image:");
+                
+                // Append description to user input for current context
                 userInput = $"{imageDescription}\n\n{userInput}";
             }
 
@@ -89,6 +116,8 @@ namespace EduShelf.Api.Services
                     ChatSessionId = chatSessionId,
                     Message = userInput,
                     Response = responseContent,
+                    ImagePath = imagePath,
+                    ImageDescription = imageDescription,
                     CreatedAt = DateTime.UtcNow
                 };
                 _context.ChatMessages.Add(chatMessage);
