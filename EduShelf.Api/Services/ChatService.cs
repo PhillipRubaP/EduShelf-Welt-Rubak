@@ -13,6 +13,7 @@ using EduShelf.Api.Models.Entities;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
 
 namespace EduShelf.Api.Services
 {
@@ -25,6 +26,7 @@ namespace EduShelf.Api.Services
         private readonly RetrievalService _retrievalService;
         private readonly PromptGenerationService _promptGenerationService;
         private readonly IImageProcessingService _imageProcessingService;
+        private readonly IWebHostEnvironment _environment;
 
         public ChatService(
             ApiDbContext context,
@@ -33,7 +35,8 @@ namespace EduShelf.Api.Services
             IntentDetectionService intentDetectionService,
             RetrievalService retrievalService,
             PromptGenerationService promptGenerationService,
-            IImageProcessingService imageProcessingService)
+            IImageProcessingService imageProcessingService,
+            IWebHostEnvironment environment)
         {
             _context = context;
             _kernel = kernel;
@@ -42,17 +45,42 @@ namespace EduShelf.Api.Services
             _retrievalService = retrievalService;
             _promptGenerationService = promptGenerationService;
             _imageProcessingService = imageProcessingService;
+            _environment = environment;
         }
 
         public async Task<string> GetResponseAsync(string userInput, int userId, int chatSessionId, IFormFile? image = null)
         {
+            string promptInput = userInput;
+            string? imagePath = null;
+            string? imageDescription = null;
+
             if (image != null)
             {
+                // Save image to disk
+                var uploadsFolder = Path.Combine(_environment.ContentRootPath, "Uploads");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await image.CopyToAsync(fileStream);
+                }
+
+                imagePath = $"/uploads/{uniqueFileName}";
+
+                // Process image for description
                 using var memoryStream = new MemoryStream();
                 await image.CopyToAsync(memoryStream);
                 var imageData = memoryStream.ToArray();
-                var imageDescription = await _imageProcessingService.ProcessImageAsync(imageData, "Describe this image:");
-                userInput = $"{imageDescription}\n\n{userInput}";
+                imageDescription = await _imageProcessingService.ProcessImageAsync(imageData, "Describe this image:");
+                
+                // Append description to PROMPT input, but keep userInput clean for storage
+                promptInput = $"{imageDescription}\n\n{userInput}";
             }
 
             if (string.IsNullOrWhiteSpace(userInput))
@@ -73,12 +101,12 @@ namespace EduShelf.Api.Services
 
                 if (chatSession == null)
                 {
-                    throw new Exception("Chat session not found.");
+                    throw new NotFoundException("Chat session not found.");
                 }
 
-                var intent = await _intentDetectionService.GetIntentAsync(userInput);
-                var relevantChunks = await _retrievalService.GetRelevantChunksAsync(userInput, userId, intent);
-                var chatHistory = _promptGenerationService.BuildChatHistory(chatSession, relevantChunks, userInput);
+                var intent = await _intentDetectionService.GetIntentAsync(promptInput);
+                var relevantChunks = await _retrievalService.GetRelevantChunksAsync(promptInput, userId, intent);
+                var chatHistory = _promptGenerationService.BuildChatHistory(chatSession, relevantChunks, promptInput);
 
                 var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
                 var result = await chatCompletionService.GetChatMessageContentAsync(chatHistory);
@@ -89,6 +117,8 @@ namespace EduShelf.Api.Services
                     ChatSessionId = chatSessionId,
                     Message = userInput,
                     Response = responseContent,
+                    ImagePath = imagePath,
+                    ImageDescription = imageDescription,
                     CreatedAt = DateTime.UtcNow
                 };
                 _context.ChatMessages.Add(chatMessage);
@@ -96,10 +126,20 @@ namespace EduShelf.Api.Services
 
                 return responseContent;
             }
+            catch (KernelException ex)
+            {
+                _logger.LogError(ex, "Semantic Kernel error in ChatService.");
+                throw new KernelServiceException("An error occurred with the AI service.", ex);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Database error in ChatService while saving chat message.");
+                throw new DatabaseException("An error occurred while saving the chat message.", ex);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting response from ChatService.");
-                return "An error occurred while processing your request.";
+                throw;
             }
         }
 
@@ -146,7 +186,7 @@ namespace EduShelf.Api.Services
 
             if (session == null)
             {
-                throw new Exception("Chat session not found.");
+                throw new NotFoundException("Chat session not found.");
             }
 
             return await _context.ChatMessages
@@ -162,7 +202,7 @@ namespace EduShelf.Api.Services
 
             if (session == null)
             {
-                throw new Exception("Chat session not found.");
+                throw new NotFoundException("Chat session not found.");
             }
 
             var message = await _context.ChatMessages
@@ -170,7 +210,7 @@ namespace EduShelf.Api.Services
 
             if (message == null)
             {
-                throw new Exception("Message not found.");
+                throw new NotFoundException("Message not found.");
             }
 
             return message;

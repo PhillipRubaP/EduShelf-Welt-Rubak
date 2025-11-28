@@ -17,6 +17,10 @@ public class ChatMessage
 
     public string? Response { get; set; }
 
+    public string? ImagePath { get; set; }
+
+    public string? ImageDescription { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     [ForeignKey("ChatSessionId")]

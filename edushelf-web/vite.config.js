@@ -9,9 +9,8 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:49152',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        target: process.env.VITE_API_TARGET || 'http://localhost:49152',
+        changeOrigin: true
       }
     }
   }

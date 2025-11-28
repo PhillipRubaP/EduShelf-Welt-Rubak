@@ -36,7 +36,12 @@ namespace EduShelf.Api.Services
 
             foreach (var message in chatSession.ChatMessages.OrderBy(m => m.CreatedAt))
             {
-                chatHistory.AddUserMessage(message.Message);
+                var userMessageContent = message.Message;
+                if (!string.IsNullOrEmpty(message.ImageDescription))
+                {
+                    userMessageContent = $"[Image Description: {message.ImageDescription}]\n\n{userMessageContent}";
+                }
+                chatHistory.AddUserMessage(userMessageContent);
                 if (!string.IsNullOrEmpty(message.Response))
                 {
                     chatHistory.AddAssistantMessage(message.Response);

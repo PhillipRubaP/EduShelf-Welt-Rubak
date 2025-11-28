@@ -65,30 +65,16 @@ namespace EduShelf.Api.Controllers
         public async Task<IActionResult> GetMessages(int sessionId)
         {
             var userId = GetUserId();
-            try
-            {
-                var messages = await _chatService.GetMessagesForSessionAsync(userId, sessionId);
-                return Ok(messages);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { response = ex.Message });
-            }
+            var messages = await _chatService.GetMessagesForSessionAsync(userId, sessionId);
+            return Ok(messages);
         }
 
         [HttpGet("sessions/{sessionId}/messages/{messageId}")]
         public async Task<IActionResult> GetMessage(int sessionId, int messageId)
         {
             var userId = GetUserId();
-            try
-            {
-                var message = await _chatService.GetMessageAsync(userId, sessionId, messageId);
-                return Ok(message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { response = ex.Message });
-            }
+            var message = await _chatService.GetMessageAsync(userId, sessionId, messageId);
+            return Ok(message);
         }
 
         private int GetUserId()

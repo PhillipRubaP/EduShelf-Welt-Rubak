@@ -1,15 +1,14 @@
 using EduShelf.Api.Data;
 using EduShelf.Api.Models.Dtos;
 using EduShelf.Api.Models.Entities;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using EduShelf.Api.Exceptions;
 
@@ -18,12 +17,27 @@ namespace EduShelf.Api.Services
     public class UserService : IUserService
     {
         private readonly ApiDbContext _context;
-        private readonly IConfiguration _configuration;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserService(ApiDbContext context, IConfiguration configuration)
+        public UserService(ApiDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
-            _configuration = configuration;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        private int GetCurrentUserId()
+        {
+            var userIdString = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                throw new UnauthorizedAccessException("User is not authenticated or user ID is invalid.");
+            }
+            return userId;
+        }
+
+        private bool IsCurrentUserAdmin()
+        {
+            return _httpContextAccessor.HttpContext?.User.IsInRole("Admin") ?? false;
         }
 
         public async Task<IEnumerable<UserDto>> GetUsersAsync()
@@ -88,7 +102,7 @@ namespace EduShelf.Api.Services
             };
         }
 
-        public async Task<LoginResponseDto> LoginAsync(UserLogin login)
+        public async Task<UserDto> LoginAsync(UserLogin login)
         {
             var user = await _context.Users
                 .Include(u => u.UserRoles)
@@ -99,8 +113,30 @@ namespace EduShelf.Api.Services
             {
                 throw new UnauthorizedAccessException("Invalid credentials.");
             }
+            
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Name, user.Username)
+            };
 
-            var token = GenerateJwtToken(user);
+            foreach (var userRole in user.UserRoles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
+            }
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = true, // Make the cookie persistent
+                ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(120)
+            };
+
+            await _httpContextAccessor.HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme, 
+                new ClaimsPrincipal(claimsIdentity), 
+                authProperties);
 
             var userDto = new UserDto
             {
@@ -109,17 +145,12 @@ namespace EduShelf.Api.Services
                 Email = user.Email
             };
 
-            return new LoginResponseDto { Token = token, User = userDto };
+            return userDto;
         }
 
-        public async Task<UserDto> GetMeAsync(ClaimsPrincipal userPrincipal)
+        public async Task<UserDto> GetMeAsync()
         {
-            var userIdString = userPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdString, out var userId))
-            {
-                throw new UnauthorizedAccessException("Invalid user identifier.");
-            }
-
+            var userId = GetCurrentUserId();
             var user = await _context.Users.FindAsync(userId);
 
             if (user == null)
@@ -172,12 +203,12 @@ namespace EduShelf.Api.Services
                 .ToListAsync();
         }
 
-        public async Task UpdateUserAsync(int id, User userUpdate, ClaimsPrincipal userPrincipal)
+        public async Task UpdateUserAsync(int id, User userUpdate)
         {
-            var currentUserId = userPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
-            var isAdmin = userPrincipal.IsInRole("Admin");
+            var currentUserId = GetCurrentUserId();
+            var isAdmin = IsCurrentUserAdmin();
 
-            if (currentUserId != id.ToString() && !isAdmin)
+            if (currentUserId != id && !isAdmin)
             {
                 throw new ForbidException("You are not authorized to update this user.");
             }
@@ -199,12 +230,12 @@ namespace EduShelf.Api.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task PartialUpdateUserAsync(int id, UserUpdateDto userUpdate, ClaimsPrincipal userPrincipal)
+        public async Task PartialUpdateUserAsync(int id, UserUpdateDto userUpdate)
         {
-            var currentUserId = userPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
-            var isAdmin = userPrincipal.IsInRole("Admin");
+            var currentUserId = GetCurrentUserId();
+            var isAdmin = IsCurrentUserAdmin();
 
-            if (currentUserId != id.ToString() && !isAdmin)
+            if (currentUserId != id && !isAdmin)
             {
                 throw new ForbidException("You are not authorized to update this user.");
             }
@@ -297,33 +328,6 @@ namespace EduShelf.Api.Services
 
             _context.UserRoles.Remove(userRole);
             await _context.SaveChangesAsync();
-        }
-
-        private string GenerateJwtToken(User user)
-        {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
-
-            foreach (var userRole in user.UserRoles)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
-            }
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddMinutes(120),
-                signingCredentials: credentials);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 

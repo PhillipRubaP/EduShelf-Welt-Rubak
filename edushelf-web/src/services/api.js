@@ -1,20 +1,25 @@
 import API_BASE_URL from '../config';
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  return token ? { 'Authorization': `Bearer ${token}` } : {};
-};
-
 const api = {
   get: async (endpoint, options = {}) => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      headers: getAuthHeaders(),
+      credentials: 'include',
       ...options,
     });
+    if (!response.ok) {
+      const text = await response.text();
+      console.error(`API Error (${response.status}):`, text);
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    }
     if (options.responseType === 'blob') {
       return response.blob();
     }
-    return response.json();
+    try {
+      return await response.json();
+    } catch (e) {
+      console.error('Failed to parse JSON response:', e);
+      throw e;
+    }
   },
 
   post: async (endpoint, body) => {
@@ -22,20 +27,23 @@ const api = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...getAuthHeaders(),
       },
+      credentials: 'include',
       body: JSON.stringify(body),
     });
+    if (!response.ok) {
+      const text = await response.text();
+      console.error(`API Error (${response.status}):`, text);
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    }
     return response.json();
   },
-  
+
   postForm: async (endpoint, formData) => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers: {
-            ...getAuthHeaders(),
-        },
-        body: formData,
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
     });
     return response.json();
   },
@@ -45,8 +53,8 @@ const api = {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        ...getAuthHeaders(),
       },
+      credentials: 'include',
       body: JSON.stringify(body),
     });
     const text = await response.text();
@@ -56,7 +64,7 @@ const api = {
   delete: async (endpoint) => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'DELETE',
-      headers: getAuthHeaders(),
+      credentials: 'include',
     });
     return response;
   },
@@ -84,39 +92,20 @@ export const deleteQuiz = (quizId) => api.delete(`/quizzes/${quizId}`);
 export const updateQuiz = (quizId, quizData) => api.put(`/quizzes/${quizId}`, quizData);
 
 export const getFlashcards = () => api.get('/flashcards');
-const decodeToken = (token) => {
-    try {
-        return JSON.parse(atob(token.split('.')[1]));
-    } catch (e) {
-        return null;
-    }
-};
 
 export const createFlashcard = (flashcardData) => {
-    const token = localStorage.getItem('token');
-    const decodedToken = decodeToken(token);
-    const userId = decodedToken ? (decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || decodedToken.sub) : null;
-
-    if (!userId) {
-        return Promise.reject('User not found');
-    }
-
-    const dataToSend = {
-        ...flashcardData,
-        UserId: parseInt(userId, 10),
-    };
-
-    return api.post('/flashcards', dataToSend);
+  // The backend will associate the user from the session
+  return api.post('/flashcards', flashcardData);
 };
 export const deleteFlashcard = (flashcardId) => api.delete(`/flashcards/${flashcardId}`);
 
 export const updateFlashcard = (card) => {
-    const dataToSend = {
-        Question: card.question,
-        Answer: card.answer,
-        Tags: card.tags || [],
-    };
-    return api.put(`/flashcards/${card.id}`, dataToSend);
+  const dataToSend = {
+    Question: card.question,
+    Answer: card.answer,
+    Tags: card.tags || [],
+  };
+  return api.put(`/flashcards/${card.id}`, dataToSend);
 };
 
 export const getDocuments = () => api.get('/documents');

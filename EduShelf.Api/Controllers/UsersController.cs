@@ -1,6 +1,8 @@
 using EduShelf.Api.Models.Dtos;
 using EduShelf.Api.Models.Entities;
 using EduShelf.Api.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -51,16 +53,23 @@ namespace EduShelf.Api.Controllers
 
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<ActionResult<LoginResponseDto>> Login([FromBody] UserLogin login)
+        public async Task<ActionResult<UserDto>> Login([FromBody] UserLogin login)
         {
-            var loginResponse = await _userService.LoginAsync(login);
-            return Ok(loginResponse);
+            var userDto = await _userService.LoginAsync(login);
+            return Ok(userDto);
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Ok(new { message = "Logged out successfully." });
         }
 
         [HttpGet("me")]
         public async Task<ActionResult<UserDto>> GetMe()
         {
-            var user = await _userService.GetMeAsync(User);
+            var user = await _userService.GetMeAsync();
             return Ok(user);
         }
 
@@ -87,7 +96,7 @@ namespace EduShelf.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, User userUpdate)
         {
-            await _userService.UpdateUserAsync(id, userUpdate, User);
+            await _userService.UpdateUserAsync(id, userUpdate);
             return NoContent();
         }
 
@@ -95,7 +104,7 @@ namespace EduShelf.Api.Controllers
         [HttpPatch("{id}")]
         public async Task<IActionResult> PatchUser(int id, [FromBody] UserUpdateDto userUpdate)
         {
-            await _userService.PartialUpdateUserAsync(id, userUpdate, User);
+            await _userService.PartialUpdateUserAsync(id, userUpdate);
             return NoContent();
         }
         // DELETE: api/Users/5

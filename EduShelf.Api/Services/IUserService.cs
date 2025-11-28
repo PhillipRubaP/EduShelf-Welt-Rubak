@@ -11,12 +11,12 @@ namespace EduShelf.Api.Services
         Task<IEnumerable<UserDto>> GetUsersAsync();
         Task<UserDto> GetUserAsync(int id);
         Task<UserDto> RegisterUserAsync(UserRegister userRegister);
-        Task<LoginResponseDto> LoginAsync(UserLogin login);
-        Task<UserDto> GetMeAsync(ClaimsPrincipal user);
+        Task<UserDto> LoginAsync(UserLogin login);
+        Task<UserDto> GetMeAsync();
         Task ChangePasswordAsync(int userId, PasswordChangeDto passwordChange);
         Task<IEnumerable<DocumentDto>> GetUserDocumentsAsync(int id);
-        Task UpdateUserAsync(int id, User userUpdate, ClaimsPrincipal user);
-        Task PartialUpdateUserAsync(int id, UserUpdateDto userUpdate, ClaimsPrincipal user);
+        Task UpdateUserAsync(int id, User userUpdate);
+        Task PartialUpdateUserAsync(int id, UserUpdateDto userUpdate);
         Task DeleteUserAsync(int id);
         Task<IEnumerable<Role>> GetUserRolesAsync(int id);
         Task AddUserRoleAsync(int id, UserRoleDto userRoleDto);
