@@ -6,9 +6,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Embeddings;
 using Microsoft.Extensions.AI;
 using EduShelf.Api.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
  
@@ -47,6 +45,7 @@ builder.Services.AddScoped<PromptGenerationService>();
 builder.Services.AddScoped<IRAGService, RAGService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IImageProcessingService, ImageProcessingService>();
+builder.Services.AddHttpContextAccessor();
 
 // This is a temporary workaround to bridge ITextEmbeddingGenerationService to IEmbeddingGenerator
 // This should be replaced if a better adapter or direct registration becomes available.
@@ -70,20 +69,26 @@ builder.Services.AddDbContext<ApiDbContext>((serviceProvider, options) =>
     options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"), o => o.UseVector());
 });
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
     {
-        options.TokenValidationParameters = new TokenValidationParameters
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(120);
+        options.SlidingExpiration = true;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.IsEssential = true;
+        options.Cookie.SameSite = SameSiteMode.Lax; // Ensure cookie is sent on cross-site requests
+        options.Events.OnRedirectToLogin = context =>
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            context.Response.StatusCode = 401;
+            return Task.CompletedTask;
+        };
+        options.Events.OnRedirectToAccessDenied = context =>
+        {
+            context.Response.StatusCode = 403;
+            return Task.CompletedTask;
         };
     });
+
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -93,32 +98,6 @@ builder.Services.AddSwaggerGen(c =>
     c.DocInclusionPredicate((name, api) => true);
 
     c.AddServer(new OpenApiServer { Url = "http://localhost:49152", Description = "Local Docker" });
-
-    // JWT Bearer Token hinzufügen
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "JWT Authorization header using the Bearer scheme. Example: 'Bearer {token}'"
-    });
-
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference 
-                { 
-                    Type = ReferenceType.SecurityScheme, 
-                    Id = "Bearer" 
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
 });
 builder.Services.AddControllers().AddJsonOptions(options =>
 {

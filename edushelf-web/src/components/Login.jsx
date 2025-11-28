@@ -13,11 +13,10 @@ const Login = ({ setLoggedInUser }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const data = await api.post('/Users/login', { email, password });
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        setLoggedInUser(data.user);
+      const user = await api.post('/Users/login', { email, password });
+      if (user && user.userId) {
+        localStorage.setItem('user', JSON.stringify(user));
+        setLoggedInUser(user);
         navigate('/');
       } else {
         setError('Invalid email or password.');

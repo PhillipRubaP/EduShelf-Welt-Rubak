@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import './App.css';
+import api from './services/api';
 import Files from './components/Files';
 import Chat from './components/Chat';
 import Quiz from './components/Quiz';
@@ -14,27 +15,55 @@ import MainLayout from './components/MainLayout';
 
 function App() {
   const [loggedInUser, setLoggedInUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const user = localStorage.getItem('user');
-    if (user) {
-      setLoggedInUser(JSON.parse(user));
-    }
+    const checkUserSession = async () => {
+      try {
+        // api.js has been configured to include credentials
+        const user = await api.get('/Users/me');
+        if (user && user.userId) {
+          setLoggedInUser(user);
+          localStorage.setItem('user', JSON.stringify(user));
+        } else {
+          // No valid session, clear local storage
+          localStorage.removeItem('user');
+          setLoggedInUser(null);
+        }
+      } catch (error) {
+        // Likely a 401 Unauthorized error
+        console.error('Session check failed:', error);
+        localStorage.removeItem('user');
+        setLoggedInUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkUserSession();
   }, []);
 
   useEffect(() => {
     const currentTheme = localStorage.getItem('theme');
     if (currentTheme === 'light') {
-        document.documentElement.setAttribute('data-theme', 'light');
+      document.documentElement.setAttribute('data-theme', 'light');
     }
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setLoggedInUser(null);
+  const handleLogout = async () => {
+    try {
+      await api.post('/Users/logout');
+    } catch (error) {
+      console.error('Error during logout:', error);
+    } finally {
+      localStorage.removeItem('user');
+      setLoggedInUser(null);
+    }
   };
+
+  if (loading) {
+    return <div>Loading...</div>; // Or a spinner component
+  }
 
   return (
     <Router>
