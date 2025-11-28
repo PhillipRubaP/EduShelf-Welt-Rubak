@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
+import rehypeHighlight from 'rehype-highlight';
 import { getChatSessions, createChatSession, getChatMessages, postChatMessage } from '../services/api';
 import './Chat.css';
 
@@ -148,7 +150,7 @@ const Chat = () => {
         <div className="chat-messages">
           {messages.map((msg, index) => (
             <div key={index} className={`message ${msg.sender}`}>
-              {msg.text}
+              <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{msg.text}</ReactMarkdown>
               {msg.image && <img src={msg.image} alt="user upload" className="chat-image" />}
             </div>
           ))}
