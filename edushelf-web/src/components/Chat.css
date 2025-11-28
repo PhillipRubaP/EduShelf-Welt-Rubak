@@ -57,9 +57,14 @@
 .chat-header {
     background-color: var(--neutral-anthracite);
     color: var(--neutral-white);
-    padding: 1rem;
+    padding: 0.5rem;
     text-align: center;
+}
+
+.chat-header h1 {
     font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0;
 }
 
 .chat-messages {
