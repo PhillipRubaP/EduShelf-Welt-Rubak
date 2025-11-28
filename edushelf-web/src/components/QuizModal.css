@@ -14,7 +14,7 @@
     background: white;
     padding: 20px;
     border-radius: 8px;
-    width: 500px;
+    width: 800px;
     max-height: 80vh;
     overflow-y: auto;
     position: relative;
@@ -42,7 +42,7 @@
     margin-bottom: 5px;
 }
 
-.modal-content .form-group input {
+.modal-content .title-form-group input {
     width: 100%;
     color: var(--neutral-white);
     padding: 8px;
@@ -56,11 +56,29 @@
     border-radius: 4px;
 }
 
+.question-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.question-header input {
+    flex-grow: 1;
+}
+
 .answer-block {
     display: flex;
     align-items: center;
     margin-bottom: 5px;
     justify-content: flex-start;
+}
+
+.delete-quiz-btn {
+    background: none;
+    border: none;
+    color: red;
+    cursor: pointer;
+    margin-left: 10px;
 }
 
 .answer-block input[type="radio"] {
@@ -70,7 +88,7 @@
 }
 
 .answer-block input[type="text"] {
-    width: calc(100% - 30px);
+    flex-grow: 1;
 }
 
 .modal-actions {
