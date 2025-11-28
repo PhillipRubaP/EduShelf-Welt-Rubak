@@ -50,6 +50,7 @@ namespace EduShelf.Api.Services
 
         public async Task<string> GetResponseAsync(string userInput, int userId, int chatSessionId, IFormFile? image = null)
         {
+            string promptInput = userInput;
             string? imagePath = null;
             string? imageDescription = null;
 
@@ -78,8 +79,8 @@ namespace EduShelf.Api.Services
                 var imageData = memoryStream.ToArray();
                 imageDescription = await _imageProcessingService.ProcessImageAsync(imageData, "Describe this image:");
                 
-                // Append description to user input for current context
-                userInput = $"{imageDescription}\n\n{userInput}";
+                // Append description to PROMPT input, but keep userInput clean for storage
+                promptInput = $"{imageDescription}\n\n{userInput}";
             }
 
             if (string.IsNullOrWhiteSpace(userInput))
@@ -103,9 +104,9 @@ namespace EduShelf.Api.Services
                     throw new NotFoundException("Chat session not found.");
                 }
 
-                var intent = await _intentDetectionService.GetIntentAsync(userInput);
-                var relevantChunks = await _retrievalService.GetRelevantChunksAsync(userInput, userId, intent);
-                var chatHistory = _promptGenerationService.BuildChatHistory(chatSession, relevantChunks, userInput);
+                var intent = await _intentDetectionService.GetIntentAsync(promptInput);
+                var relevantChunks = await _retrievalService.GetRelevantChunksAsync(promptInput, userId, intent);
+                var chatHistory = _promptGenerationService.BuildChatHistory(chatSession, relevantChunks, promptInput);
 
                 var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
                 var result = await chatCompletionService.GetChatMessageContentAsync(chatHistory);
