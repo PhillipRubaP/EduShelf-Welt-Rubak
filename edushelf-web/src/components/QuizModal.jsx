@@ -51,7 +51,8 @@ const QuizModal = ({ onClose, onQuizSaved, quiz }) => {
         };
         try {
             if (quiz) {
-                await updateQuiz(quiz.id, quizData);
+                const updatedQuiz = await updateQuiz(quiz.id, quizData);
+                onQuizSaved(updatedQuiz);
             } else {
                 const newQuiz = await createQuiz({ title: quizData.title, questions: quizData.questions });
                 onQuizSaved(newQuiz);

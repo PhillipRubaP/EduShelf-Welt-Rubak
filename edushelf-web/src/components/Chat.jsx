@@ -9,8 +9,30 @@ const Chat = () => {
   const [input, setInput] = useState('');
   const [image, setImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(250);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+  const sidebarRef = useRef(null);
+
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleMouseMove = (e) => {
+    if (sidebarRef.current) {
+      const newWidth = e.clientX - sidebarRef.current.getBoundingClientRect().left;
+      if (newWidth > 200 && newWidth < 500) {
+        setSidebarWidth(newWidth);
+      }
+    }
+  };
+
+  const handleMouseUp = () => {
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+  };
 
   useEffect(() => {
     fetchSessions();
@@ -97,7 +119,7 @@ const Chat = () => {
 
   return (
     <div className="chat-container">
-      <div className="sidebar">
+      <div className="sidebar" ref={sidebarRef} style={{ width: sidebarWidth }}>
         <button onClick={handleCreateSession}>New Chat</button>
         <ul>
           {sessions.map(session => (
@@ -107,6 +129,7 @@ const Chat = () => {
           ))}
         </ul>
       </div>
+      <div className="resizer" onMouseDown={handleMouseDown} />
       <div className="chat-window">
         <div className="chat-header">
           <h1>{currentSession ? currentSession.title : 'EduShelf Assistant'}</h1>

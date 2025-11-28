@@ -166,7 +166,7 @@ namespace EduShelf.Api.Controllers
 
         // PUT: api/Quizzes/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutQuiz(int id, QuizUpdateDto quizUpdateDto)
+        public async Task<ActionResult<QuizDto>> PutQuiz(int id, QuizUpdateDto quizUpdateDto)
         {
             var quiz = await _context.Quizzes
                 .Include(q => q.Questions)
@@ -192,44 +192,50 @@ namespace EduShelf.Api.Controllers
 
             quiz.Title = quizUpdateDto.Title;
 
-            // Remove questions that are not in the DTO
-            var questionsToRemove = quiz.Questions
-                .Where(q => !quizUpdateDto.Questions.Any(dto => dto.Id == q.Id))
-                .ToList();
+            // --- Question Management ---
+            var questionIdsFromDto = new HashSet<int>(quizUpdateDto.Questions.Select(q => q.Id));
+            var questionsToRemove = quiz.Questions.Where(q => !questionIdsFromDto.Contains(q.Id)).ToList();
             _context.Questions.RemoveRange(questionsToRemove);
 
             foreach (var questionDto in quizUpdateDto.Questions)
             {
-                var question = quiz.Questions.FirstOrDefault(q => q.Id == questionDto.Id);
-                if (question == null)
+                Question question;
+                if (questionDto.Id != 0) // Existing Question
                 {
-                    // Add new question
+                    question = quiz.Questions.FirstOrDefault(q => q.Id == questionDto.Id);
+                    if (question != null)
+                    {
+                        question.Text = questionDto.Text;
+                    }
+                }
+                else // New Question
+                {
                     question = new Question { Text = questionDto.Text, Answers = new List<Answer>() };
                     quiz.Questions.Add(question);
                 }
-                else
-                {
-                    question.Text = questionDto.Text;
-                }
 
-                // Remove answers that are not in the DTO
-                var answersToRemove = question.Answers
-                    .Where(a => !questionDto.Answers.Any(dto => dto.Id == a.Id))
-                    .ToList();
-                _context.Answers.RemoveRange(answersToRemove);
-
-                foreach (var answerDto in questionDto.Answers)
+                if (question != null)
                 {
-                    var answer = question.Answers.FirstOrDefault(a => a.Id == answerDto.Id);
-                    if (answer == null)
+                    // --- Answer Management for the current question ---
+                    var answerIdsFromDto = new HashSet<int>(questionDto.Answers.Select(a => a.Id));
+                    var answersToRemove = question.Answers.Where(a => !answerIdsFromDto.Contains(a.Id)).ToList();
+                    _context.Answers.RemoveRange(answersToRemove);
+
+                    foreach (var answerDto in questionDto.Answers)
                     {
-                        // Add new answer
-                        question.Answers.Add(new Answer { Text = answerDto.Text, IsCorrect = answerDto.IsCorrect });
-                    }
-                    else
-                    {
-                        answer.Text = answerDto.Text;
-                        answer.IsCorrect = answerDto.IsCorrect;
+                        if (answerDto.Id != 0) // Existing Answer
+                        {
+                            var answer = question.Answers.FirstOrDefault(a => a.Id == answerDto.Id);
+                            if (answer != null)
+                            {
+                                answer.Text = answerDto.Text;
+                                answer.IsCorrect = answerDto.IsCorrect;
+                            }
+                        }
+                        else // New Answer
+                        {
+                            question.Answers.Add(new Answer { Text = answerDto.Text, IsCorrect = answerDto.IsCorrect });
+                        }
                     }
                 }
             }
@@ -250,7 +256,31 @@ namespace EduShelf.Api.Controllers
                 }
             }
 
-            return NoContent();
+            var updatedQuiz = await _context.Quizzes
+                .Include(q => q.Questions)
+                .ThenInclude(q => q.Answers)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(q => q.Id == id);
+
+            var quizDto = new QuizDto
+            {
+                Id = updatedQuiz.Id,
+                Title = updatedQuiz.Title,
+                CreatedAt = updatedQuiz.CreatedAt,
+                Questions = updatedQuiz.Questions.Select(q => new QuestionDto
+                {
+                    Id = q.Id,
+                    Text = q.Text,
+                    Answers = q.Answers.Select(a => new AnswerDto
+                    {
+                        Id = a.Id,
+                        Text = a.Text,
+                        IsCorrect = a.IsCorrect
+                    }).ToList()
+                }).ToList()
+            };
+
+            return Ok(quizDto);
         }
 
         // PATCH: api/Quizzes/5
