@@ -19,23 +19,22 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
  
  // Add Semantic Kernel
 var kernelBuilder = builder.Services.AddKernel();
+builder.Services.AddHttpClient();
+// Create a custom HttpClient with a long timeout for Ollama
+var ollamaClient = new HttpClient
+{
+    BaseAddress = new Uri(builder.Configuration["AIService:Endpoint"]!),
+    Timeout = TimeSpan.FromMinutes(10)
+};
+
 kernelBuilder.AddOllamaChatCompletion(
     modelId: builder.Configuration["AIService:ChatModel"]!,
-    endpoint: new Uri(builder.Configuration["AIService:Endpoint"]!))
-    .Services.AddHttpClient("Ollama", c =>
-    {
-        c.BaseAddress = new Uri(builder.Configuration["AIService:Endpoint"]!);
-        c.Timeout = TimeSpan.FromMinutes(5);
-    });
+    httpClient: ollamaClient);
+
 #pragma warning disable SKEXP0070
 kernelBuilder.AddOllamaTextEmbeddingGeneration(
     modelId: builder.Configuration["AIService:EmbeddingModel"]!,
-    endpoint: new Uri(builder.Configuration["AIService:Endpoint"]!))
-    .Services.AddHttpClient("Ollama", c =>
-    {
-        c.BaseAddress = new Uri(builder.Configuration["AIService:Endpoint"]!);
-        c.Timeout = TimeSpan.FromMinutes(5);
-    });
+    httpClient: ollamaClient);
 
 builder.Services.AddScoped<IndexingService>();
 builder.Services.AddScoped<ChatService>();
