@@ -1,0 +1,71 @@
+  Wiederherzustellende Projekte werden ermittelt...
+  Alle Projekte sind f├╝r die Wiederherstellung auf dem neuesten Stand.
+  EduShelf.Api -> c:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api\bin\Debug\net8.0\EduShelf.Api.dll
+  EduShelf.Api.Tests -> c:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\bin\Debug\net8.0\EduShelf.Api.Tests.dll
+Testlauf f├╝r "c:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\bin\Debug\net8.0\EduShelf.Api.Tests.dll" (.NETCoreApp,Version=v8.0)
+VSTest-Version 17.12.0 (x64)
+
+Die Testausf├╝hrung wird gestartet, bitte warten...
+Insgesamt 1 Testdateien stimmten mit dem angegebenen Muster ├╝berein.
+[xUnit.net 00:00:02.14]     EduShelf.Api.Tests.ChatServiceTests.CreateChatSessionAsync_ShouldCreateSession_WhenTitleIsValid [FAIL]
+[xUnit.net 00:00:02.15]     EduShelf.Api.Tests.ChatServiceTests.CreateChatSessionAsync_ShouldThrowBadRequest_WhenTitleIsEmpty [FAIL]
+[xUnit.net 00:00:02.16]     EduShelf.Api.Tests.ChatServiceTests.GetChatSessionsAsync_ShouldReturnSessions_ForUser [FAIL]
+  Fehler EduShelf.Api.Tests.ChatServiceTests.CreateChatSessionAsync_ShouldCreateSession_WhenTitleIsValid [1 ms]
+  Fehlermeldung:
+   System.NotSupportedException : Type to mock (Kernel) must be an interface, a delegate, or a non-sealed, non-static class.
+  Stapelverfolgung:
+     at Moq.Guard.IsMockable(Type type) in /_/src/Moq/Guard.cs:line 207
+   at Moq.Mock`1..ctor(MockBehavior behavior, Object[] args) in /_/src/Moq/Mock`1.cs:line 173
+   at Moq.Mock`1..ctor(MockBehavior behavior) in /_/src/Moq/Mock`1.cs:line 157
+   at Moq.Mock`1..ctor() in /_/src/Moq/Mock`1.cs:line 124
+   at EduShelf.Api.Tests.ChatServiceTests..ctor() in c:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\ChatServiceTests.cs:line 29
+   at System.RuntimeType.CreateInstanceDefaultCtor(Boolean publicOnly, Boolean wrapExceptions)
+  Fehler EduShelf.Api.Tests.ChatServiceTests.CreateChatSessionAsync_ShouldThrowBadRequest_WhenTitleIsEmpty [1 ms]
+  Fehlermeldung:
+   System.NotSupportedException : Type to mock (Kernel) must be an interface, a delegate, or a non-sealed, non-static class.
+  Stapelverfolgung:
+     at Moq.Guard.IsMockable(Type type) in /_/src/Moq/Guard.cs:line 207
+   at Moq.Mock`1..ctor(MockBehavior behavior, Object[] args) in /_/src/Moq/Mock`1.cs:line 173
+   at Moq.Mock`1..ctor(MockBehavior behavior) in /_/src/Moq/Mock`1.cs:line 157
+   at Moq.Mock`1..ctor() in /_/src/Moq/Mock`1.cs:line 124
+   at EduShelf.Api.Tests.ChatServiceTests..ctor() in c:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\ChatServiceTests.cs:line 29
+   at System.RuntimeType.CreateInstanceDefaultCtor(Boolean publicOnly, Boolean wrapExceptions)
+  Fehler EduShelf.Api.Tests.ChatServiceTests.GetChatSessionsAsync_ShouldReturnSessions_ForUser [1 ms]
+  Fehlermeldung:
+   System.NotSupportedException : Type to mock (Kernel) must be an interface, a delegate, or a non-sealed, non-static class.
+  Stapelverfolgung:
+     at Moq.Guard.IsMockable(Type type) in /_/src/Moq/Guard.cs:line 207
+   at Moq.Mock`1..ctor(MockBehavior behavior, Object[] args) in /_/src/Moq/Mock`1.cs:line 173
+   at Moq.Mock`1..ctor(MockBehavior behavior) in /_/src/Moq/Mock`1.cs:line 157
+   at Moq.Mock`1..ctor() in /_/src/Moq/Mock`1.cs:line 124
+   at EduShelf.Api.Tests.ChatServiceTests..ctor() in c:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\ChatServiceTests.cs:line 29
+   at System.RuntimeType.CreateInstanceDefaultCtor(Boolean publicOnly, Boolean wrapExceptions)
+[xUnit.net 00:00:02.48]     EduShelf.Api.Tests.DocumentsControllerTests.DeleteDocument_ShouldRemoveDocument_WhenUserOwnsIt [FAIL]
+[xUnit.net 00:00:02.48]     EduShelf.Api.Tests.DocumentsControllerTests.DeleteDocument_ShouldReturnForbid_WhenUserDoesNotOwnIt [FAIL]
+[xUnit.net 00:00:02.49]     EduShelf.Api.Tests.DocumentsControllerTests.GetDocuments_ShouldReturnDocuments_ForUser [FAIL]
+  Fehler EduShelf.Api.Tests.DocumentsControllerTests.DeleteDocument_ShouldRemoveDocument_WhenUserOwnsIt [1 ms]
+  Fehlermeldung:
+   System.NullReferenceException : Object reference not set to an instance of an object.
+  Stapelverfolgung:
+     at EduShelf.Api.Services.IndexingService..ctor(IServiceScopeFactory scopeFactory, ILogger`1 logger, IImageProcessingService imageProcessingService, IConfiguration configuration) in c:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api\Services\IndexingService.cs:line 26
+   at Castle.Proxies.IndexingServiceProxy..ctor(IInterceptor[], IServiceScopeFactory scopeFactory, ILogger`1 logger, IImageProcessingService imageProcessingService, IConfiguration configuration)
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithManyArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  Fehler EduShelf.Api.Tests.DocumentsControllerTests.DeleteDocument_ShouldReturnForbid_WhenUserDoesNotOwnIt [1 ms]
+  Fehlermeldung:
+   System.NullReferenceException : Object reference not set to an instance of an object.
+  Stapelverfolgung:
+     at EduShelf.Api.Services.IndexingService..ctor(IServiceScopeFactory scopeFactory, ILogger`1 logger, IImageProcessingService imageProcessingService, IConfiguration configuration) in c:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api\Services\IndexingService.cs:line 26
+   at Castle.Proxies.IndexingServiceProxy..ctor(IInterceptor[], IServiceScopeFactory scopeFactory, ILogger`1 logger, IImageProcessingService imageProcessingService, IConfiguration configuration)
+   at InvokeStub_IndexingServiceProxy..ctor(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithManyArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  Fehler EduShelf.Api.Tests.DocumentsControllerTests.GetDocuments_ShouldReturnDocuments_ForUser [1 ms]
+  Fehlermeldung:
+   System.NullReferenceException : Object reference not set to an instance of an object.
+  Stapelverfolgung:
+     at EduShelf.Api.Services.IndexingService..ctor(IServiceScopeFactory scopeFactory, ILogger`1 logger, IImageProcessingService imageProcessingService, IConfiguration configuration) in c:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api\Services\IndexingService.cs:line 26
+   at Castle.Proxies.IndexingServiceProxy..ctor(IInterceptor[], IServiceScopeFactory scopeFactory, ILogger`1 logger, IImageProcessingService imageProcessingService, IConfiguration configuration)
+   at InvokeStub_IndexingServiceProxy..ctor(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithManyArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+Fehler!      : Fehler:     6, erfolgreich:    16, ├╝bersprungen:     0, gesamt:    22, Dauer: 4 s - EduShelf.Api.Tests.dll (net8.0)
