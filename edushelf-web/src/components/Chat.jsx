@@ -59,10 +59,21 @@ const Chat = () => {
   const fetchMessages = async (sessionId) => {
     try {
       const fetchedMessages = await getChatMessages(sessionId);
-      const formattedMessages = fetchedMessages.flatMap(msg => [
-        { sender: 'user', text: msg.message },
-        { sender: 'bot', text: msg.response }
-      ]);
+      const formattedMessages = fetchedMessages.flatMap(msg => {
+        const userMessage = { 
+          sender: 'user', 
+          text: msg.message, 
+          image: msg.imagePath 
+        };
+        if (msg.response) {
+          const botMessage = { 
+            sender: 'bot', 
+            text: msg.response 
+          };
+          return [userMessage, botMessage];
+        }
+        return [userMessage];
+      });
       setMessages(formattedMessages);
     } catch (error) {
       console.error('Error fetching messages:', error);
