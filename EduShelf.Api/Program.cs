@@ -19,8 +19,14 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
  
  // Add Semantic Kernel
 var kernelBuilder = builder.Services.AddKernel();
-builder.Services.AddHttpClient();
-// Create a custom HttpClient with a long timeout for Ollama
+// Register Typed Client for ImageProcessingService
+builder.Services.AddHttpClient<IImageProcessingService, ImageProcessingService>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["AIService:Endpoint"]!);
+    client.Timeout = TimeSpan.FromMinutes(10);
+});
+
+// Create a custom HttpClient with a long timeout for Ollama (for Semantic Kernel)
 var ollamaClient = new HttpClient
 {
     BaseAddress = new Uri(builder.Configuration["AIService:Endpoint"]!),
@@ -43,7 +49,7 @@ builder.Services.AddScoped<RetrievalService>();
 builder.Services.AddScoped<PromptGenerationService>();
 builder.Services.AddScoped<IRAGService, RAGService>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IImageProcessingService, ImageProcessingService>();
+// builder.Services.AddScoped<IImageProcessingService, ImageProcessingService>(); // Registered via AddHttpClient
 builder.Services.AddHttpContextAccessor();
 
 // This is a temporary workaround to bridge ITextEmbeddingGenerationService to IEmbeddingGenerator
