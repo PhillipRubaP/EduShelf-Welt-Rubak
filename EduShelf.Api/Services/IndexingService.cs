@@ -191,24 +191,31 @@ namespace EduShelf.Api.Services
 
                     foreach (var image in page.GetImages())
                     {
-                        var imageData = image.RawBytes.ToArray();
-                        if (imageData != null && imageData.Length > 0)
+                        try 
                         {
-                            var ocrText = await _imageProcessingService.ProcessImageAsync(imageData, "Extract all text from this image.");
-                            var description = await _imageProcessingService.ProcessImageAsync(imageData, "Describe this image in detail.");
+                            var imageData = image.RawBytes.ToArray();
+                            if (imageData != null && imageData.Length > 0)
+                            {
+                                var ocrText = await _imageProcessingService.ProcessImageAsync(imageData, "Extract all text from this image.");
+                                var description = await _imageProcessingService.ProcessImageAsync(imageData, "Describe this image in detail.");
 
-                            stringBuilder.AppendLine("--- Image Content ---");
-                            if (!string.IsNullOrWhiteSpace(ocrText))
-                            {
-                                stringBuilder.AppendLine("Extracted Text:");
-                                stringBuilder.AppendLine(ocrText);
+                                stringBuilder.AppendLine("--- Image Content ---");
+                                if (!string.IsNullOrWhiteSpace(ocrText))
+                                {
+                                    stringBuilder.AppendLine("Extracted Text:");
+                                    stringBuilder.AppendLine(ocrText);
+                                }
+                                if (!string.IsNullOrWhiteSpace(description))
+                                {
+                                    stringBuilder.AppendLine("Image Description:");
+                                    stringBuilder.AppendLine(description);
+                                }
+                                stringBuilder.AppendLine("--- End Image Content ---");
                             }
-                            if (!string.IsNullOrWhiteSpace(description))
-                            {
-                                stringBuilder.AppendLine("Image Description:");
-                                stringBuilder.AppendLine(description);
-                            }
-                            stringBuilder.AppendLine("--- End Image Content ---");
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning("Failed to process image in PDF page {PageNumber}. Error: {ErrorMessage}", page.Number, ex.Message);
                         }
                     }
                 }

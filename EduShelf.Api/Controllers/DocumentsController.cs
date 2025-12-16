@@ -605,6 +605,7 @@ namespace EduShelf.Api.Controllers
 
             return File(memory, GetContentType(filePath), document.Title + "." + document.FileType);
         }
+
         [HttpPatch("{id}/content")]
         public async Task<IActionResult> UpdateDocumentContent(int id, [FromBody] DocumentContentUpdateDto documentUpdateDto)
         {

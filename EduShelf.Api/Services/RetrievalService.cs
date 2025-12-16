@@ -25,10 +25,15 @@ namespace EduShelf.Api.Services
             if (intent.Type == "summarize" && !string.IsNullOrEmpty(intent.DocumentName))
             {
                 var documentNameWithoutExtension = Path.GetFileNameWithoutExtension(intent.DocumentName);
-                return await _context.DocumentChunks
+                // System.Console.WriteLine($"[DEBUG] Searching for document: Original='{intent.DocumentName}', Stripped='{documentNameWithoutExtension}'");
+                
+                var chunks = await _context.DocumentChunks
                     .Include(dc => dc.Document)
                     .Where(dc => dc.Document.UserId == userId && EF.Functions.ILike(dc.Document.Title, documentNameWithoutExtension))
                     .ToListAsync();
+
+                // System.Console.WriteLine($"[DEBUG] Found {chunks.Count} chunks for document '{documentNameWithoutExtension}' (UserId: {userId})");
+                return chunks;
             }
             else
             {
