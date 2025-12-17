@@ -9,6 +9,7 @@ using EduShelf.Api.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
+using FluentValidation.AspNetCore;
  
  var builder = WebApplication.CreateBuilder(args);
 
@@ -104,10 +105,12 @@ builder.Services.AddSwaggerGen(c =>
 
     c.AddServer(new OpenApiServer { Url = "http://localhost:49152", Description = "Local Docker" });
 });
-builder.Services.AddControllers().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-});
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    })
+    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Program>());
  
  builder.Services.AddCors(options =>
 {
