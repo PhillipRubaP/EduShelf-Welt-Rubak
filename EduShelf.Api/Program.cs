@@ -50,6 +50,7 @@ builder.Services.AddScoped<RetrievalService>();
 builder.Services.AddScoped<PromptGenerationService>();
 builder.Services.AddScoped<IRAGService, RAGService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IQuizService, QuizService>();
 // builder.Services.AddScoped<IImageProcessingService, ImageProcessingService>(); // Registered via AddHttpClient
 builder.Services.AddHttpContextAccessor();
 
