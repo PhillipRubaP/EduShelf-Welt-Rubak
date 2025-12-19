@@ -1,5 +1,6 @@
 using EduShelf.Api.Data;
 using EduShelf.Api.Models.Entities;
+using EduShelf.Api.Services.FileStorage; // Added namespace
 using Microsoft.EntityFrameworkCore;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Embeddings;
@@ -8,6 +9,7 @@ using UglyToad.PdfPig;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Text;
+using DocumentFormat.OpenXml.Office2016.Excel;
 
 namespace EduShelf.Api.Services
 {
@@ -16,29 +18,32 @@ namespace EduShelf.Api.Services
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<IndexingService> _logger;
         private readonly IImageProcessingService _imageProcessingService;
-        private readonly string _uploadPath;
+        private readonly IFileStorageService _fileStorageService; // Injected service
 
-        public IndexingService(IServiceScopeFactory scopeFactory, ILogger<IndexingService> logger, IImageProcessingService imageProcessingService, IConfiguration configuration)
+        public IndexingService(IServiceScopeFactory scopeFactory, ILogger<IndexingService> logger, IImageProcessingService imageProcessingService, IFileStorageService fileStorageService)
         {
             _scopeFactory = scopeFactory;
             _logger = logger;
             _imageProcessingService = imageProcessingService;
-            _uploadPath = configuration["FileStorage:UploadPath"] ?? "Uploads";
+            _fileStorageService = fileStorageService;
         }
 
         public async Task IndexDocumentAsync(int documentId, string fileName, int? batchSize = null)
         {
             try
             {
-                var fullPath = Path.Combine(_uploadPath, fileName);
-                _logger.LogInformation("Starting indexing for document ID {DocumentId} at path {FilePath}", documentId, fullPath);
-                if (!File.Exists(fullPath))
+                _logger.LogInformation("Starting indexing for document ID {DocumentId} with filename {FileName}", documentId, fileName);
+                
+                // Download file stream from storage
+                using var fileStream = await _fileStorageService.DownloadFileAsync(fileName);
+                
+                if (fileStream == null || fileStream.Length == 0)
                 {
-                    _logger.LogError("File not found at path {FilePath}", fullPath);
+                    _logger.LogError("File stream is empty or null for document {DocumentId}", documentId);
                     return;
                 }
 
-                var content = await ExtractTextFromFileAsync(fullPath);
+                var content = await ExtractTextFromStreamAsync(fileStream, fileName);
                 if (string.IsNullOrWhiteSpace(content))
                 {
                     _logger.LogWarning("No content extracted from document {DocumentId}", documentId);
@@ -109,6 +114,7 @@ namespace EduShelf.Api.Services
 
                 foreach (var chunk in chunks)
                 {
+                    // Delay to avoid rate limits if necessary, though local Ollama is usually fine
                     var embedding = await embeddingGenerator.GenerateEmbeddingAsync(chunk);
                     var documentChunk = new DocumentChunk
                     {
@@ -137,10 +143,6 @@ namespace EduShelf.Api.Services
                     var kernel = scope.ServiceProvider.GetRequiredService<Kernel>();
                     var embeddingGenerator = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
 
-                    // It's better to clear all old chunks once at the start,
-                    // but if we must do it in batches, this logic would need to be more complex.
-                    // For simplicity, we assume the main `IndexDocumentAsync` handles clearing.
-
                     foreach (var chunk in batch)
                     {
                         var embedding = await embeddingGenerator.GenerateEmbeddingAsync(chunk);
@@ -162,27 +164,30 @@ namespace EduShelf.Api.Services
             _logger.LogInformation("Successfully indexed a total of {TotalChunks} chunks for document ID {DocumentId}", totalChunks, documentId);
         }
 
-        private async Task<string> ExtractTextFromFileAsync(string filePath)
+        private async Task<string> ExtractTextFromStreamAsync(Stream stream, string fileName)
         {
-            var extension = Path.GetExtension(filePath).ToLowerInvariant();
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
             switch (extension)
             {
                 case ".pdf":
-                    return await ExtractTextFromPdfAsync(filePath);
+                    return await ExtractTextFromPdfAsync(stream);
                 case ".docx":
-                    return ExtractTextFromDocx(filePath);
+                    return ExtractTextFromDocx(stream);
                 case ".txt":
-                    return await File.ReadAllTextAsync(filePath);
+                     using (var reader = new StreamReader(stream))
+                     {
+                         return await reader.ReadToEndAsync();
+                     }
                 default:
                     _logger.LogWarning("Unsupported file type for text extraction: {Extension}", extension);
                     return string.Empty;
             }
         }
 
-        private async Task<string> ExtractTextFromPdfAsync(string filePath)
+        private async Task<string> ExtractTextFromPdfAsync(Stream stream)
         {
             var stringBuilder = new StringBuilder();
-            using (var pdf = PdfDocument.Open(filePath))
+            using (var pdf = PdfDocument.Open(stream))
             {
                 foreach (var page in pdf.GetPages())
                 {
@@ -223,9 +228,9 @@ namespace EduShelf.Api.Services
             return stringBuilder.ToString();
         }
 
-        private string ExtractTextFromDocx(string filePath)
+        private string ExtractTextFromDocx(Stream stream)
         {
-            using var doc = WordprocessingDocument.Open(filePath, false);
+            using var doc = WordprocessingDocument.Open(stream, false);
             return doc.MainDocumentPart?.Document.Body?.InnerText ?? string.Empty;
         }
     }

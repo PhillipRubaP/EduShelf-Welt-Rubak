@@ -52,6 +52,10 @@ builder.Services.AddScoped<IRAGService, RAGService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IQuizService, QuizService>();
 // builder.Services.AddScoped<IImageProcessingService, ImageProcessingService>(); // Registered via AddHttpClient
+
+// MinIO Storage
+builder.Services.AddSingleton<EduShelf.Api.Services.FileStorage.IFileStorageService, EduShelf.Api.Services.FileStorage.MinioStorageService>();
+
 builder.Services.AddHttpContextAccessor();
 
 // This is a temporary workaround to bridge ITextEmbeddingGenerationService to IEmbeddingGenerator

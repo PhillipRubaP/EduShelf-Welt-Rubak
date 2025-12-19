@@ -18,6 +18,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using System.Text;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
+using EduShelf.Api.Services.FileStorage;
 
 namespace EduShelf.Api.Controllers
 {
@@ -30,14 +31,14 @@ namespace EduShelf.Api.Controllers
         private readonly ApiDbContext _context;
         private readonly IndexingService _indexingService;
         private readonly IImageProcessingService _imageProcessingService;
-        private readonly string _uploadPath;
+        private readonly IFileStorageService _fileStorageService;
 
-        public DocumentsController(ApiDbContext context, IndexingService indexingService, IImageProcessingService imageProcessingService, IConfiguration configuration)
+        public DocumentsController(ApiDbContext context, IndexingService indexingService, IImageProcessingService imageProcessingService, IFileStorageService fileStorageService)
         {
             _context = context;
             _indexingService = indexingService;
             _imageProcessingService = imageProcessingService;
-            _uploadPath = configuration["FileStorage:UploadPath"] ?? "Uploads";
+            _fileStorageService = fileStorageService;
         }
 
         // GET: api/Documents
@@ -124,12 +125,6 @@ namespace EduShelf.Api.Controllers
                 return BadRequest("No file uploaded.");
             }
 
-            var uploadsFolderPath = Path.Combine(Directory.GetCurrentDirectory(), _uploadPath);
-            if (!Directory.Exists(uploadsFolderPath))
-            {
-                Directory.CreateDirectory(uploadsFolderPath);
-            }
-
             var originalFileName = Path.GetFileName(file.FileName);
             var fileExtension = Path.GetExtension(originalFileName).ToLowerInvariant();
             var allowedExtensions = new[] { ".pdf", ".docx", ".txt", ".doc" };
@@ -140,11 +135,10 @@ namespace EduShelf.Api.Controllers
             }
 
             var uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
-            var filePath = Path.Combine(uploadsFolderPath, uniqueFileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            
+            using (var stream = file.OpenReadStream())
             {
-                await file.CopyToAsync(stream);
+                await _fileStorageService.UploadFileAsync(stream, uniqueFileName, file.ContentType);
             }
 
             var document = new Models.Entities.Document
@@ -264,11 +258,16 @@ namespace EduShelf.Api.Controllers
                 return Forbid();
             }
 
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), _uploadPath, document.Path);
-
-            if (System.IO.File.Exists(filePath))
+            try
             {
-                System.IO.File.Delete(filePath);
+                await _fileStorageService.DeleteFileAsync(document.Path);
+            }
+            catch (Exception ex)
+            {
+                // Verify if file exists logic needed? DeleteFileAsync usually idempotent or throws if not found
+                // MinIO RemoveObject is idempotent.
+                // Just logging or ignoring might be safer to ensure DB deletion.
+                Console.WriteLine($"Error deleting file {document.Path}: {ex.Message}");
             }
 
             _context.Documents.Remove(document);
@@ -457,20 +456,13 @@ namespace EduShelf.Api.Controllers
                 return NotFound();
             }
 
-            var filePath = Path.Combine(_uploadPath, document.Path);
-            if (!System.IO.File.Exists(filePath))
+            var fileStream = await _fileStorageService.DownloadFileAsync(document.Path);
+            if (fileStream == null)
             {
-                return NotFound("File not found.");
+                return NotFound("File not found in storage.");
             }
 
-            var memory = new MemoryStream();
-            using (var stream = new FileStream(filePath, FileMode.Open))
-            {
-                await stream.CopyToAsync(memory);
-            }
-            memory.Position = 0;
-
-            return File(memory, GetContentType(filePath), document.Title + "." + document.FileType);
+            return File(fileStream, GetContentType(document.Path), document.Title + "." + document.FileType);
         }
         
         [HttpGet("{id}/content")]
@@ -496,11 +488,10 @@ namespace EduShelf.Api.Controllers
                 return Forbid();
             }
 
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), _uploadPath, document.Path);
-
-            if (!System.IO.File.Exists(filePath))
+            using var fileStream = await _fileStorageService.DownloadFileAsync(document.Path);
+            if (fileStream == null)
             {
-                return NotFound("File not found.");
+                return NotFound("File not found in storage.");
             }
 
             string content;
@@ -509,7 +500,7 @@ namespace EduShelf.Api.Controllers
             if (fileExtension == ".pdf")
             {
                 var stringBuilder = new StringBuilder();
-                using (var pdf = PdfDocument.Open(filePath))
+                using (var pdf = PdfDocument.Open(fileStream))
                 {
                     foreach (var page in pdf.GetPages())
                     {
@@ -544,7 +535,7 @@ namespace EduShelf.Api.Controllers
             }
             else if (fileExtension == ".docx" || fileExtension == ".doc")
             {
-                using (var wordDoc = WordprocessingDocument.Open(filePath, false))
+                using (var wordDoc = WordprocessingDocument.Open(fileStream, false))
                 {
                     var stringBuilder = new StringBuilder();
                     foreach (var p in wordDoc.MainDocumentPart.Document.Body.Elements<Paragraph>())
@@ -556,7 +547,10 @@ namespace EduShelf.Api.Controllers
             }
             else if (fileExtension == ".txt")
             {
-                content = await System.IO.File.ReadAllTextAsync(filePath);
+                using (var reader = new StreamReader(fileStream))
+                {
+                    content = await reader.ReadToEndAsync();
+                }
             }
             else
             {
@@ -589,21 +583,13 @@ namespace EduShelf.Api.Controllers
                 return Forbid();
             }
 
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), _uploadPath, document.Path);
-
-            if (!System.IO.File.Exists(filePath))
+            var fileStream = await _fileStorageService.DownloadFileAsync(document.Path);
+            if (fileStream == null)
             {
-                return NotFound("File not found.");
+                 return NotFound("File not found in storage.");
             }
-
-            var memory = new MemoryStream();
-            using (var stream = new FileStream(filePath, FileMode.Open))
-            {
-                await stream.CopyToAsync(memory);
-            }
-            memory.Position = 0;
-
-            return File(memory, GetContentType(filePath), document.Title + "." + document.FileType);
+            
+            return File(fileStream, GetContentType(document.Path), document.Title + "." + document.FileType);
         }
 
         [HttpPatch("{id}/content")]
@@ -629,14 +615,19 @@ namespace EduShelf.Api.Controllers
                 return Forbid();
             }
 
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), _uploadPath, document.Path);
-
-            if (!System.IO.File.Exists(filePath))
+            using var originalStream = await _fileStorageService.DownloadFileAsync(document.Path);
+            if (originalStream == null)
             {
-                return NotFound("File not found.");
+                return NotFound("File not found in storage.");
             }
 
+            // Copy to a memory stream that we can modify and reuse
+            var workingStream = new MemoryStream();
+            await originalStream.CopyToAsync(workingStream);
+            workingStream.Position = 0;
+
             var fileExtension = Path.GetExtension(document.Path).ToLowerInvariant();
+            var contentType = GetContentType(document.Path);
 
             if (fileExtension == ".pdf")
             {
@@ -644,7 +635,13 @@ namespace EduShelf.Api.Controllers
             }
             else if (fileExtension == ".docx")
             {
-                using (var wordDoc = WordprocessingDocument.Open(filePath, true))
+                // WordprocessingDocument closes the stream on Dispose.
+                // To persist changes, we must allow it to close this specific stream wrapper, 
+                // but we need the data.
+                // Strategy: Use the memory stream, let it close, then use ToArray() from the closed stream?
+                // MemoryStream.ToArray() works even after Close().
+                
+                using (var wordDoc = WordprocessingDocument.Open(workingStream, true))
                 {
                     var mainPart = wordDoc.MainDocumentPart;
                     if (mainPart == null)
@@ -655,10 +652,17 @@ namespace EduShelf.Api.Controllers
                     mainPart.Document.Body = new Body(new Paragraph(new Run(new Text(documentUpdateDto.Content))));
                     mainPart.Document.Save();
                 }
+
+                // workingStream is now closed, but we can extract data as array
+                var modifiedData = workingStream.ToArray();
+                using var uploadStream = new MemoryStream(modifiedData);
+                await _fileStorageService.UploadFileAsync(uploadStream, document.Path, contentType);
             }
             else if (fileExtension == ".txt")
             {
-                await System.IO.File.WriteAllTextAsync(filePath, documentUpdateDto.Content);
+                var bytes = Encoding.UTF8.GetBytes(documentUpdateDto.Content);
+                using var uploadStream = new MemoryStream(bytes);
+                await _fileStorageService.UploadFileAsync(uploadStream, document.Path, contentType);
             }
             else
             {
