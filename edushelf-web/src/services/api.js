@@ -75,6 +75,7 @@ const api = {
 };
 export const getChatSessions = () => api.get('/Chat/sessions');
 export const createChatSession = (title) => api.post('/Chat/sessions', { title });
+export const deleteChatSession = (sessionId) => api.delete(`/Chat/sessions/${sessionId}`);
 export const getChatMessages = (sessionId) => api.get(`/Chat/sessions/${sessionId}/messages`);
 export const postChatMessage = (sessionId, message, image) => {
   const formData = new FormData();

@@ -71,7 +71,7 @@ namespace EduShelf.Api.Services
                     await image.CopyToAsync(fileStream);
                 }
 
-                imagePath = $"/uploads/{uniqueFileName}";
+                imagePath = $"/api/uploads/{uniqueFileName}";
 
                 // Process image for description
                 using var memoryStream = new MemoryStream();
