@@ -26,6 +26,7 @@ namespace EduShelf.Api.Tests
         private readonly Mock<IConfiguration> _mockConfiguration;
         private readonly Mock<IServiceScopeFactory> _mockScopeFactory;
         private readonly Mock<ILogger<IndexingService>> _mockLogger;
+        private readonly Mock<Services.FileStorage.IFileStorageService> _mockFileStorageService;
         private readonly DocumentsController _controller;
         private readonly ApiDbContext _context;
 
@@ -42,15 +43,16 @@ namespace EduShelf.Api.Tests
             _mockImageProcessingService = new Mock<IImageProcessingService>();
             _mockScopeFactory = new Mock<IServiceScopeFactory>();
             _mockLogger = new Mock<ILogger<IndexingService>>();
+            _mockFileStorageService = new Mock<Services.FileStorage.IFileStorageService>();
 
             // Pass mocked dependencies to IndexingService constructor
             _mockIndexingService = new Mock<IndexingService>(
                 _mockScopeFactory.Object, 
                 _mockLogger.Object, 
                 _mockImageProcessingService.Object, 
-                _mockConfiguration.Object);
+                _mockFileStorageService.Object);
             
-            _controller = new DocumentsController(_context, _mockIndexingService.Object, _mockImageProcessingService.Object, _mockConfiguration.Object);
+            _controller = new DocumentsController(_context, _mockIndexingService.Object, _mockImageProcessingService.Object, _mockFileStorageService.Object);
         }
 
         private void SetupUser(int userId, string role = "User")
@@ -99,29 +101,14 @@ namespace EduShelf.Api.Tests
             _context.Documents.Add(doc);
             await _context.SaveChangesAsync();
 
-            // Create a dummy file to simulate existence
-            var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
-            Directory.CreateDirectory(uploadPath);
-            var filePath = Path.Combine(uploadPath, "testfile.pdf");
-            await System.IO.File.WriteAllTextAsync(filePath, "dummy content");
+            // Act
+            var result = await _controller.DeleteDocument(1);
 
-            try 
-            {
-                // Act
-                var result = await _controller.DeleteDocument(1);
-
-                // Assert
-                Assert.IsType<NoContentResult>(result);
-                var deletedDoc = await _context.Documents.FindAsync(1);
-                Assert.Null(deletedDoc);
-                Assert.False(System.IO.File.Exists(filePath));
-            }
-            finally
-            {
-                // Cleanup
-                if (System.IO.File.Exists(filePath)) System.IO.File.Delete(filePath);
-                if (Directory.Exists(uploadPath)) Directory.Delete(uploadPath, true);
-            }
+            // Assert
+            Assert.IsType<NoContentResult>(result);
+            var deletedDoc = await _context.Documents.FindAsync(1);
+            Assert.Null(deletedDoc);
+            _mockFileStorageService.Verify(x => x.DeleteFileAsync("testfile.pdf"), Times.Once);
         }
 
         [Fact]

@@ -26,6 +26,8 @@ namespace EduShelf.Api.Tests
         private readonly Mock<IWebHostEnvironment> _mockEnvironment;
         private readonly Mock<IConfiguration> _mockConfiguration;
 
+        private readonly Mock<EduShelf.Api.Services.FileStorage.IFileStorageService> _mockFileStorageService;
+
         public ChatServiceTests()
         {
             _mockChatCompletionService = new Mock<IChatCompletionService>();
@@ -39,6 +41,7 @@ namespace EduShelf.Api.Tests
             _mockLogger = new Mock<ILogger<ChatService>>();
             _mockImageProcessingService = new Mock<IImageProcessingService>();
             _mockEnvironment = new Mock<IWebHostEnvironment>();
+            _mockFileStorageService = new Mock<EduShelf.Api.Services.FileStorage.IFileStorageService>();
             _mockConfiguration = new Mock<IConfiguration>();
         }
 
@@ -67,7 +70,8 @@ namespace EduShelf.Api.Tests
                 _mockLogger.Object,
                 null!, null!, null!, 
                 _mockImageProcessingService.Object,
-                _mockEnvironment.Object);
+                _mockEnvironment.Object,
+                _mockFileStorageService.Object);
 
             // Act
             var session = await service.CreateChatSessionAsync(1, "Test Session");
@@ -91,7 +95,8 @@ namespace EduShelf.Api.Tests
                 _mockLogger.Object,
                 null!, null!, null!, 
                 _mockImageProcessingService.Object,
-                _mockEnvironment.Object);
+                _mockEnvironment.Object,
+                _mockFileStorageService.Object);
 
             // Act & Assert
             await Assert.ThrowsAsync<BadRequestException>(() => service.CreateChatSessionAsync(1, ""));
@@ -119,7 +124,8 @@ namespace EduShelf.Api.Tests
                 _mockLogger.Object,
                 null!, null!, null!, 
                 _mockImageProcessingService.Object,
-                _mockEnvironment.Object);
+                _mockEnvironment.Object,
+                _mockFileStorageService.Object);
 
             // Act
             var sessions = await service.GetChatSessionsAsync(1);

@@ -1,0 +1,16 @@
+  Wiederherzustellende Projekte werden ermittelt...
+  Alle Projekte sind für die Wiederherstellung auf dem neuesten Stand.
+  EduShelf.Api -> C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api\bin\Debug\net8.0\EduShelf.Api.dll
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\DocumentsControllerTests.cs(55,31): error CS1729: "DocumentsController" enthält keinen Konstruktor, der 5 Argumente annimmt. [C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\EduShelf.Api.Tests.csproj]
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\QuizServiceTests.cs(173,39): warning CS8604: Mögliches Nullverweisargument für den Parameter "source" in "Question Enumerable.First<Question>(IEnumerable<Question> source)". [C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\EduShelf.Api.Tests.csproj]
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\UserServiceTests.cs(158,37): warning CS8602: Dereferenzierung eines möglichen Nullverweises. [C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\EduShelf.Api.Tests.csproj]
+
+Fehler beim Buildvorgang.
+
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\QuizServiceTests.cs(173,39): warning CS8604: Mögliches Nullverweisargument für den Parameter "source" in "Question Enumerable.First<Question>(IEnumerable<Question> source)". [C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\EduShelf.Api.Tests.csproj]
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\UserServiceTests.cs(158,37): warning CS8602: Dereferenzierung eines möglichen Nullverweises. [C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\EduShelf.Api.Tests.csproj]
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\DocumentsControllerTests.cs(55,31): error CS1729: "DocumentsController" enthält keinen Konstruktor, der 5 Argumente annimmt. [C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\EduShelf.Api.Tests.csproj]
+    2 Warnung(en)
+    1 Fehler
+
+Verstrichene Zeit 00:00:01.87

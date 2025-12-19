@@ -1,0 +1,15 @@
+Testlauf für "C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\bin\Debug\net8.0\EduShelf.Api.Tests.dll" (.NETCoreApp,Version=v8.0)
+VSTest-Version 17.12.0 (x64)
+
+Die Testausführung wird gestartet, bitte warten...
+Insgesamt 1 Testdateien stimmten mit dem angegebenen Muster überein.
+  Fehler EduShelf.Api.Tests.DocumentsControllerTests.DeleteDocument_ShouldRemoveDocument_WhenUserOwnsIt [1 s]
+  Fehlermeldung:
+   Assert.False() Failure
+Expected: False
+Actual:   True
+  Stapelverfolgung:
+     at EduShelf.Api.Tests.DocumentsControllerTests.DeleteDocument_ShouldRemoveDocument_WhenUserOwnsIt() in C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\DocumentsControllerTests.cs:line 118
+--- End of stack trace from previous location ---
+
+Fehler!      : Fehler:     1, erfolgreich:    40, übersprungen:     0, gesamt:    41, Dauer: 2 s - EduShelf.Api.Tests.dll (net8.0)
