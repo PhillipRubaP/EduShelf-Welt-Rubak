@@ -52,6 +52,10 @@ builder.Services.AddScoped<IRAGService, RAGService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IQuizService, QuizService>();
 // builder.Services.AddScoped<IImageProcessingService, ImageProcessingService>(); // Registered via AddHttpClient
+
+// MinIO Storage
+builder.Services.AddSingleton<EduShelf.Api.Services.FileStorage.IFileStorageService, EduShelf.Api.Services.FileStorage.MinioStorageService>();
+
 builder.Services.AddHttpContextAccessor();
 
 // This is a temporary workaround to bridge ITextEmbeddingGenerationService to IEmbeddingGenerator
@@ -142,18 +146,10 @@ if (app.Environment.IsDevelopment())
 // app.UseHttpsRedirection();
 
 app.UseMiddleware<ErrorHandlingMiddleware>();
-
-var uploadsPath = Path.Combine(builder.Environment.ContentRootPath, "Uploads");
-if (!Directory.Exists(uploadsPath))
-{
-    Directory.CreateDirectory(uploadsPath);
-}
-
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
-    RequestPath = "/api/uploads"
-});
+// Static files for Uploads removed in favor of MinIO and ImagesController
+// var uploadsPath = Path.Combine(builder.Environment.ContentRootPath, "Uploads");
+// if (!Directory.Exists(uploadsPath)) { Directory.CreateDirectory(uploadsPath); }
+// app.UseStaticFiles(...)
 
 app.UseCors("AllowWebApp");
 

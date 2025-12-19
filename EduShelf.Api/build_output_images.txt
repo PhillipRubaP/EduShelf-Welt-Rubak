@@ -1,0 +1,15 @@
+  Wiederherzustellende Projekte werden ermittelt...
+  Alle Projekte sind für die Wiederherstellung auf dem neuesten Stand.
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api\Services\ChatService.cs(28,26): error CS0246: Der Typ- oder Namespacename "IFileStorageService" wurde nicht gefunden (möglicherweise fehlt eine using-Direktive oder ein Assemblyverweis). [C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api\EduShelf.Api.csproj]
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api\Services\TextEmbeddingGenerationServiceAdapter.cs(11,26): warning CS0618: "ITextEmbeddingGenerationService" ist veraltet: "Use Microsoft.Extensions.AI.IEmbeddingGenerator<string, Embedding<float>> instead." [C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api\EduShelf.Api.csproj]
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api\Services\TextEmbeddingGenerationServiceAdapter.cs(13,54): warning CS0618: "ITextEmbeddingGenerationService" ist veraltet: "Use Microsoft.Extensions.AI.IEmbeddingGenerator<string, Embedding<float>> instead." [C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api\EduShelf.Api.csproj]
+
+Fehler beim Buildvorgang.
+
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api\Services\TextEmbeddingGenerationServiceAdapter.cs(11,26): warning CS0618: "ITextEmbeddingGenerationService" ist veraltet: "Use Microsoft.Extensions.AI.IEmbeddingGenerator<string, Embedding<float>> instead." [C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api\EduShelf.Api.csproj]
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api\Services\TextEmbeddingGenerationServiceAdapter.cs(13,54): warning CS0618: "ITextEmbeddingGenerationService" ist veraltet: "Use Microsoft.Extensions.AI.IEmbeddingGenerator<string, Embedding<float>> instead." [C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api\EduShelf.Api.csproj]
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api\Services\ChatService.cs(28,26): error CS0246: Der Typ- oder Namespacename "IFileStorageService" wurde nicht gefunden (möglicherweise fehlt eine using-Direktive oder ein Assemblyverweis). [C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api\EduShelf.Api.csproj]
+    2 Warnung(en)
+    1 Fehler
+
+Verstrichene Zeit 00:00:03.19
