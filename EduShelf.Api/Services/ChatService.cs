@@ -15,6 +15,8 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
 
+using EduShelf.Api.Services.FileStorage;
+
 namespace EduShelf.Api.Services
 {
     public class ChatService
@@ -27,6 +29,7 @@ namespace EduShelf.Api.Services
         private readonly PromptGenerationService _promptGenerationService;
         private readonly IImageProcessingService _imageProcessingService;
         private readonly IWebHostEnvironment _environment;
+        private readonly IFileStorageService _fileStorageService;
 
         public ChatService(
             ApiDbContext context,
@@ -36,7 +39,8 @@ namespace EduShelf.Api.Services
             RetrievalService retrievalService,
             PromptGenerationService promptGenerationService,
             IImageProcessingService imageProcessingService,
-            IWebHostEnvironment environment)
+            IWebHostEnvironment environment,
+            Services.FileStorage.IFileStorageService fileStorageService)
         {
             _context = context;
             _kernel = kernel;
@@ -46,6 +50,7 @@ namespace EduShelf.Api.Services
             _promptGenerationService = promptGenerationService;
             _imageProcessingService = imageProcessingService;
             _environment = environment;
+            _fileStorageService = fileStorageService;
         }
 
         public async Task<string> GetResponseAsync(string userInput, int userId, int chatSessionId, IFormFile? image = null)
@@ -56,22 +61,14 @@ namespace EduShelf.Api.Services
 
             if (image != null)
             {
-                // Save image to disk
-                var uploadsFolder = Path.Combine(_environment.ContentRootPath, "Uploads");
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
-
                 var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                
+                using (var stream = image.OpenReadStream())
                 {
-                    await image.CopyToAsync(fileStream);
+                    await _fileStorageService.UploadFileAsync(stream, uniqueFileName, image.ContentType);
                 }
 
-                imagePath = $"/api/uploads/{uniqueFileName}";
+                imagePath = $"/api/images/{uniqueFileName}";
 
                 // Process image for description
                 using var memoryStream = new MemoryStream();

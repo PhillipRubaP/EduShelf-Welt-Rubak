@@ -146,18 +146,10 @@ if (app.Environment.IsDevelopment())
 // app.UseHttpsRedirection();
 
 app.UseMiddleware<ErrorHandlingMiddleware>();
-
-var uploadsPath = Path.Combine(builder.Environment.ContentRootPath, "Uploads");
-if (!Directory.Exists(uploadsPath))
-{
-    Directory.CreateDirectory(uploadsPath);
-}
-
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
-    RequestPath = "/api/uploads"
-});
+// Static files for Uploads removed in favor of MinIO and ImagesController
+// var uploadsPath = Path.Combine(builder.Environment.ContentRootPath, "Uploads");
+// if (!Directory.Exists(uploadsPath)) { Directory.CreateDirectory(uploadsPath); }
+// app.UseStaticFiles(...)
 
 app.UseCors("AllowWebApp");
 
