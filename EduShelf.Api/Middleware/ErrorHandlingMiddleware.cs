@@ -24,14 +24,22 @@ public class ErrorHandlingMiddleware
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unhandled exception has occurred.");
-            await HandleExceptionAsync(context, ex);
+            // TEMPORARY: Pass true to expose details for debugging
+            await HandleExceptionAsync(context, ex, true);
         }
     }
 
-    private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private static Task HandleExceptionAsync(HttpContext context, Exception exception, bool includeDetails = false)
     {
         var code = HttpStatusCode.InternalServerError;
-        var result = JsonSerializer.Serialize(new { error = "An unexpected error occurred." });
+        var errorMessage = "An unexpected error occurred.";
+        
+        if (includeDetails)
+        {
+             errorMessage = exception.ToString();
+        }
+
+        var result = JsonSerializer.Serialize(new { error = errorMessage });
 
         switch (exception)
         {

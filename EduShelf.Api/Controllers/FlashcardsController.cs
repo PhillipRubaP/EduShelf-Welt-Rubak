@@ -134,7 +134,13 @@ namespace EduShelf.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<FlashcardDto>> PostFlashcard(FlashcardCreateDto flashcardDto)
         {
-            Console.WriteLine($"Received Flashcard DTO: UserId={flashcardDto.UserId}, Question={flashcardDto.Question}, Answer={flashcardDto.Answer}");
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+
+            Console.WriteLine($"Received Flashcard request from User {userId}: Question={flashcardDto.Question}, Answer={flashcardDto.Answer}");
 
             if (!ModelState.IsValid)
             {
@@ -143,7 +149,7 @@ namespace EduShelf.Api.Controllers
 
             var flashcard = new Flashcard
             {
-                UserId = flashcardDto.UserId,
+                UserId = userId,
                 Question = flashcardDto.Question,
                 Answer = flashcardDto.Answer
             };
