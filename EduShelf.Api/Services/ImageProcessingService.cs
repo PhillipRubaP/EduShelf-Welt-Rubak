@@ -13,10 +13,10 @@ namespace EduShelf.Api.Services
         private readonly HttpClient _httpClient;
         private readonly string _visionModel;
 
-        public ImageProcessingService(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public ImageProcessingService(HttpClient httpClient, IConfiguration configuration)
         {
-            _httpClient = httpClientFactory.CreateClient("Ollama");
-            _visionModel = configuration["AIService:VisionModel"] ?? "llava:latest";
+            _httpClient = httpClient;
+            _visionModel = configuration["AIService:VisionModel"] ?? "qwen3-vl:8b";
         }
 
         public async Task<string> ProcessImageAsync(byte[] imageData, string prompt)

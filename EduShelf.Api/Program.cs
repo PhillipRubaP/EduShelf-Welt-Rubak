@@ -9,6 +9,7 @@ using EduShelf.Api.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
+using FluentValidation.AspNetCore;
  
  var builder = WebApplication.CreateBuilder(args);
 
@@ -19,23 +20,28 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
  
  // Add Semantic Kernel
 var kernelBuilder = builder.Services.AddKernel();
+// Register Typed Client for ImageProcessingService
+builder.Services.AddHttpClient<IImageProcessingService, ImageProcessingService>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["AIService:Endpoint"]!);
+    client.Timeout = TimeSpan.FromMinutes(10);
+});
+
+// Create a custom HttpClient with a long timeout for Ollama (for Semantic Kernel)
+var ollamaClient = new HttpClient
+{
+    BaseAddress = new Uri(builder.Configuration["AIService:Endpoint"]!),
+    Timeout = TimeSpan.FromMinutes(10)
+};
+
 kernelBuilder.AddOllamaChatCompletion(
     modelId: builder.Configuration["AIService:ChatModel"]!,
-    endpoint: new Uri(builder.Configuration["AIService:Endpoint"]!))
-    .Services.AddHttpClient("Ollama", c =>
-    {
-        c.BaseAddress = new Uri(builder.Configuration["AIService:Endpoint"]!);
-        c.Timeout = TimeSpan.FromMinutes(5);
-    });
+    httpClient: ollamaClient);
+
 #pragma warning disable SKEXP0070
 kernelBuilder.AddOllamaTextEmbeddingGeneration(
     modelId: builder.Configuration["AIService:EmbeddingModel"]!,
-    endpoint: new Uri(builder.Configuration["AIService:Endpoint"]!))
-    .Services.AddHttpClient("Ollama", c =>
-    {
-        c.BaseAddress = new Uri(builder.Configuration["AIService:Endpoint"]!);
-        c.Timeout = TimeSpan.FromMinutes(5);
-    });
+    httpClient: ollamaClient);
 
 builder.Services.AddScoped<IndexingService>();
 builder.Services.AddScoped<ChatService>();
@@ -44,7 +50,8 @@ builder.Services.AddScoped<RetrievalService>();
 builder.Services.AddScoped<PromptGenerationService>();
 builder.Services.AddScoped<IRAGService, RAGService>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IImageProcessingService, ImageProcessingService>();
+builder.Services.AddScoped<IQuizService, QuizService>();
+// builder.Services.AddScoped<IImageProcessingService, ImageProcessingService>(); // Registered via AddHttpClient
 builder.Services.AddHttpContextAccessor();
 
 // This is a temporary workaround to bridge ITextEmbeddingGenerationService to IEmbeddingGenerator
@@ -99,10 +106,12 @@ builder.Services.AddSwaggerGen(c =>
 
     c.AddServer(new OpenApiServer { Url = "http://localhost:49152", Description = "Local Docker" });
 });
-builder.Services.AddControllers().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-});
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    })
+    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Program>());
  
  builder.Services.AddCors(options =>
 {

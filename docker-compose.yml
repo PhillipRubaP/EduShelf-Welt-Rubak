@@ -1,49 +1,13 @@
 services:
-  db:
-    image: pgvector/pgvector:pg16
-    environment:
-      - POSTGRES_DB=EduShelfDb
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    ports:
-      - "5432:5432"
-      - "11434:11434"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d EduShelfDb"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  ollama:
-    build:
-      context: ./ollama
-      dockerfile: Dockerfile
-    ports:
-      - "11435:11434"
-    expose:
-      - "11434"
-    volumes:
-      - ollama_data:/root/.ollama
-
   api:
     build:
       context: ./EduShelf.Api
       dockerfile: Dockerfile
     ports:
-      - "49152:8080"
-    depends_on:
-      db:
-        condition: service_healthy
-      ollama:
-        condition: service_started
+      - "8080:8080"
     environment:
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=EduShelfDb;Username=postgres;Password=postgres
       - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_ENVIRONMENT=Development
-      - Seeding__AdminPasswordHash=$$2a$$11$$hP5Ch.WgPqrLbA8xsDe4vOBfyiP9cQxM8Yt6FWkCo2Z.wX2CgyiP6
-      - Seeding__StudentPasswordHash=$$2a$$11$$UY8JAY3qb1seKMqc4duzd.ygPIwM.vZ1OCRImtEXfC7tIg2ttTVOS
     volumes:
       - ./EduShelf.Api/Uploads:/app/Uploads
 
@@ -57,7 +21,3 @@ services:
       - VITE_API_TARGET=http://api:8080
     depends_on:
       - api
-
-volumes:
-  postgres_data:
-  ollama_data:

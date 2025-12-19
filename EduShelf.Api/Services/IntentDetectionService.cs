@@ -48,6 +48,9 @@ namespace EduShelf.Api.Services
             {
                 var intent = JsonSerializer.Deserialize<Intent>(cleanedJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new Intent { Type = "question", DocumentName = null };
                 _logger.LogInformation("Parsed intent: Type={IntentType}, DocumentName={DocumentName}", intent.Type, intent.DocumentName);
+                if (intent.DocumentName != null) {
+                   _logger.LogInformation("DocumentName raw value: '{DocumentNameRaw}'", intent.DocumentName);
+                }
                 return intent;
             }
             catch (JsonException ex)
