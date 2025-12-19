@@ -83,6 +83,10 @@ namespace EduShelf.Api.Services.FileStorage
             }
             catch (MinioException e)
             {
+                if (e is ObjectNotFoundException)
+                {
+                    return null;
+                }
                  throw new Exception($"File download failed: {e.Message}", e);
             }
         }
