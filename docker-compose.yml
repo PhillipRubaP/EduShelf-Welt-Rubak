@@ -6,10 +6,16 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_ENVIRONMENT=Development
     volumes:
       - ./EduShelf.Api/Uploads:/app/Uploads
+    networks:
+      - edushelf-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   web:
     build:
@@ -20,4 +26,11 @@ services:
     environment:
       - VITE_API_TARGET=http://api:8080
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    networks:
+      - edushelf-network
+
+networks:
+  edushelf-network:
+    driver: bridge
