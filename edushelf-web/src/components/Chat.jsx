@@ -226,7 +226,11 @@ const Chat = () => {
           ))}
           {isLoading && (
             <div className="message bot">
-              ...
+              <div className="thinking-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
             </div>
           )}
           <div ref={messagesEndRef} />

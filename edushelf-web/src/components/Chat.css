@@ -1295,4 +1295,35 @@
   .message.bot .highlight pre:has(+.zeroclipboard-container) {
     min-height: 52px;
   }
+
+  .thinking-indicator {
+    display: flex;
+    align-items: center;
+  }
+  
+  .thinking-indicator span {
+    height: 10px;
+    width: 10px;
+    border-radius: 50%;
+    background-color: var(--bot-message-color);
+    margin: 0 3px;
+    animation: bounce 1.4s infinite ease-in-out both;
+  }
+  
+  .thinking-indicator span:nth-child(1) {
+    animation-delay: -0.32s;
+  }
+  
+  .thinking-indicator span:nth-child(2) {
+    animation-delay: -0.16s;
+  }
+  
+  @keyframes bounce {
+    0%, 80%, 100% {
+      transform: scale(0);
+    }
+    40% {
+      transform: scale(1.0);
+    }
+  }
   
