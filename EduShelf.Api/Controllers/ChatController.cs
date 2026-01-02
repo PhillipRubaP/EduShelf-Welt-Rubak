@@ -53,7 +53,7 @@ namespace EduShelf.Api.Controllers
             return NoContent();
         }
 
-        [HttpPatch("sessions/{sessionId}")]
+        [HttpPut("sessions/{sessionId}")]
         public async Task<IActionResult> UpdateSession(int sessionId, [FromBody] UpdateSessionRequest request)
         {
             var userId = GetUserId();

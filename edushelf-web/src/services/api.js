@@ -86,6 +86,7 @@ export const postChatMessage = (sessionId, message, image) => {
   }
   return api.postForm('/Chat/message', formData);
 };
+export const updateChatSession = (sessionId, title) => api.put(`/Chat/sessions/${sessionId}`, { title });
 
 export const getQuizzes = () => api.get('/quizzes');
 export const createQuiz = (quizData) => api.post('/quizzes', quizData);
