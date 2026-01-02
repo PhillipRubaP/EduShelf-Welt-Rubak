@@ -15,7 +15,7 @@
 }
 
 .file-card {
-  background-color: var(--secondary-color);
+  background-color: var(--flashcard-front-background);
   border: 1px solid var(--secondary-color);
   border-radius: 8px;
   padding: 1.5rem;
