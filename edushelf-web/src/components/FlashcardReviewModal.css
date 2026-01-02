@@ -12,7 +12,8 @@
 }
 
 .modal-content {
-    background: white;
+    background: var(--modal-background);
+    color: var(--modal-text-color);
     padding: 20px;
     border-radius: 8px;
     width: 500px;
@@ -26,12 +27,12 @@
     top: 0.5rem;
     right: 1rem;
     font-size: 24px;
-    color: #888;
+    color: var(--modal-close-button-color);
     cursor: pointer;
 }
 
 .close-button:hover {
-    color: #800000;
+    color: var(--modal-close-button-hover-color);
     background-color: transparent;
 }
 
@@ -65,14 +66,15 @@
     border-radius: 8px;
     padding: 20px;
     box-sizing: border-box;
+    color: var(--flashcard-text-color);
 }
 
 .flashcard-front {
-    background-color: #f0f0f0;
+    background-color: var(--flashcard-front-background);
 }
 
 .flashcard-back {
-    background-color: #d0e0f0;
+    background-color: var(--flashcard-back-background);
     transform: rotateY(180deg);
 }
 
@@ -92,6 +94,9 @@
     padding: 10px;
     font-size: 1.2em;
     border-radius: 5px;
+    background-color: var(--modal-input-background);
+    color: var(--modal-text-color);
+    border: 1px solid var(--modal-input-border-color);
 }
 .tag-selection button {
     width: 80%;

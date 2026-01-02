@@ -35,19 +35,21 @@
     padding: 20px;
     box-sizing: border-box;
     border-radius: 8px;
-    color: white;
+    color: var(--flashcard-text-color);
     font-size: 1.1rem;
 }
 
 .flashcard-front {
-    background-color: var(--neutral-anthracite);
-    border: 1px solid #4a5568;
+    background-color: var(--flashcard-front-background);
+    border: 1px solid var(--flashcard-front-border);
+    color: var(--flashcard-text-color);
 }
 
 .flashcard-back {
-    background-color: #4a5568; /* A slightly lighter gray */
-    border: 1px solid #2d3748;
+    background-color: var(--flashcard-back-background);
+    border: 1px solid var(--flashcard-back-border);
     transform: rotateY(180deg);
+    color: var(--flashcard-back-text-color);
 }
 
 .file-card-buttons {
@@ -55,19 +57,6 @@
     bottom: 10px;
     right: 10px;
     z-index: 10; /* Ensure buttons are on top */
-}
-[data-theme='light'] .flashcard-face {
-    color: var(--text-color);
-}
-
-[data-theme='light'] .flashcard-front {
-    background-color: var(--secondary-color);
-    border: 1px solid var(--primary-color);
-}
-
-[data-theme='light'] .flashcard-back {
-    background-color: var(--primary-color);
-    border: 1px solid var(--secondary-color);
 }
 
 .review-button {

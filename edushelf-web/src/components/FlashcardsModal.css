@@ -12,7 +12,8 @@
 }
 
 .modal-content {
-    background: white;
+    background: var(--modal-background);
+    color: var(--modal-text-color);
     padding: 20px;
     border-radius: 8px;
     width: 600px;
@@ -26,12 +27,12 @@
     top: 0.5rem;
     right: 1rem;
     font-size: 24px;
-    color: #888;
+    color: var(--modal-close-button-color);
     cursor: pointer;
 }
 
 .close-button:hover {
-    color: #800000;
+    color: var(--modal-close-button-hover-color);
 }
 
 .form-group {
@@ -53,6 +54,9 @@
     box-sizing: border-box;
     height: 40px; /* Ensure consistent height */
     resize: vertical; /* Allow vertical resize for textarea */
+    background-color: var(--modal-input-background);
+    color: var(--modal-text-color);
+    border: 1px solid var(--modal-input-border-color);
 }
 
 .modal-actions {
@@ -60,40 +64,4 @@
     justify-content: flex-end;
     gap: 10px;
     margin-top: 20px;
-}
-
-@media (prefers-color-scheme: dark) {
-    .modal-content {
-        background: var(--neutral-anthracite);
-        color: var(--neutral-white);
-    }
-
-    .form-group input,
-    .form-group textarea {
-        background-color: var(--neutral-blue-gray);
-        color: var(--neutral-white);
-        border-color: var(--primary-green);
-    }
-
-    .modal-actions button {
-        background-color: var(--primary-green);
-        color: var(--neutral-white);
-    }
-
-    .modal-actions button:hover {
-        background-color: var(--secondary-mint);
-        color: var(--neutral-anthracite);
-    }
-}
-
-[data-theme='light'] .modal-content {
-    background: var(--primary-color);
-    color: var(--text-color);
-}
-
-[data-theme='light'] .form-group input,
-[data-theme='light'] .form-group textarea {
-    background-color: var(--secondary-color);
-    color: var(--text-color);
-    border-color: var(--primary-green);
 }

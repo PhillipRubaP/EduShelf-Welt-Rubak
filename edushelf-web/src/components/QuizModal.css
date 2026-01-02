@@ -11,7 +11,8 @@
 }
 
 .modal-content {
-    background: white;
+    background: var(--modal-background);
+    color: var(--modal-text-color);
     padding: 20px;
     border-radius: 8px;
     width: 800px;
@@ -25,12 +26,12 @@
     top: 0.5rem;
     right: 1rem;
     font-size: 24px;
-    color: #888;
+    color: var(--modal-close-button-color);
     cursor: pointer;
 }
 
 .close-button:hover {
-    color: #800000;
+    color: var(--modal-close-button-hover-color);
 }
 
 .form-group {
@@ -44,13 +45,15 @@
 
 .modal-content .title-form-group input {
     width: 100%;
-    color: var(--neutral-white);
+    color: var(--modal-text-color);
+    background-color: var(--modal-input-background);
+    border: 1px solid var(--modal-input-border-color);
     padding: 8px;
     box-sizing: border-box;
 }
 
 .question-block {
-    border: 1px solid #ccc;
+    border: 1px solid var(--modal-question-block-border-color);
     padding: 10px;
     margin-bottom: 10px;
     border-radius: 4px;
@@ -98,57 +101,6 @@
     margin-top: 20px;
 }
 
-@media (prefers-color-scheme: dark) {
-    .modal-content {
-        background: var(--neutral-anthracite);
-        color: var(--neutral-white);
-    }
-
-    .question-block {
-        border-color: var(--neutral-blue-gray);
-    }
-
-    .form-group input {
-        background-color: var(--neutral-blue-gray);
-        border-color: var(--primary-green);
-    }
-
-    .modal-actions button {
-        background-color: var(--primary-green);
-        color: var(--neutral-white);
-    }
-    
-    .answer-button {
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        padding: 0.75rem 1rem;
-        border-radius: 0.375rem;
-        background-color: #4299e1; /* blue-500 */
-        color: white;
-        font-weight: bold;
-        cursor: pointer;
-        transition: background-color 0.2s;
-        gap: 1rem;
-    }
-    
-    .answer-button:hover {
-        background-color: #2b6cb0; /* blue-700 */
-    }
-    
-    .answer-circle {
-        width: 1.5rem;
-        height: 1.5rem;
-        border-radius: 50%;
-        border: 2px solid white;
-    }
-
-    .modal-actions button:hover {
-        background-color: var(--secondary-mint);
-        color: var(--neutral-anthracite);
-    }
-}
-
 .add-question-btn,
 .add-answer-btn {
     background-color: var(--secondary-mint);
@@ -164,25 +116,4 @@
 .add-answer-btn:hover {
     background-color: var(--primary-green);
     color: var(--neutral-white);
-}
-[data-theme='light'] .modal-content {
-    background: var(--primary-color);
-    color: var(--text-color);
-}
-
-[data-theme='light'] .question-block {
-    border-color: var(--secondary-color);
-}
-
-[data-theme='light'] .form-group input {
-    background-color: var(--secondary-color);
-    border-color: var(--primary-green);
-}
-
-[data-theme='light'] .answer-button {
-    color: var(--text-color);
-}
-
-[data-theme='light'] .answer-circle {
-    border: 2px solid var(--text-color);
 }

@@ -12,7 +12,7 @@
 }
 
 .file-viewer-content {
-  background-color: white;
+  background-color: var(--primary-color);
   padding: 20px;
   border-radius: 8px;
   width: 80%;
@@ -31,6 +31,7 @@
   font-size: 1.5rem;
   cursor: pointer;
   z-index: 1;
+  color: var(--text-color);
 }
 
 .docx-container, .file-viewer-content pre, .file-viewer-content iframe {
@@ -41,7 +42,4 @@
 
 .docx-container {
     padding-top: 40px;
-}
-[data-theme='light'] .file-viewer-content {
-  background-color: var(--primary-color);
 }

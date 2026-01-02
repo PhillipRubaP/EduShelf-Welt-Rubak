@@ -15,7 +15,7 @@
   display: flex;
   justify-content: space-between;
   padding: 10px;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--secondary-color);
 }
 
 .file-title {
@@ -24,12 +24,6 @@
 
 .file-type {
   font-style: italic;
-  color: #666;
-}
-[data-theme='light'] .file-item {
-  border-bottom: 1px solid var(--secondary-color);
-}
-
-[data-theme='light'] .file-type {
   color: var(--text-color);
+  opacity: 0.7;
 }

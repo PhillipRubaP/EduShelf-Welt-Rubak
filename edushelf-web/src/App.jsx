@@ -47,6 +47,8 @@ function App() {
     const currentTheme = localStorage.getItem('theme');
     if (currentTheme === 'light') {
       document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
     }
   }, []);
 

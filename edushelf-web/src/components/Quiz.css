@@ -1,5 +1,5 @@
 .quiz-container {
-    background-color: var(--background-color);
+    background-color: var(--quiz-background);
     color: var(--text-color);
     padding: 2rem;
     border-radius: 10px;
@@ -8,8 +8,8 @@
 }
 
 .quiz-question {
-    background-color: var(--primary-color);
-    color: var(--text-color-inverted);
+    background-color: var(--quiz-question-background);
+    color: var(--quiz-question-text-color);
     padding: 1rem;
     border-radius: 5px;
     margin-bottom: 2rem;
@@ -23,9 +23,9 @@
 }
 
 .quiz-answer-btn {
-    background-color: var(--secondary-color);
-    color: var(--text-color);
-    border: 1px solid var(--primary-color);
+    background-color: var(--quiz-answer-background);
+    color: var(--quiz-answer-text-color);
+    border: 1px solid var(--quiz-answer-border-color);
     border-radius: 5px;
     padding: 1rem;
     font-size: 1.2rem;
@@ -34,22 +34,22 @@
 }
 
 .quiz-answer-btn:hover {
-    background-color: var(--primary-color);
-    color: var(--text-color-inverted);
+    background-color: var(--quiz-answer-hover-background);
+    color: var(--quiz-answer-hover-text-color);
 }
 
 .quiz-answer-btn.selected {
-    background-color: orange;
+    background-color: var(--selected-color);
     color: white;
 }
 
 .quiz-answer-btn.correct {
-    background-color: green;
+    background-color: var(--correct-color);
     color: white;
 }
 
 .quiz-answer-btn.incorrect {
-    background-color: red;
+    background-color: var(--incorrect-color);
     color: white;
 }
 
@@ -61,7 +61,7 @@
 
 .quiz-navigation button {
     background-color: var(--primary-color);
-    color: white;
+    color: var(--text-color);
     border: none;
     padding: 0.5rem 1rem;
     border-radius: 5px;
@@ -69,7 +69,7 @@
 }
 
 .quiz-navigation button:disabled {
-    background-color: grey;
+    background-color: var(--disabled-color);
     cursor: not-allowed;
 }
 
@@ -79,8 +79,8 @@
     align-items: center;
     justify-content: center;
     padding: 2rem;
-    background-color: var(--background-color);
-    color: var(--text-color);
+    background-color: var(--quiz-results-background);
+    color: var(--quiz-results-text-color);
 }
 
 .quiz-results-title {
@@ -96,11 +96,11 @@
 }
 
 .quiz-results-icon.success {
-    color: green;
+    color: var(--correct-color);
 }
 
 .quiz-results-icon.failure {
-    color: red;
+    color: var(--incorrect-color);
 }
 
 .quiz-results-message {
@@ -115,7 +115,7 @@
 }
 
 .quiz-results-stat-card {
-    background-color: var(--secondary-color);
+    background-color: var(--quiz-results-stat-card-background);
     padding: 1.5rem;
     border-radius: 10px;
     text-align: center;
@@ -126,7 +126,7 @@
     font-size: 0.9rem;
     font-weight: bold;
     margin-bottom: 0.5rem;
-    color: var(--text-color);
+    color: var(--quiz-results-stat-card-text-color);
 }
 
 .quiz-results-stat-card p {
@@ -136,5 +136,5 @@
 
 .quiz-results-stat-card span {
     font-size: 0.8rem;
-    color: #888;
+    color: var(--disabled-color);
 }

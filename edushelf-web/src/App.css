@@ -9,6 +9,33 @@
     --primary-green-dark: #2f855a;
     --secondary-mint: #68d391;
     --neutral-blue-gray: #4a5568;
+
+    --quiz-background: #2d3748;
+    --quiz-question-background: #4a5568;
+    --quiz-question-text-color: #ffffff;
+    --quiz-answer-background: #4a5568;
+    --quiz-answer-text-color: #ffffff;
+    --quiz-answer-border-color: #68d391;
+    --quiz-answer-hover-background: #68d391;
+    --quiz-answer-hover-text-color: #1a202c;
+    --quiz-results-background: #2d3748;
+    --quiz-results-text-color: #ffffff;
+    --quiz-results-stat-card-background: #4a5568;
+    --quiz-results-stat-card-text-color: #ffffff;
+
+    --flashcard-front-background: #1a202c;
+    --flashcard-front-border: #4a5568;
+    --flashcard-back-background: #4a5568;
+    --flashcard-back-border: #2d3748;
+    --flashcard-text-color: #ffffff;
+
+    --modal-background: #1a202c;
+    --modal-text-color: #ffffff;
+    --modal-close-button-color: #888;
+    --modal-close-button-hover-color: #800000;
+    --modal-input-background: #4a5568;
+    --modal-input-border-color: #38a169;
+    --modal-question-block-border-color: #4a5568;
 }
 
 .app-container {
@@ -171,7 +198,7 @@
   cursor: pointer;
   background-color: var(--neutral-anthracite);
   color: var(--neutral-white);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box--shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s;
 }
 
@@ -184,4 +211,31 @@
     --secondary-color: #f0f0f0;
     --text-color: #000000;
     --sidebar-background: #e0e0e0;
+
+    --quiz-background: #ffffff;
+    --quiz-question-background: #f0f0f0;
+    --quiz-question-text-color: #000000;
+    --quiz-answer-background: #f0f0f0;
+    --quiz-answer-text-color: #000000;
+    --quiz-answer-border-color: #38a169;
+    --quiz-answer-hover-background: #38a169;
+    --quiz-answer-hover-text-color: #ffffff;
+    --quiz-results-background: #ffffff;
+    --quiz-results-text-color: #000000;
+    --quiz-results-stat-card-background: #f0f0f0;
+    --quiz-results-stat-card-text-color: #000000;
+
+    --flashcard-front-background: #f0f0f0;
+    --flashcard-front-border: #e0e0e0;
+    --flashcard-back-background: #e0e0e0;
+    --flashcard-back-border: #f0f0f0;
+    --flashcard-text-color: #000000;
+
+    --modal-background: #ffffff;
+    --modal-text-color: #000000;
+    --modal-close-button-color: #888;
+    --modal-close-button-hover-color: #800000;
+    --modal-input-background: #f0f0f0;
+    --modal-input-border-color: #38a169;
+    --modal-question-block-border-color: #e0e0e0;
 }

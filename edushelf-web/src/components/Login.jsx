@@ -39,7 +39,6 @@ const Login = ({ setLoggedInUser }) => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-green"
               required
             />
           </div>
@@ -49,20 +48,19 @@ const Login = ({ setLoggedInUser }) => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-green"
               required
             />
           </div>
           <button
             type="submit"
-            className="w-full px-4 py-2 mt-4 font-bold rounded-md bg-primary-green text-white hover:bg-secondary-mint hover:text-primary-green transition-colors button-auth"
+            className="w-full button-auth"
           >
             Login
           </button>
         </form>
         <p className="text-center text-sm">
           Don't have an account?{' '}
-          <Link to="/register" className="text-highlight-amber hover:underline">
+          <Link to="/register">
             Register
           </Link>
         </p>

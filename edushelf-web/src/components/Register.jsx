@@ -79,7 +79,7 @@ const Register = () => {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className={`w-full px-3 py-2 rounded-md bg-gray-700 text-white border ${errors.username ? 'border-red-500' : 'border-gray-600'} focus:outline-none focus:ring-2 focus:ring-primary-green`}
+              className={errors.username ? 'error' : ''}
             />
           </div>
           <div className="form-group">
@@ -88,7 +88,7 @@ const Register = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`w-full px-3 py-2 rounded-md bg-gray-700 text-white border ${errors.email ? 'border-red-500' : 'border-gray-600'} focus:outline-none focus:ring-2 focus:ring-primary-green`}
+              className={errors.email ? 'error' : ''}
             />
           </div>
           <div className="form-group">
@@ -97,19 +97,19 @@ const Register = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`w-full px-3 py-2 rounded-md bg-gray-700 text-white border ${errors.password ? 'border-red-500' : 'border-gray-600'} focus:outline-none focus:ring-2 focus:ring-primary-green`}
+              className={errors.password ? 'error' : ''}
             />
           </div>
           <button
             type="submit"
-            className="w-full px-4 py-2 mt-4 font-bold rounded-md bg-primary-green text-white hover:bg-secondary-mint hover:text-primary-green transition-colors button-auth"
+            className="w-full button-auth"
           >
             Register
           </button>
         </form>
         <p className="text-center text-sm mt-4">
           Already have an account?{' '}
-          <Link to="/login" className="text-highlight-amber hover:underline">
+          <Link to="/login">
             Login
           </Link>
         </p>

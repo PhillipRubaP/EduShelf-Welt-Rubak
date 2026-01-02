@@ -15,8 +15,8 @@
 }
 
 .file-card {
-  background-color: var(--neutral-anthracite);
-  border: 1px solid #4a5568; /* Lighter gray-blue */
+  background-color: var(--secondary-color);
+  border: 1px solid var(--secondary-color);
   border-radius: 8px;
   padding: 1.5rem;
   width: 250px;
@@ -24,7 +24,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  color: #e2e8f0; /* Light gray text */
+  color: var(--text-color);
   position: relative;
 }
 
@@ -44,8 +44,8 @@
 }
 
 .file-card-buttons button {
-  background-color: #38a169; /* Green */
-  color: white;
+  background-color: var(--primary-green);
+  color: var(--button-text-color);
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 4px;
@@ -54,7 +54,7 @@
 }
 
 .file-card-buttons button:hover {
-  background-color: #2f855a; /* Darker green */
+  background-color: var(--primary-green-dark);
 }
 
 .file-list-header {
@@ -66,8 +66,8 @@
 }
 
 .add-file-button {
-  background-color: #38a169; /* Green */
-  color: white;
+  background-color: var(--primary-green);
+  color: var(--button-text-color);
   border: none;
   width: 32px;
   height: 32px;
@@ -80,7 +80,7 @@
 }
 
 .add-file-button:hover {
-  background-color: #2f855a; /* Darker green */
+  background-color: var(--primary-green-dark);
 }
 
 
@@ -97,15 +97,15 @@
 .menu-icon {
   width: 20px;
   height: 2px;
-  background-color: #e2e8f0;
+  background-color: var(--text-color);
 }
 
 .dropdown-menu {
   position: absolute;
   top: 100%;
   right: 0;
-  background-color: #2d3748;
-  border: 1px solid #4a5568;
+  background-color: var(--primary-color);
+  border: 1px solid var(--secondary-color);
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   z-index: 1;
@@ -121,40 +121,9 @@
   width: 100%;
   font-size: 20px;
   cursor: pointer;
-  color: #e2e8f0;
+  color: var(--text-color);
 }
 
 .dropdown-menu button:hover {
-  background-color: #4a5568;
-}
-
-[data-theme='light'] .file-card {
   background-color: var(--secondary-color);
-  border: 1px solid var(--secondary-color);
-  color: var(--text-color);
-}
-
-[data-theme='light'] .file-card-buttons button {
-  color: var(--text-color);
-}
-
-[data-theme='light'] .add-file-button {
-  color: var(--text-color);
-}
-
-[data-theme='light'] .menu-icon {
-  background-color: var(--text-color);
-}
-
-[data-theme='light'] .dropdown-menu {
-  background-color: var(--secondary-color);
-  border: 1px solid var(--secondary-color);
-}
-
-[data-theme='light'] .dropdown-menu button {
-  color: var(--text-color);
-}
-
-[data-theme='light'] .dropdown-menu button:hover {
-  background-color: var(--primary-color);
 }
