@@ -7,6 +7,14 @@ services:
       - "8080:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=${POSTGRES_CONNECTION_STRING}
+      - Minio__Endpoint=${MINIO_ENDPOINT}
+      - Minio__AccessKey=${MINIO_ACCESS_KEY}
+      - Minio__SecretKey=${MINIO_SECRET_KEY}
+      - Minio__Bucket=${MINIO_BUCKET}
+      - Jwt__Key=${JWT_KEY}
+      - Seeding__AdminPassword=${ADMIN_PASSWORD}
+      - Seeding__StudentPassword=${STUDENT_PASSWORD}
     volumes:
       - ./EduShelf.Api/Uploads:/app/Uploads
     networks:
