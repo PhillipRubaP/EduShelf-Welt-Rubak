@@ -15,6 +15,13 @@ const Login = ({ setLoggedInUser }) => {
     try {
       const user = await api.post('/Users/login', { email, password });
       if (user && user.userId) {
+        try {
+          const roles = await api.get(`/Users/${user.userId}/roles`);
+          user.roles = roles.map(r => r.name);
+        } catch (roleError) {
+          console.log('Could not fetch roles:', roleError);
+          user.roles = [];
+        }
         localStorage.setItem('user', JSON.stringify(user));
         setLoggedInUser(user);
         navigate('/');
