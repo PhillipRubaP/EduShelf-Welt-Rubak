@@ -61,6 +61,19 @@ const api = {
     return text ? JSON.parse(text) : {};
   },
 
+  patch: async (endpoint, body) => {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(body),
+    });
+    const text = await response.text();
+    return text ? JSON.parse(text) : {};
+  },
+
   delete: async (endpoint) => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'DELETE',
