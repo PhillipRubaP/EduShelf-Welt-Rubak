@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import api from '../services/api';
+import api, { uploadDocument } from '../services/api';
 import './AdminPanel.css';
 
 const AdminPanel = () => {
@@ -128,6 +128,19 @@ const AdminPanel = () => {
         } catch (err) {
             console.error('Failed to update file:', err);
             setError('Failed to update file.');
+        }
+    };
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            await uploadDocument(file, selectedUser.userId);
+            fetchUserFiles(selectedUser.userId);
+        } catch (err) {
+            console.error('Failed to upload file:', err);
+            setError('Failed to upload file.');
         }
     };
 
@@ -281,7 +294,13 @@ const AdminPanel = () => {
                     </div>
 
                     <div className="files-section">
-                        <h4>Files</h4>
+                        <div className="files-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                            <h4>Files</h4>
+                            <label className="btn-save" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', fontWeight: '500', padding: '8px 16px', borderRadius: '4px' }}>
+                                + Add File
+                                <input type="file" style={{ display: 'none' }} onChange={handleFileUpload} />
+                            </label>
+                        </div>
                         {loading ? <p>Loading files...</p> : userFiles.length === 0 ? <p>No files found for this user.</p> : (
                             <ul className="files-list">
                                 {userFiles.map(file => (

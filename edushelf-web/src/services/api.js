@@ -123,6 +123,16 @@ export const updateFlashcard = (card) => {
   return api.put(`/flashcards/${card.id}`, dataToSend);
 };
 
+
+
+export const uploadDocument = (file, userId, tags = []) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('userId', userId);
+  tags.forEach(tag => formData.append('tags', tag));
+  return api.postForm('/Documents', formData);
+};
+
 export const getDocuments = () => api.get('/documents');
 export const getTags = () => api.get('/tags');
 export const getFlashcardsByTag = (tagId) => api.get(`/flashcards/tag/${tagId}`);
