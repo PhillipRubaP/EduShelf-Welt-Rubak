@@ -131,7 +131,27 @@ const AdminPanel = () => {
         }
     };
 
+    const validateNewUser = () => {
+        const errors = [];
+        if (!newUserData.username || newUserData.username.length < 3 || newUserData.username.length > 20) {
+            errors.push('Username must be between 3 and 20 characters.');
+        }
+        if (!newUserData.email || !/\S+@\S+\.\S+/.test(newUserData.email)) {
+            errors.push('A valid email address is required.');
+        }
+        if (!newUserData.password || newUserData.password.length < 6) {
+            errors.push('Password must be at least 6 characters long.');
+        }
+        return errors;
+    };
+
     const handleCreateUser = async () => {
+        const validationErrors = validateNewUser();
+        if (validationErrors.length > 0) {
+            setError(validationErrors.join(' '));
+            return;
+        }
+
         try {
             await api.post('/Users', newUserData);
             setCreateUserMode(false);
