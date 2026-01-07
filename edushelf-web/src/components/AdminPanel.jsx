@@ -11,6 +11,8 @@ const AdminPanel = () => {
     const [error, setError] = useState('');
     const [editUserMode, setEditUserMode] = useState(false);
     const [editUserData, setEditUserData] = useState({ username: '', email: '' });
+    const [createUserMode, setCreateUserMode] = useState(false);
+    const [newUserData, setNewUserData] = useState({ username: '', email: '', password: '' });
     const [editFileId, setEditFileId] = useState(null);
     const [editFileTitle, setEditFileTitle] = useState('');
 
@@ -129,6 +131,18 @@ const AdminPanel = () => {
         }
     };
 
+    const handleCreateUser = async () => {
+        try {
+            await api.post('/Users', newUserData);
+            setCreateUserMode(false);
+            setNewUserData({ username: '', email: '', password: '' });
+            fetchUsers();
+        } catch (err) {
+            console.error('Failed to create user:', err);
+            setError('Failed to create user. Username or Email might be taken.');
+        }
+    };
+
     return (
         <div className="admin-panel-container">
             <h2 className="admin-title">Admin Panel</h2>
@@ -136,7 +150,45 @@ const AdminPanel = () => {
 
             {!selectedUser ? (
                 <div className="users-list-section">
-                    <h3>All Users</h3>
+                    <div className="users-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <h3>All Users</h3>
+                        <button className="btn-save" onClick={() => setCreateUserMode(true)}>+ Add User</button>
+                    </div>
+
+                    {createUserMode && (
+                        <div className="create-user-form" style={{ marginBottom: '24px', padding: '16px', background: 'var(--secondary-color)', borderRadius: '8px' }}>
+                            <h4>Create New User</h4>
+                            <div className="form-group">
+                                <label>Username:</label>
+                                <input
+                                    type="text"
+                                    value={newUserData.username}
+                                    onChange={(e) => setNewUserData({ ...newUserData, username: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Email:</label>
+                                <input
+                                    type="email"
+                                    value={newUserData.email}
+                                    onChange={(e) => setNewUserData({ ...newUserData, email: e.target.value })}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Password:</label>
+                                <input
+                                    type="password"
+                                    value={newUserData.password}
+                                    onChange={(e) => setNewUserData({ ...newUserData, password: e.target.value })}
+                                />
+                            </div>
+                            <div className="button-group">
+                                <button className="btn-save" onClick={handleCreateUser}>Create</button>
+                                <button className="btn-cancel" onClick={() => setCreateUserMode(false)}>Cancel</button>
+                            </div>
+                        </div>
+                    )}
+
                     {loading ? <p>Loading users...</p> : (
                         <table className="users-table">
                             <thead>
