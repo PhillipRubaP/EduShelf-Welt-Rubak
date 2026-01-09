@@ -59,7 +59,6 @@ builder.Services.AddSingleton<EduShelf.Api.Services.FileStorage.IFileStorageServ
 builder.Services.AddHttpContextAccessor();
 
 // This is a temporary workaround to bridge ITextEmbeddingGenerationService to IEmbeddingGenerator
-// This should be replaced if a better adapter or direct registration becomes available.
 #pragma warning disable SKEXP0001
 builder.Services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp =>
 {
@@ -120,9 +119,9 @@ builder.Services.AddControllers()
  builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowWebApp",
-        builder =>
+        policy =>
         {
-            builder.WithOrigins("http://localhost:5173", "http://localhost:5174")
+            policy.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
                    .AllowAnyHeader()
                    .AllowAnyMethod()
                    .AllowCredentials();
@@ -143,13 +142,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// app.UseHttpsRedirection();
 
 app.UseMiddleware<ErrorHandlingMiddleware>();
-// Static files for Uploads removed in favor of MinIO and ImagesController
-// var uploadsPath = Path.Combine(builder.Environment.ContentRootPath, "Uploads");
-// if (!Directory.Exists(uploadsPath)) { Directory.CreateDirectory(uploadsPath); }
-// app.UseStaticFiles(...)
 
 app.UseCors("AllowWebApp");
 
