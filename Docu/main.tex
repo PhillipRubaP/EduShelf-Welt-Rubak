@@ -1,0 +1,162 @@
+\documentclass[twoside]{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{natbib}
+\usepackage{svg}
+% Load hyperref LAST to ensure it modifies citation commands properly
+%\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\usepackage{longtable}
+
+\usepackage[backend=biber, style=numeric]{biblatex}
+\usepackage[hidelinks, url=true]{hyperref}
+\addbibresource{literatur.bib}
+
+%\bibliographystyle{apalike}
+%\bibliography{literatur} 
+
+%\usepackage[numbers]{natbib}
+
+%\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+
+\setlength{\footskip}{2cm} % Erhöhe den Abstand zwischen Text und Fußzeile
+\renewcommand{\footrulewidth}{0.2pt} % Optional: Linie oberhalb der Fußzeile
+
+
+\usetikzlibrary{shapes.geometric, arrows}
+
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text centered, draw=black, fill=red!30]
+\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=blue!20]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+
+\lstset{
+    language=Python,
+    backgroundcolor=\color{white},
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!40!black},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    numbersep=5pt,
+    breaklines=true,
+    showstringspaces=false,
+    frame=single,
+    tabsize=4
+}
+
+\lstset{
+    language=Swift,
+    backgroundcolor=\color{white},
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!40!black},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    numbersep=5pt,
+    breaklines=true,
+    showstringspaces=false,
+    frame=single,
+    tabsize=4
+}
+
+\lstset{captionpos=b}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%     LaTeX Dokumentvorlage
+%%     für Diplomarbeiten an der HTL Hollabrunn
+%%     ---------------------------------------------------------------------
+%%     für Verwendung mit
+%%     - biblatex und biber
+%%     - UTF8
+%%     - TeX-Studio
+%%     - siunitx - Paket
+%%
+%%     Installation unter Windows: erst MiKTeX und *dann* TeX-Studio installieren, fertig
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{praeambel.tex}		% NICHT löschen
+\input{definitions.tex}	% Enthält alle Definiotinen wie Schüler und Betreuer
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%   unbedingt in TeX-Studio Optionen->TeX-Studio konfigurieren->Erzeugen->Standardbibliographieprogramm "Biber" einstellen  %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                    falsche / unglückliche Abteilungen kann man hier für das ganze Dokument verändern                      %%
+%%                    zB  Di-plomarbeit oder Diplomar-beit statt Diplom-arbeit                                               %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\hyphenation{Diplom-arbeit}
+\hyphenation{En-ti-ty-Stu-dent-Has-Assign-ment}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                         an ihre Teil-Dokumente anpassen                                                    %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+	
+	\input{listings_setup.tex}  			% Einbinden von Quellcode, muss für andere Sprachen als bash, muss angepasst werden
+	\input{titelseite.tex}
+	\newpage\null\thispagestyle{empty}\newpage % Irgendwie ganz leere Seite, ka
+	\input{erklaerung.tex}
+	\newpage\null\thispagestyle{empty}\newpage
+	\input{hinweise.tex}
+	\input{schluesselbegriffe.tex}
+    \vspace{2\baselineskip}
+	\input{danksagung.tex}
+	\markright{}
+	\input{zusammenfassung.tex}
+	\input{abstract.tex}
+    \input{aba.tex}
+    \pagestyle{alle}
+	\newpage\null\thispagestyle{empty}\newpage
+%	\includepdf[pages=-]{ABA_Erklaerung.pdf} 	% Anpassen
+
+	\tableofcontents			% Erstellen des Inhaltsverzeichnisses
+	\newpage
+	\input{einfuehrung.tex}
+        \newpage
+
+
+        
+        \section{iOS}
+        \input{iOS/iOSMain.tex}
+        \input{zeit.tex}
+
+        \pagestyle{alle}
+
+        
+
+        \pagestyle{alle}
+
+        \printbibliography[heading=bibintoc, title={Quellenverzeichnis}]
+
+        %\bibliographystyle{plainnat}
+        %\bibliography{references}
+
+
+
+        
+
+
+        
+
+
+
+
+        
+
+	\listoffigures		% Abbildungen
+	\lstlistoflistings	% Code
+	%\printbibliography	% Literatur
+
+
+\end{document}
+
