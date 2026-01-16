@@ -1,6 +1,7 @@
 using EduShelf.Api.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Pgvector.EntityFrameworkCore;
+using EduShelf.Api.Constants;
 
 namespace EduShelf.Api.Data;
 
@@ -109,8 +110,8 @@ public class ApiDbContext : DbContext
 
         // Seed initial data
         modelBuilder.Entity<Role>().HasData(
-            new Role { RoleId = 1, Name = "Admin" },
-            new Role { RoleId = 2, Name = "Schüler" }
+            new Role { RoleId = 1, Name = Roles.Admin },
+            new Role { RoleId = 2, Name = Roles.Student }
         );
 
         modelBuilder.Entity<User>().HasData(

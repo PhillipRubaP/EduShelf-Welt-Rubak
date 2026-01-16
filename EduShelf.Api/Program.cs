@@ -10,7 +10,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
 using FluentValidation.AspNetCore;
- 
+using EduShelf.Api.Extensions;
+
  var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(serverOptions =>
@@ -18,60 +19,8 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
     serverOptions.Limits.MinRequestBodyDataRate = new Microsoft.AspNetCore.Server.Kestrel.Core.MinDataRate(100, TimeSpan.FromSeconds(30));
 });
  
- // Add Semantic Kernel
-var kernelBuilder = builder.Services.AddKernel();
-// Register Typed Client for ImageProcessingService
-builder.Services.AddHttpClient<IImageProcessingService, ImageProcessingService>(client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["AIService:Endpoint"]!);
-    client.Timeout = TimeSpan.FromMinutes(10);
-});
-
-// Create a custom HttpClient with a long timeout for Ollama (for Semantic Kernel)
-var ollamaClient = new HttpClient
-{
-    BaseAddress = new Uri(builder.Configuration["AIService:Endpoint"]!),
-    Timeout = TimeSpan.FromMinutes(10)
-};
-
-kernelBuilder.AddOllamaChatCompletion(
-    modelId: builder.Configuration["AIService:ChatModel"]!,
-    httpClient: ollamaClient);
-
-#pragma warning disable SKEXP0070
-kernelBuilder.AddOllamaTextEmbeddingGeneration(
-    modelId: builder.Configuration["AIService:EmbeddingModel"]!,
-    httpClient: ollamaClient);
-
-builder.Services.AddScoped<IndexingService>();
-builder.Services.AddScoped<ChatService>();
-builder.Services.AddScoped<IntentDetectionService>();
-builder.Services.AddScoped<RetrievalService>();
-builder.Services.AddScoped<PromptGenerationService>();
-builder.Services.AddScoped<IRAGService, RAGService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IQuizService, QuizService>();
-// builder.Services.AddScoped<IImageProcessingService, ImageProcessingService>(); // Registered via AddHttpClient
-
-// MinIO Storage
-builder.Services.AddSingleton<EduShelf.Api.Services.FileStorage.IFileStorageService, EduShelf.Api.Services.FileStorage.MinioStorageService>();
-
-builder.Services.AddHttpContextAccessor();
-
-// This is a temporary workaround to bridge ITextEmbeddingGenerationService to IEmbeddingGenerator
-#pragma warning disable SKEXP0001
-builder.Services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp =>
-{
-    var kernel = sp.GetRequiredService<Kernel>();
-    var textEmbeddingService = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
-    return new TextEmbeddingGenerationServiceAdapter(textEmbeddingService);
-});
-builder.Services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp =>
-{
-    var kernel = sp.GetRequiredService<Kernel>();
-    var embeddingService = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
-    return new TextEmbeddingGenerationServiceAdapter(embeddingService);
-});
+// Add Application Services
+builder.Services.AddApplicationServices(builder.Configuration);
 
 builder.Services.AddDbContext<ApiDbContext>((serviceProvider, options) =>
 {

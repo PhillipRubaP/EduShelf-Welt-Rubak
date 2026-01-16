@@ -8,25 +8,22 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using EduShelf.Api.Constants;
 
 namespace EduShelf.Api.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    [Authorize]
-    [ApiExplorerSettings(GroupName = "Users")]
-    public class UsersController : ControllerBase
-    {
         private readonly IUserService _userService;
+        private readonly IAuthService _authService;
 
-        public UsersController(IUserService userService)
+        public UsersController(IUserService userService, IAuthService authService)
         {
             _userService = userService;
+            _authService = authService;
         }
 
         // GET: api/Users
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = Roles.Admin)]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
         {
             var users = await _userService.GetUsersAsync();
@@ -35,7 +32,7 @@ namespace EduShelf.Api.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = Roles.Admin)]
         public async Task<ActionResult<UserDto>> GetUser(int id)
         {
             var user = await _userService.GetUserAsync(id);
@@ -47,7 +44,7 @@ namespace EduShelf.Api.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<UserDto>> PostUser([FromBody] UserRegister userRegister)
         {
-            var userDto = await _userService.RegisterUserAsync(userRegister);
+            var userDto = await _authService.RegisterUserAsync(userRegister);
             return CreatedAtAction(nameof(GetUser), new { id = userDto.UserId }, userDto);
         }
 
@@ -55,21 +52,21 @@ namespace EduShelf.Api.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<UserDto>> Login([FromBody] UserLogin login)
         {
-            var userDto = await _userService.LoginAsync(login);
+            var userDto = await _authService.LoginAsync(login);
             return Ok(userDto);
         }
 
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await _authService.LogoutAsync();
             return Ok(new { message = "Logged out successfully." });
         }
 
         [HttpGet("me")]
         public async Task<ActionResult<UserDto>> GetMe()
         {
-            var user = await _userService.GetMeAsync();
+            var user = await _authService.GetMeAsync();
             return Ok(user);
         }
 
@@ -81,7 +78,7 @@ namespace EduShelf.Api.Controllers
             {
                 return Unauthorized("Invalid user identifier.");
             }
-            await _userService.ChangePasswordAsync(userId, passwordChange);
+            await _authService.ChangePasswordAsync(userId, passwordChange);
             return NoContent();
         }
 
@@ -109,7 +106,7 @@ namespace EduShelf.Api.Controllers
         }
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> DeleteUser(int id)
         {
             await _userService.DeleteUserAsync(id);
@@ -117,7 +114,7 @@ namespace EduShelf.Api.Controllers
         }
 
         [HttpGet("{id}/roles")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = Roles.Admin)]
         public async Task<ActionResult<IEnumerable<Role>>> GetUserRoles(int id)
         {
             var roles = await _userService.GetUserRolesAsync(id);
@@ -125,7 +122,7 @@ namespace EduShelf.Api.Controllers
         }
 
         [HttpPost("{id}/roles")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> AddUserRole(int id, [FromBody] UserRoleDto userRoleDto)
         {
             await _userService.AddUserRoleAsync(id, userRoleDto);
@@ -133,7 +130,7 @@ namespace EduShelf.Api.Controllers
         }
 
         [HttpDelete("{id}/roles/{roleId}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> RemoveUserRole(int id, int roleId)
         {
             await _userService.RemoveUserRoleAsync(id, roleId);
