@@ -55,8 +55,6 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "EduShelf API", Version = "v1" });
     c.TagActionsBy(api => new[] { api.GroupName });
     c.DocInclusionPredicate((name, api) => true);
-
-    c.AddServer(new OpenApiServer { Url = "http://localhost:49152", Description = "Local Docker" });
 });
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
