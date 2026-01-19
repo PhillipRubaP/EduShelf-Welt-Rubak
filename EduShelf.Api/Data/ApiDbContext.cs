@@ -110,8 +110,8 @@ public class ApiDbContext : DbContext
 
         // Seed initial data
         modelBuilder.Entity<Role>().HasData(
-            new Role { RoleId = 1, Name = Roles.Admin },
-            new Role { RoleId = 2, Name = Roles.Student }
+            new Role { RoleId = 1, Name = EduShelf.Api.Constants.Roles.Admin },
+            new Role { RoleId = 2, Name = EduShelf.Api.Constants.Roles.Student }
         );
 
         modelBuilder.Entity<User>().HasData(

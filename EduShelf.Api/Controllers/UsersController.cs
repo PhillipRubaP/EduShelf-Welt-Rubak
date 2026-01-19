@@ -12,6 +12,12 @@ using EduShelf.Api.Constants;
 
 namespace EduShelf.Api.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize]
+    [ApiExplorerSettings(GroupName = "Users")]
+    public class UsersController : ControllerBase
+    {
         private readonly IUserService _userService;
         private readonly IAuthService _authService;
 

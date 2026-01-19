@@ -12,8 +12,9 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using EduShelf.Api.Exceptions;
 
-using EduShelf.Api.Exceptions;
 using EduShelf.Api.Constants;
+
+namespace EduShelf.Api.Services
 {
     public class UserService : IUserService
     {

@@ -1,4 +1,5 @@
 using EduShelf.Api.Models.Dtos;
+using EduShelf.Api.Models.Entities;
 
 namespace EduShelf.Api.Services;
 
