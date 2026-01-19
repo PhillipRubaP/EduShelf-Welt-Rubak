@@ -7,52 +7,22 @@ using Moq;
 using System.Threading.Tasks;
 using EduShelf.Api.Services;
 using System;
-using EduShelf.Api.Data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
 using System.Security.Claims;
-using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Http;
 using System.IO;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace EduShelf.Api.Tests
 {
     public class DocumentsControllerTests
     {
-        private readonly Mock<IndexingService> _mockIndexingService;
-        private readonly Mock<IImageProcessingService> _mockImageProcessingService;
-        private readonly Mock<IConfiguration> _mockConfiguration;
-        private readonly Mock<IServiceScopeFactory> _mockScopeFactory;
-        private readonly Mock<ILogger<IndexingService>> _mockLogger;
-        private readonly Mock<Services.FileStorage.IFileStorageService> _mockFileStorageService;
+        private readonly Mock<IDocumentService> _mockDocumentService;
         private readonly DocumentsController _controller;
-        private readonly ApiDbContext _context;
 
         public DocumentsControllerTests()
         {
-            _mockConfiguration = new Mock<IConfiguration>();
-            _mockConfiguration.Setup(c => c["FileStorage:UploadPath"]).Returns("Uploads");
-
-            var options = new DbContextOptionsBuilder<ApiDbContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
-            _context = new TestApiDbContext(options, _mockConfiguration.Object);
-
-            _mockImageProcessingService = new Mock<IImageProcessingService>();
-            _mockScopeFactory = new Mock<IServiceScopeFactory>();
-            _mockLogger = new Mock<ILogger<IndexingService>>();
-            _mockFileStorageService = new Mock<Services.FileStorage.IFileStorageService>();
-
-            // Pass mocked dependencies to IndexingService constructor
-            _mockIndexingService = new Mock<IndexingService>(
-                _mockScopeFactory.Object, 
-                _mockLogger.Object, 
-                _mockImageProcessingService.Object, 
-                _mockFileStorageService.Object);
-            
-            _controller = new DocumentsController(_context, _mockIndexingService.Object, _mockImageProcessingService.Object, _mockFileStorageService.Object);
+            _mockDocumentService = new Mock<IDocumentService>();
+            _controller = new DocumentsController(_mockDocumentService.Object);
         }
 
         private void SetupUser(int userId, string role = "User")
@@ -72,14 +42,18 @@ namespace EduShelf.Api.Tests
         }
 
         [Fact]
-        public async Task GetDocuments_ShouldReturnDocuments_ForUser()
+        public async Task GetDocuments_ShouldReturnDocuments_FromService()
         {
             // Arrange
             SetupUser(1);
-            var doc1 = new Document { Id = 1, UserId = 1, Title = "Doc 1", FileType = "pdf", CreatedAt = DateTime.UtcNow, Path = "path1" };
-            var doc2 = new Document { Id = 2, UserId = 2, Title = "Doc 2", FileType = "pdf", CreatedAt = DateTime.UtcNow, Path = "path2" };
-            _context.Documents.AddRange(doc1, doc2);
-            await _context.SaveChangesAsync();
+            var expectedDocs = new List<DocumentDto>
+            {
+                new DocumentDto { Id = 1, Title = "Doc 1" },
+                new DocumentDto { Id = 2, Title = "Doc 2" }
+            };
+
+            _mockDocumentService.Setup(s => s.GetDocumentsAsync(1, "User"))
+                .ReturnsAsync(expectedDocs);
 
             // Act
             var result = await _controller.GetDocuments();
@@ -87,46 +61,55 @@ namespace EduShelf.Api.Tests
             // Assert
             var actionResult = Assert.IsType<ActionResult<IEnumerable<DocumentDto>>>(result);
             var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var documents = Assert.IsAssignableFrom<IEnumerable<DocumentDto>>(okResult.Value);
-            Assert.Single(documents); // Should only see user 1's document
-            Assert.Contains(documents, d => d.Title == "Doc 1");
+            var returnedDocs = Assert.IsAssignableFrom<IEnumerable<DocumentDto>>(okResult.Value);
+            Assert.Equal(2, (returnedDocs as List<DocumentDto>).Count);
         }
 
         [Fact]
-        public async Task DeleteDocument_ShouldRemoveDocument_WhenUserOwnsIt()
+        public async Task PostDocument_ShouldUploadDocument_AndReturnCreated()
         {
             // Arrange
             SetupUser(1);
-            var doc = new Document { Id = 1, UserId = 1, Title = "Doc 1", FileType = "pdf", CreatedAt = DateTime.UtcNow, Path = "testfile.pdf" };
-            _context.Documents.Add(doc);
-            await _context.SaveChangesAsync();
+            var fileMock = new Mock<IFormFile>();
+            var content = "Fake Content";
+            var fileName = "test.txt";
+            var ms = new MemoryStream();
+            var writer = new StreamWriter(ms);
+            writer.Write(content);
+            writer.Flush();
+            ms.Position = 0;
+            fileMock.Setup(_ => _.OpenReadStream()).Returns(ms);
+            fileMock.Setup(_ => _.FileName).Returns(fileName);
+            fileMock.Setup(_ => _.Length).Returns(ms.Length);
+            fileMock.Setup(_ => _.ContentType).Returns("text/plain");
 
+            var tags = new List<string> { "tag1" };
+            var expectedDto = new DocumentDto { Id = 1, Title = fileName };
+
+            _mockDocumentService.Setup(s => s.UploadDocumentAsync(It.IsAny<Stream>(), fileName, "text/plain", 1, tags))
+                .ReturnsAsync(expectedDto);
+
+            // Act
+            var result = await _controller.PostDocument(fileMock.Object, 1, tags);
+
+            // Assert
+            var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result.Result);
+            var returnDto = Assert.IsType<DocumentDto>(createdAtActionResult.Value);
+            Assert.Equal(expectedDto.Id, returnDto.Id);
+        }
+
+        [Fact]
+        public async Task DeleteDocument_ShouldCallServiceDelete()
+        {
+            // Arrange
+            SetupUser(1);
+            
             // Act
             var result = await _controller.DeleteDocument(1);
 
             // Assert
             Assert.IsType<NoContentResult>(result);
-            var deletedDoc = await _context.Documents.FindAsync(1);
-            Assert.Null(deletedDoc);
-            _mockFileStorageService.Verify(x => x.DeleteFileAsync("testfile.pdf"), Times.Once);
-        }
-
-        [Fact]
-        public async Task DeleteDocument_ShouldReturnForbid_WhenUserDoesNotOwnIt()
-        {
-            // Arrange
-            SetupUser(2); // Different user
-            var doc = new Document { Id = 1, UserId = 1, Title = "Doc 1", FileType = "pdf", CreatedAt = DateTime.UtcNow, Path = "path1" };
-            _context.Documents.Add(doc);
-            await _context.SaveChangesAsync();
-
-            // Act
-            var result = await _controller.DeleteDocument(1);
-
-            // Assert
-            Assert.IsType<ForbidResult>(result);
-            var existingDoc = await _context.Documents.FindAsync(1);
-            Assert.NotNull(existingDoc);
+            _mockDocumentService.Verify(s => s.DeleteDocumentAsync(1, 1, "User"), Times.Once);
         }
     }
 }

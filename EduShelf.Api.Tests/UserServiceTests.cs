@@ -173,7 +173,7 @@ namespace EduShelf.Api.Tests
             var updateDto = new User { UserId = 1, Username = "hacked", Email = "hacked@example.com" };
 
             // Act & Assert
-            await Assert.ThrowsAsync<EduShelf.Api.Services.ForbidException>(() => service.UpdateUserAsync(1, updateDto));
+            await Assert.ThrowsAsync<ForbidException>(() => service.UpdateUserAsync(1, updateDto));
         }
     }
 }
