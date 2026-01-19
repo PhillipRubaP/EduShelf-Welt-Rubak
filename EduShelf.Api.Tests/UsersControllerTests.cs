@@ -14,12 +14,14 @@ namespace EduShelf.Api.Tests
     public class UsersControllerTests
     {
         private readonly Mock<IUserService> _mockUserService;
+        private readonly Mock<IAuthService> _mockAuthService;
         private readonly UsersController _controller;
 
         public UsersControllerTests()
         {
             _mockUserService = new Mock<IUserService>();
-            _controller = new UsersController(_mockUserService.Object);
+            _mockAuthService = new Mock<IAuthService>();
+            _controller = new UsersController(_mockUserService.Object, _mockAuthService.Object);
         }
 
         [Fact]
@@ -28,7 +30,7 @@ namespace EduShelf.Api.Tests
             // Arrange
             var newUser = new UserRegister { Username = "newuser", Email = "new@example.com", Password = "password123" };
             var userDto = new UserDto { UserId = 1, Username = "newuser", Email = "new@example.com" };
-            _mockUserService.Setup(service => service.RegisterUserAsync(newUser)).ReturnsAsync(userDto);
+            _mockAuthService.Setup(service => service.RegisterUserAsync(newUser)).ReturnsAsync(userDto);
 
             // Act
             var result = await _controller.PostUser(newUser);
@@ -45,7 +47,7 @@ namespace EduShelf.Api.Tests
         {
             // Arrange
             var existingUser = new UserRegister { Username = "testuser", Email = "another@example.com", Password = "password123" };
-            _mockUserService.Setup(service => service.RegisterUserAsync(existingUser)).ThrowsAsync(new BadRequestException("Username already exists."));
+            _mockAuthService.Setup(service => service.RegisterUserAsync(existingUser)).ThrowsAsync(new BadRequestException("Username already exists."));
 
             // Act & Assert
             await Assert.ThrowsAsync<BadRequestException>(() => _controller.PostUser(existingUser));
@@ -56,7 +58,7 @@ namespace EduShelf.Api.Tests
         {
             // Arrange
             var existingUser = new UserRegister { Username = "anotheruser", Email = "test@example.com", Password = "password123" };
-            _mockUserService.Setup(service => service.RegisterUserAsync(existingUser)).ThrowsAsync(new BadRequestException("Email already exists."));
+            _mockAuthService.Setup(service => service.RegisterUserAsync(existingUser)).ThrowsAsync(new BadRequestException("Email already exists."));
 
             // Act & Assert
             await Assert.ThrowsAsync<BadRequestException>(() => _controller.PostUser(existingUser));
@@ -68,7 +70,7 @@ namespace EduShelf.Api.Tests
             // Arrange
             var login = new UserLogin { Email = "test@example.com", Password = "password123" };
             var userDto = new UserDto { UserId = 1, Username = "testuser", Email = "test@example.com" };
-            _mockUserService.Setup(service => service.LoginAsync(login)).ReturnsAsync(userDto);
+            _mockAuthService.Setup(service => service.LoginAsync(login)).ReturnsAsync(userDto);
 
             // Act
             var result = await _controller.Login(login);
@@ -85,7 +87,7 @@ namespace EduShelf.Api.Tests
         {
             // Arrange
             var login = new UserLogin { Email = "test@example.com", Password = "wrongpassword" };
-            _mockUserService.Setup(service => service.LoginAsync(login)).ThrowsAsync(new UnauthorizedAccessException());
+            _mockAuthService.Setup(service => service.LoginAsync(login)).ThrowsAsync(new UnauthorizedAccessException());
 
             // Act & Assert
             await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _controller.Login(login));

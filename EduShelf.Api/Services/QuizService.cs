@@ -10,6 +10,8 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
+using EduShelf.Api.Constants;
+
 namespace EduShelf.Api.Services
 {
     public class QuizService : IQuizService
@@ -35,7 +37,7 @@ namespace EduShelf.Api.Services
 
         private bool IsCurrentUserAdmin()
         {
-            return _httpContextAccessor.HttpContext?.User.IsInRole("Admin") ?? false;
+            return _httpContextAccessor.HttpContext?.User.IsInRole(Roles.Admin) ?? false;
         }
 
         public async Task<IEnumerable<QuizDto>> GetQuizzesAsync()
