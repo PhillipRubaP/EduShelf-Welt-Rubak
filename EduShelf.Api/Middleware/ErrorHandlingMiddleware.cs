@@ -76,6 +76,14 @@ public class ErrorHandlingMiddleware
                 code = HttpStatusCode.InternalServerError;
                 result = JsonSerializer.Serialize(new { error = fileProcessingException.Message });
                 break;
+            case ConflictException conflictException:
+                code = HttpStatusCode.Conflict;
+                result = JsonSerializer.Serialize(new { error = conflictException.Message });
+                break;
+            case ForbidException forbidException:
+                code = HttpStatusCode.Forbidden;
+                result = JsonSerializer.Serialize(new { error = forbidException.Message });
+                break;
         }
 
         context.Response.ContentType = "application/json";
