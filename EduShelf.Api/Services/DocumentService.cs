@@ -137,17 +137,21 @@ namespace EduShelf.Api.Services
 
             // Fire and forget the indexing process.
             // Queue background indexing
+            Console.WriteLine($"[DocumentService] Queuing background indexing for document {document.Id} ({document.Path})");
             await _queue.QueueBackgroundWorkItemAsync(async token =>
             {
+                Console.WriteLine($"[BackgroundJob] Starting background work item for document {document.Id}");
                 using var scope = _scopeFactory.CreateScope();
                 var indexingService = scope.ServiceProvider.GetRequiredService<IndexingService>();
                 try
                 {
                     await indexingService.IndexDocumentAsync(document.Id, document.Path);
+                    Console.WriteLine($"[BackgroundJob] Completed indexing for document {document.Id}");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error indexing document {document.Id}: {ex.Message}");
+                    Console.WriteLine($"[BackgroundJob] Error indexing document {document.Id}: {ex.Message}");
+                    Console.WriteLine(ex.StackTrace);
                 }
             });
 

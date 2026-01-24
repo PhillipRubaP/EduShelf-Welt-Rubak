@@ -48,8 +48,19 @@ namespace EduShelf.Api.Services
                 }
             }
 
-            chatHistory.AddSystemMessage($"Context:\n{contextString}");
-            chatHistory.AddUserMessage(userInput);
+            var finalUserMessage = new StringBuilder();
+            if (!string.IsNullOrEmpty(contextString))
+            {
+                Console.WriteLine($"[PromptGeneration] Injecting context of length {contextString.Length} chars into User Message.");
+                finalUserMessage.AppendLine($"[Context from Documents]:\n{contextString}\n");
+            }
+            else 
+            {
+                Console.WriteLine("[PromptGeneration] No context available to inject.");
+            }
+            finalUserMessage.AppendLine($"[User Question]: {userInput}");
+
+            chatHistory.AddUserMessage(finalUserMessage.ToString());
 
             return chatHistory;
         }
@@ -57,22 +68,7 @@ namespace EduShelf.Api.Services
         private string TruncateToTokenLimit(string text, int tokenLimit)
         {
             if (text.Length <= tokenLimit) return text;
-
-            var sentences = text.Split(new[] { ". ", "! ", "? " }, StringSplitOptions.RemoveEmptyEntries);
-            var truncatedText = new StringBuilder();
-            var currentLength = 0;
-
-            foreach (var sentence in sentences)
-            {
-                if (currentLength + sentence.Length + 2 > tokenLimit)
-                {
-                    break;
-                }
-                truncatedText.Append(sentence).Append(". ");
-                currentLength += sentence.Length + 2;
-            }
-
-            return truncatedText.ToString().TrimEnd() + "...";
+            return text.Substring(0, tokenLimit) + "...";
         }
     }
 }
