@@ -14,19 +14,29 @@ using System.IO;
 
 using Tag = EduShelf.Api.Models.Entities.Tag;
 
+using EduShelf.Api.Services.Background;
+using Microsoft.Extensions.DependencyInjection;
+
 namespace EduShelf.Api.Services
 {
     public class DocumentService : IDocumentService
     {
         private readonly ApiDbContext _context;
-        private readonly IndexingService _indexingService;
+        private readonly IBackgroundJobQueue _queue;
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly IImageProcessingService _imageProcessingService;
         private readonly IFileStorageService _fileStorageService;
 
-        public DocumentService(ApiDbContext context, IndexingService indexingService, IImageProcessingService imageProcessingService, IFileStorageService fileStorageService)
+        public DocumentService(
+            ApiDbContext context, 
+            IBackgroundJobQueue queue,
+            IServiceScopeFactory scopeFactory,
+            IImageProcessingService imageProcessingService, 
+            IFileStorageService fileStorageService)
         {
             _context = context;
-            _indexingService = indexingService;
+            _queue = queue;
+            _scopeFactory = scopeFactory;
             _imageProcessingService = imageProcessingService;
             _fileStorageService = fileStorageService;
         }
@@ -126,11 +136,14 @@ namespace EduShelf.Api.Services
             await _context.SaveChangesAsync();
 
             // Fire and forget the indexing process.
-            _ = Task.Run(async () =>
+            // Queue background indexing
+            await _queue.QueueBackgroundWorkItemAsync(async token =>
             {
+                using var scope = _scopeFactory.CreateScope();
+                var indexingService = scope.ServiceProvider.GetRequiredService<IndexingService>();
                 try
                 {
-                    await _indexingService.IndexDocumentAsync(document.Id, document.Path);
+                    await indexingService.IndexDocumentAsync(document.Id, document.Path);
                 }
                 catch (Exception ex)
                 {
@@ -482,11 +495,14 @@ namespace EduShelf.Api.Services
             }
 
             // Fire and forget re-indexing
-            _ = Task.Run(async () =>
+            // Queue background re-indexing
+            await _queue.QueueBackgroundWorkItemAsync(async token =>
             {
+                using var scope = _scopeFactory.CreateScope();
+                var indexingService = scope.ServiceProvider.GetRequiredService<IndexingService>();
                 try
                 {
-                    await _indexingService.IndexDocumentAsync(document.Id, document.Path);
+                    await indexingService.IndexDocumentAsync(document.Id, document.Path);
                 }
                 catch (Exception ex)
                 {

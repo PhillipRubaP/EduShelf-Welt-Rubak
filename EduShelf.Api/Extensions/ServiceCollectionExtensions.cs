@@ -1,5 +1,6 @@
 using EduShelf.Api.Services;
 using EduShelf.Api.Services.FileStorage;
+using EduShelf.Api.Services.Background;
 using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Embeddings;
@@ -52,6 +53,10 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IFileStorageService, MinioStorageService>();
         
         services.AddHttpContextAccessor();
+
+        // Background Job Processing
+        services.AddSingleton<IBackgroundJobQueue, BackgroundJobQueue>();
+        services.AddHostedService<BackgroundJobService>();
 
         // Embedding Generators (Workaround)
         #pragma warning disable SKEXP0001
