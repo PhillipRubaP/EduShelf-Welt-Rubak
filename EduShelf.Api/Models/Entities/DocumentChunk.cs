@@ -7,12 +7,12 @@ namespace EduShelf.Api.Models.Entities
     {
         public int Id { get; set; }
         public int DocumentId { get; set; }
-        public Document Document { get; set; }
-        public string Content { get; set; }
+        public virtual Document Document { get; set; } = null!;
+        public required string Content { get; set; }
 
         public int Page { get; set; }
 
         [Column(TypeName = "vector(768)")]
-        public Vector Embedding { get; set; }
+        public required Vector Embedding { get; set; }
     }
 }

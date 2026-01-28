@@ -13,7 +13,7 @@ public class ChatMessage
     public int ChatSessionId { get; set; }
 
     [Required]
-    public string Message { get; set; }
+    public required string Message { get; set; }
 
     public string? Response { get; set; }
 
@@ -24,5 +24,5 @@ public class ChatMessage
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     [ForeignKey("ChatSessionId")]
-    public virtual ChatSession ChatSession { get; set; }
+    public virtual ChatSession ChatSession { get; set; } = null!;
 }

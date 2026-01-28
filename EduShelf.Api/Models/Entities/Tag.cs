@@ -9,7 +9,7 @@ public class Tag
 
     [Required]
     [MaxLength(255)]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     public bool IsSubject { get; set; }
 }

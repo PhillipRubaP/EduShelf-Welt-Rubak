@@ -16,12 +16,12 @@ namespace EduShelf.Api.Models.Entities
 
         [Required]
         [MaxLength(100)]
-        public string Title { get; set; }
+        public required string Title { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         [ForeignKey("UserId")]
-        public virtual User User { get; set; }
+        public virtual User User { get; set; } = null!;
 
         [JsonIgnore]
         public virtual ICollection<ChatMessage> ChatMessages { get; set; } = new List<ChatMessage>();

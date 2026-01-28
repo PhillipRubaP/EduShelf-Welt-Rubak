@@ -18,8 +18,8 @@ public class AccessLog
     public DateTime ViewedAt { get; set; } = DateTime.UtcNow;
 
     [ForeignKey("UserId")]
-    public virtual User User { get; set; }
+    public virtual User User { get; set; } = null!;
 
     [ForeignKey("DocumentId")]
-    public virtual Document Document { get; set; }
+    public virtual Document Document { get; set; } = null!;
 }

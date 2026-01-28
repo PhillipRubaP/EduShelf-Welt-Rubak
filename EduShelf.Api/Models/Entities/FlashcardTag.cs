@@ -6,9 +6,9 @@ public class FlashcardTag
 {
     public int FlashcardId { get; set; }
     [ForeignKey("FlashcardId")]
-    public Flashcard Flashcard { get; set; }
+    public virtual Flashcard Flashcard { get; set; } = null!;
 
     public int TagId { get; set; }
     [ForeignKey("TagId")]
-    public Tag Tag { get; set; }
+    public virtual Tag Tag { get; set; } = null!;
 }

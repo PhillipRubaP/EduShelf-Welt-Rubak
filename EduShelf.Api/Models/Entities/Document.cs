@@ -15,14 +15,14 @@ public class Document
 
     [Required]
     [MaxLength(255)]
-    public string Title { get; set; }
+    public required string Title { get; set; }
 
     [Required]
-    public string Path { get; set; }
+    public required string Path { get; set; }
 
     [Required]
     [MaxLength(50)]
-    public string FileType { get; set; }
+    public required string FileType { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

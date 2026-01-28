@@ -17,8 +17,8 @@ public class Favourite
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     [ForeignKey("UserId")]
-    public virtual User User { get; set; }
+    public virtual User User { get; set; } = null!;
 
     [ForeignKey("DocumentId")]
-    public virtual Document Document { get; set; }
+    public virtual Document Document { get; set; } = null!;
 }

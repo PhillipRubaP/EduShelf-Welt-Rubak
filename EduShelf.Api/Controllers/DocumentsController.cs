@@ -46,8 +46,9 @@ namespace EduShelf.Api.Controllers
 
         // POST: api/Documents
         [HttpPost]
-        public async Task<ActionResult<DocumentDto>> PostDocument([FromForm] IFormFile file, [FromForm] int userId, [FromForm] List<string> tags)
+        public async Task<ActionResult<DocumentDto>> PostDocument([FromForm] IFormFile file, [FromForm] List<string> tags)
         {
+            var userId = GetCurrentUserId();
             if (file == null || file.Length == 0)
             {
                 return BadRequest("No file uploaded.");

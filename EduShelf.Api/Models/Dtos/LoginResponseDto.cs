@@ -2,7 +2,7 @@ namespace EduShelf.Api.Models.Dtos
 {
     public class LoginResponseDto
     {
-        public string Token { get; set; }
-        public UserDto User { get; set; }
+        public required string Token { get; set; }
+        public required UserDto User { get; set; }
     }
 }

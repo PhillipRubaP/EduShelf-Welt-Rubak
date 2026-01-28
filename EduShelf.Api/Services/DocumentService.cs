@@ -161,7 +161,7 @@ namespace EduShelf.Api.Services
                 Title = document.Title,
                 FileType = document.FileType,
                 CreatedAt = document.CreatedAt,
-                Tags = document.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList(),
+                Tags = document.DocumentTags?.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList() ?? new List<TagDto>(),
                 UserId = document.UserId
             };
         }

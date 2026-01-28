@@ -14,15 +14,15 @@ public class Flashcard
     public int UserId { get; set; }
 
     [Required]
-    public string Question { get; set; }
+    public required string Question { get; set; }
 
     [Required]
-    public string Answer { get; set; }
+    public required string Answer { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     [ForeignKey("UserId")]
-    public virtual User User { get; set; }
+    public virtual User User { get; set; } = null!;
 
     public virtual ICollection<FlashcardTag> FlashcardTags { get; set; } = new List<FlashcardTag>();
 }

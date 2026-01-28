@@ -9,10 +9,10 @@ public class FlashcardCreateDto
     public int UserId { get; set; }
 
     [Required]
-    public string Question { get; set; }
+    public required string Question { get; set; }
 
     [Required]
-    public string Answer { get; set; }
+    public required string Answer { get; set; }
 
     public ICollection<string> Tags { get; set; } = new List<string>();
 }

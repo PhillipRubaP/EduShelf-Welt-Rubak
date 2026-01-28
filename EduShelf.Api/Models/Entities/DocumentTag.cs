@@ -14,8 +14,8 @@ public class DocumentTag
     public int TagId { get; set; }
 
     [ForeignKey("DocumentId")]
-    public virtual Document Document { get; set; }
+    public virtual Document Document { get; set; } = null!;
 
     [ForeignKey("TagId")]
-    public virtual Tag Tag { get; set; }
+    public virtual Tag Tag { get; set; } = null!;
 }
