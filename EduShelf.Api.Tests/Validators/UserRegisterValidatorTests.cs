@@ -17,7 +17,11 @@ namespace EduShelf.Api.Tests.Validators
         [Fact]
         public void Should_Have_Error_When_Username_Is_Empty()
         {
-            var model = new UserRegister { Username = "" };
+            var model = new UserRegister { 
+                Username = "", 
+                Email = "test@example.com", 
+                Password = "password123" 
+            };
             var result = _validator.TestValidate(model);
             result.ShouldHaveValidationErrorFor(x => x.Username);
         }
@@ -25,7 +29,11 @@ namespace EduShelf.Api.Tests.Validators
         [Fact]
         public void Should_Have_Error_When_Email_Is_Invalid()
         {
-            var model = new UserRegister { Email = "invalid_email" };
+            var model = new UserRegister { 
+                Username = "user", 
+                Email = "invalid_email", 
+                Password = "password123" 
+            };
             var result = _validator.TestValidate(model);
             result.ShouldHaveValidationErrorFor(x => x.Email);
         }
@@ -33,7 +41,11 @@ namespace EduShelf.Api.Tests.Validators
         [Fact]
         public void Should_Have_Error_When_Password_Is_Too_Short()
         {
-            var model = new UserRegister { Password = "123" };
+            var model = new UserRegister { 
+                Username = "user", 
+                Email = "test@example.com", 
+                Password = "123" 
+            };
             var result = _validator.TestValidate(model);
             result.ShouldHaveValidationErrorFor(x => x.Password);
         }

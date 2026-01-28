@@ -18,7 +18,10 @@ namespace EduShelf.Api.Tests.Validators
         [Fact]
         public void Should_Have_Error_When_Title_Is_Empty()
         {
-            var model = new QuizCreateDto { Title = "" };
+            var model = new QuizCreateDto { 
+                Title = "", 
+                Questions = new List<QuestionCreateDto>() 
+            };
             var result = _validator.TestValidate(model);
             result.ShouldHaveValidationErrorFor(x => x.Title);
         }
@@ -26,7 +29,10 @@ namespace EduShelf.Api.Tests.Validators
         [Fact]
         public void Should_Have_Error_When_Title_Is_Too_Long()
         {
-            var model = new QuizCreateDto { Title = new string('a', 201) };
+            var model = new QuizCreateDto { 
+                Title = new string('a', 201), 
+                Questions = new List<QuestionCreateDto>() 
+            };
             var result = _validator.TestValidate(model);
             result.ShouldHaveValidationErrorFor(x => x.Title);
         }
@@ -39,7 +45,10 @@ namespace EduShelf.Api.Tests.Validators
                 Title = "Valid Title",
                 Questions = new List<QuestionCreateDto>
                 {
-                    new QuestionCreateDto { Text = "" } // Invalid question
+                    new QuestionCreateDto { 
+                        Text = "",
+                        Answers = new List<AnswerCreateDto>() 
+                    } // Invalid question
                 }
             };
             var result = _validator.TestValidate(model);

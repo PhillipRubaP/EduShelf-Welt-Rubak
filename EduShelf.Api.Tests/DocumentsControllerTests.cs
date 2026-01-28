@@ -48,8 +48,8 @@ namespace EduShelf.Api.Tests
             SetupUser(1);
             var expectedDocs = new List<DocumentDto>
             {
-                new DocumentDto { Id = 1, Title = "Doc 1" },
-                new DocumentDto { Id = 2, Title = "Doc 2" }
+                new DocumentDto { Id = 1, Title = "Doc 1", FileType = "application/pdf", Tags = new List<TagDto>() },
+                new DocumentDto { Id = 2, Title = "Doc 2", FileType = "application/pdf", Tags = new List<TagDto>() }
             };
 
             _mockDocumentService.Setup(s => s.GetDocumentsAsync(1, "User"))
@@ -84,13 +84,18 @@ namespace EduShelf.Api.Tests
             fileMock.Setup(_ => _.ContentType).Returns("text/plain");
 
             var tags = new List<string> { "tag1" };
-            var expectedDto = new DocumentDto { Id = 1, Title = fileName };
+            var expectedDto = new DocumentDto { 
+                Id = 1, 
+                Title = fileName, 
+                FileType = "text/plain", 
+                Tags = new List<TagDto>() 
+            };
 
             _mockDocumentService.Setup(s => s.UploadDocumentAsync(It.IsAny<Stream>(), fileName, "text/plain", 1, tags))
                 .ReturnsAsync(expectedDto);
 
             // Act
-            var result = await _controller.PostDocument(fileMock.Object, 1, tags);
+            var result = await _controller.PostDocument(fileMock.Object, tags);
 
             // Assert
             var createdAtActionResult = Assert.IsType<CreatedAtActionResult>(result.Result);
