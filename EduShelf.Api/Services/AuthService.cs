@@ -132,11 +132,6 @@ public class AuthService : IAuthService
             throw new NotFoundException("User not found.");
         }
 
-        if (!BCrypt.Net.BCrypt.Verify(passwordChange.OldPassword, user.PasswordHash))
-        {
-            throw new BadRequestException("Invalid old password.");
-        }
-
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(passwordChange.NewPassword);
         await _context.SaveChangesAsync();
     }
