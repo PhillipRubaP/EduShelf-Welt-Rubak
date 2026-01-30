@@ -25,12 +25,11 @@ public class ErrorHandlingMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception has occurred.");
             await HandleExceptionAsync(context, ex, _env.IsDevelopment());
         }
     }
 
-    private static Task HandleExceptionAsync(HttpContext context, Exception exception, bool includeDetails = false)
+    private Task HandleExceptionAsync(HttpContext context, Exception exception, bool includeDetails = false)
     {
         var code = HttpStatusCode.InternalServerError;
         var errorMessage = "An unexpected error occurred.";
@@ -47,46 +46,60 @@ public class ErrorHandlingMiddleware
             case NotFoundException notFoundException:
                 code = HttpStatusCode.NotFound;
                 result = JsonSerializer.Serialize(new { error = notFoundException.Message });
+                _logger.LogWarning(exception, "Resource not found");
                 break;
             case BadRequestException badRequestException:
                 code = HttpStatusCode.BadRequest;
                 result = JsonSerializer.Serialize(new { error = badRequestException.Message });
+                _logger.LogWarning(exception, "Bad request");
                 break;
             case KernelServiceException kernelServiceException:
                 code = HttpStatusCode.InternalServerError;
                 result = JsonSerializer.Serialize(new { error = kernelServiceException.Message });
+                _logger.LogError(exception, "Kernel service error");
                 break;
             case DatabaseException databaseException:
                 code = HttpStatusCode.InternalServerError;
                 result = JsonSerializer.Serialize(new { error = databaseException.Message });
+                _logger.LogError(exception, "Database error");
                 break;
             case AuthenticationException authenticationException:
                 code = HttpStatusCode.Unauthorized;
                 result = JsonSerializer.Serialize(new { error = authenticationException.Message });
+                 _logger.LogWarning("Authentication failed: {Message}", authenticationException.Message);
                 break;
             case UnauthorizedAccessException unauthorizedAccessException:
                 code = HttpStatusCode.Unauthorized;
                 result = JsonSerializer.Serialize(new { error = unauthorizedAccessException.Message });
+                 _logger.LogWarning("Unauthorized access: {Message}", unauthorizedAccessException.Message);
                 break;
             case AuthorizationException authorizationException:
                 code = HttpStatusCode.Forbidden;
                 result = JsonSerializer.Serialize(new { error = authorizationException.Message });
+                _logger.LogWarning("Authorization failed: {Message}", authorizationException.Message);
                 break;
             case IndexingServiceException indexingServiceException:
                 code = HttpStatusCode.InternalServerError;
                 result = JsonSerializer.Serialize(new { error = indexingServiceException.Message });
+                _logger.LogError(exception, "Indexing service error");
                 break;
             case FileProcessingException fileProcessingException:
                 code = HttpStatusCode.InternalServerError;
                 result = JsonSerializer.Serialize(new { error = fileProcessingException.Message });
+                _logger.LogError(exception, "File processing error");
                 break;
             case ConflictException conflictException:
                 code = HttpStatusCode.Conflict;
                 result = JsonSerializer.Serialize(new { error = conflictException.Message });
+                 _logger.LogWarning(exception, "Conflict error");
                 break;
             case ForbidException forbidException:
                 code = HttpStatusCode.Forbidden;
                 result = JsonSerializer.Serialize(new { error = forbidException.Message });
+                _logger.LogWarning("Forbidden access: {Message}", forbidException.Message);
+                break;
+            default:
+                _logger.LogError(exception, "An unhandled exception has occurred.");
                 break;
         }
 

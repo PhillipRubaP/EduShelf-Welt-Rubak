@@ -138,7 +138,8 @@ public class ApiDbContext : DbContext
                 Username = "Admin User",
                 Email = "admin@edushelf.com",
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("AdminPassword123!"),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                IsEmailConfirmed = true
             },
             new User
             {
@@ -146,7 +147,8 @@ public class ApiDbContext : DbContext
                 Username = "Student User",
                 Email = "student@edushelf.com",
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("StudentPassword123!"),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                IsEmailConfirmed = true
             }
         );
 
