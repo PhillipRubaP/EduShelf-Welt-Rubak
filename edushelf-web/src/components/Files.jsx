@@ -12,6 +12,8 @@ const Files = () => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [viewFile, setViewFile] = useState(null);
 
+  const [searchTerm, setSearchTerm] = useState('');
+
   const fetchFiles = async () => {
     try {
       const data = await api.get('/Documents');
@@ -66,6 +68,10 @@ const Files = () => {
     setOpenMenuId(openMenuId === fileId ? null : fileId);
   };
 
+  const filteredFiles = files.filter(file =>
+    file.title.toLowerCase().includes(searchTerm.toLowerCase()) // Filter by title
+  );
+
   return (
     <div className="files-container">
       {viewFile ? (
@@ -74,10 +80,19 @@ const Files = () => {
         <div className="file-list">
           <div className="file-list-header">
             <h2>Files</h2>
+            <div className="search-bar-container">
+              <input
+                type="text"
+                placeholder="Search files..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+            </div>
             <button onClick={() => setUploadDialogOpen(true)} className="add-file-button">+</button>
           </div>
           <div className="file-grid">
-            {files.map((file) => (
+            {filteredFiles.map((file) => (
               <div key={file.id} className="file-card">
                 <p>{file.title}</p>
                 <div className="file-card-buttons">
