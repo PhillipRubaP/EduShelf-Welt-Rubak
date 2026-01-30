@@ -92,7 +92,7 @@ const EditUser = ({ loggedInUser, setLoggedInUser }) => {
 
         <form onSubmit={handleUpdate}>
           <div className="form-section">
-            <div className="section-title">Public Info</div>
+            <div className="section-title">Profile Info</div>
             <div className="form-group">
               <label>Username</label>
               <input
@@ -116,13 +116,11 @@ const EditUser = ({ loggedInUser, setLoggedInUser }) => {
           </div>
 
           <div className="form-section">
-            <div className="flex justify-between items-center mb-3">
-              <div className="section-title" style={{ marginBottom: 0 }}>Security</div>
+            <div className="security-header">
               <button
                 type="button"
                 onClick={() => setShowPasswordFields(!showPasswordFields)}
-                className="text-xs text-primary-green hover:text-secondary-mint transition-colors underline"
-                style={{ color: 'var(--primary-green, #10b981)' }}
+                className="toggle-password-btn"
               >
                 {showPasswordFields ? 'Cancel Password Change' : 'Change Password'}
               </button>
