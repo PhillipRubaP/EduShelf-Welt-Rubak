@@ -142,5 +142,19 @@ namespace EduShelf.Api.Controllers
             await _userService.RemoveUserRoleAsync(id, roleId);
             return NoContent();
         }
+
+        [HttpDelete("me")]
+        public async Task<IActionResult> DeleteMe()
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid user identifier.");
+            }
+            // Use logout before deletion if using cookies, though here we just delete
+            await _authService.LogoutAsync(); 
+            await _userService.DeleteUserAsync(userId);
+            return NoContent();
+        }
     }
 }

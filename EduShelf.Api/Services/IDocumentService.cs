@@ -26,5 +26,6 @@ namespace EduShelf.Api.Services
         Task<string> GetDocumentContentAsync(int id, int userId, string role);
         Task UpdateDocumentContentAsync(int id, DocumentContentUpdateDto contentDto, int userId, string role);
         Task ShareDocumentAsync(int documentId, string emailOrUsername, int currentUserId);
+        Task DeleteAllDocumentsForUserAsync(int userId);
     }
 }

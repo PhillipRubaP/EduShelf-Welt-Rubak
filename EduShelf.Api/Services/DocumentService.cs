@@ -639,5 +639,27 @@ namespace EduShelf.Api.Services
             _context.DocumentShares.Add(share);
             await _context.SaveChangesAsync();
         }
+
+        public async Task DeleteAllDocumentsForUserAsync(int userId)
+        {
+            var documents = await _context.Documents
+                .Where(d => d.UserId == userId)
+                .ToListAsync();
+
+            foreach (var document in documents)
+            {
+                try
+                {
+                    await _fileStorageService.DeleteFileAsync(document.Path);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error deleting file for user deletion: {ex.Message}");
+                    // Continue deleting other files and the user record
+                }
+            }
+            
+            // Database records will be deleted via Cascade Delete on User
+        }
     }
 }

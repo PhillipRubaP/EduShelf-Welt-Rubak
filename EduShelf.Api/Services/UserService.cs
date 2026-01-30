@@ -20,11 +20,13 @@ namespace EduShelf.Api.Services
     {
         private readonly ApiDbContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IDocumentService _documentService;
 
-        public UserService(ApiDbContext context, IHttpContextAccessor httpContextAccessor)
+        public UserService(ApiDbContext context, IHttpContextAccessor httpContextAccessor, IDocumentService documentService)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
+            _documentService = documentService;
         }
 
         private int GetCurrentUserId()
@@ -151,6 +153,9 @@ namespace EduShelf.Api.Services
             {
                 throw new NotFoundException("User not found.");
             }
+
+            // Cleanup physical files first
+            await _documentService.DeleteAllDocumentsForUserAsync(id);
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
