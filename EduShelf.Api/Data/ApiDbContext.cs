@@ -18,6 +18,7 @@ public class ApiDbContext : DbContext
     public DbSet<Tag> Tags { get; set; }
     public DbSet<Document> Documents { get; set; }
     public DbSet<DocumentTag> DocumentTags { get; set; }
+    public DbSet<DocumentShare> DocumentShares { get; set; }
     public DbSet<Favourite> Favourites { get; set; }
     public DbSet<AccessLog> AccessLogs { get; set; }
     public DbSet<ChatMessage> ChatMessages { get; set; }
@@ -47,6 +48,10 @@ public class ApiDbContext : DbContext
         modelBuilder.Entity<DocumentTag>()
             .HasKey(dt => new { dt.DocumentId, dt.TagId });
 
+        modelBuilder.Entity<DocumentShare>()
+            .HasIndex(ds => new { ds.DocumentId, ds.UserId })
+            .IsUnique();
+
         modelBuilder.Entity<FlashcardTag>()
             .HasKey(ft => new { ft.FlashcardId, ft.TagId });
 
@@ -70,6 +75,18 @@ public class ApiDbContext : DbContext
             .HasOne(d => d.User)
             .WithMany()
             .HasForeignKey(d => d.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<DocumentShare>()
+            .HasOne(ds => ds.Document)
+            .WithMany()
+            .HasForeignKey(ds => ds.DocumentId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<DocumentShare>()
+            .HasOne(ds => ds.User)
+            .WithMany()
+            .HasForeignKey(ds => ds.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Favourite>()

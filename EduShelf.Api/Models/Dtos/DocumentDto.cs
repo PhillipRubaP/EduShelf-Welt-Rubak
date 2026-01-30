@@ -8,4 +8,6 @@ public class DocumentDto
     public DateTime CreatedAt { get; set; }
     public List<TagDto> Tags { get; set; } = new();
     public int UserId { get; set; }
+    public bool IsShared { get; set; }
+    public string? OwnerName { get; set; }
 }

@@ -47,7 +47,29 @@ namespace EduShelf.Api.Services
 
             if (role != Roles.Admin)
             {
-                query = query.Where(d => d.UserId == userId);
+                // Get owned documents OR shared documents
+                return await query
+                    .Include(d => d.DocumentTags)
+                    .ThenInclude(dt => dt.Tag)
+                    .Include(d => d.User) // Include owner info
+                    .Select(d => new 
+                    { 
+                        Document = d, 
+                        IsShared = _context.DocumentShares.Any(ds => ds.DocumentId == d.Id && ds.UserId == userId)
+                    })
+                    .Where(x => x.Document.UserId == userId || x.IsShared)
+                    .Select(x => new DocumentDto
+                    {
+                        Id = x.Document.Id,
+                        Title = x.Document.Title,
+                        FileType = x.Document.FileType,
+                        CreatedAt = x.Document.CreatedAt,
+                        Tags = x.Document.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList(),
+                        UserId = x.Document.UserId,
+                        IsShared = x.Document.UserId != userId,
+                        OwnerName = x.Document.UserId != userId ? x.Document.User.Username : null
+                    })
+                    .ToListAsync();
             }
 
             return await query
@@ -59,7 +81,9 @@ namespace EduShelf.Api.Services
                     Title = d.Title,
                     FileType = d.FileType,
                     CreatedAt = d.CreatedAt,
-                    Tags = d.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList()
+                    Tags = d.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList(),
+                    UserId = d.UserId,
+                    IsShared = false
                 })
                 .ToListAsync();
         }
@@ -76,7 +100,9 @@ namespace EduShelf.Api.Services
                 throw new NotFoundException("Document not found.");
             }
 
-            if (role != Roles.Admin && document.UserId != userId)
+            var isShared = await _context.DocumentShares.AnyAsync(ds => ds.DocumentId == id && ds.UserId == userId);
+
+            if (role != Roles.Admin && document.UserId != userId && !isShared)
             {
                 throw new ForbidException("You are not authorized to view this document.");
             }
@@ -88,7 +114,9 @@ namespace EduShelf.Api.Services
                 FileType = document.FileType,
                 CreatedAt = document.CreatedAt,
                 Tags = document.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList(),
-                UserId = document.UserId
+                UserId = document.UserId,
+                IsShared = document.UserId != userId,
+                OwnerName = (document.UserId != userId && document.User != null) ? document.User.Username : null
             };
         }
 
@@ -308,9 +336,30 @@ namespace EduShelf.Api.Services
 
             if (role != Roles.Admin)
             {
-                documentsQuery = documentsQuery.Where(d => d.UserId == userId);
+                 return await documentsQuery
+                    .Include(d => d.DocumentTags)
+                    .ThenInclude(dt => dt.Tag)
+                    .Include(d => d.User)
+                    .Select(d => new 
+                    { 
+                        Document = d, 
+                        IsShared = _context.DocumentShares.Any(ds => ds.DocumentId == d.Id && ds.UserId == userId)
+                    })
+                    .Where(x => (x.Document.UserId == userId || x.IsShared) && (string.IsNullOrEmpty(querySearch) || x.Document.Title.Contains(querySearch)))
+                    .Select(x => new DocumentDto
+                    {
+                        Id = x.Document.Id,
+                        Title = x.Document.Title,
+                        FileType = x.Document.FileType,
+                        CreatedAt = x.Document.CreatedAt,
+                        Tags = x.Document.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList(),
+                        UserId = x.Document.UserId,
+                        IsShared = x.Document.UserId != userId,
+                        OwnerName = x.Document.UserId != userId ? x.Document.User.Username : null
+                    })
+                    .ToListAsync();
             }
-
+            
             if (!string.IsNullOrEmpty(querySearch))
             {
                 documentsQuery = documentsQuery.Where(d => d.Title.Contains(querySearch));
@@ -325,7 +374,9 @@ namespace EduShelf.Api.Services
                     Title = d.Title,
                     FileType = d.FileType,
                     CreatedAt = d.CreatedAt,
-                    Tags = d.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList()
+                    Tags = d.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList(),
+                    UserId = d.UserId,
+                    IsShared = false
                 })
                 .ToListAsync();
         }
@@ -338,7 +389,9 @@ namespace EduShelf.Api.Services
                 throw new NotFoundException("Document not found.");
             }
 
-            if (role != Roles.Admin && document.UserId != userId)
+            var isShared = await _context.DocumentShares.AnyAsync(ds => ds.DocumentId == id && ds.UserId == userId);
+            
+            if (role != Roles.Admin && document.UserId != userId && !isShared)
             {
                 throw new ForbidException("You are not authorized to download this document.");
             }
@@ -361,7 +414,9 @@ namespace EduShelf.Api.Services
                throw new NotFoundException("Document not found.");
             }
 
-            if (role != Roles.Admin && document.UserId != userId)
+            var isShared = await _context.DocumentShares.AnyAsync(ds => ds.DocumentId == id && ds.UserId == userId);
+
+            if (role != Roles.Admin && document.UserId != userId && !isShared)
             {
                 throw new ForbidException("You are not authorized to view this document.");
             }
@@ -539,6 +594,50 @@ namespace EduShelf.Api.Services
                 {".gif", "image/gif"},
                 {".csv", "text/csv"}
             };
+        }
+        public async Task ShareDocumentAsync(int documentId, string emailOrUsername, int currentUserId)
+        {
+            var document = await _context.Documents.FindAsync(documentId);
+            if (document == null)
+            {
+                throw new NotFoundException("Document not found.");
+            }
+
+            if (document.UserId != currentUserId) // Only owner can share
+            {
+                throw new ForbidException("You are not authorized to share this document.");
+            }
+
+            var targetUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == emailOrUsername || u.Username == emailOrUsername);
+
+            if (targetUser == null)
+            {
+                throw new NotFoundException("User not found.");
+            }
+
+            if (targetUser.UserId == currentUserId)
+            {
+                throw new BadRequestException("You cannot share a document with yourself.");
+            }
+
+            var alreadyShared = await _context.DocumentShares
+                .AnyAsync(ds => ds.DocumentId == documentId && ds.UserId == targetUser.UserId);
+
+            if (alreadyShared)
+            {
+                throw new ConflictException("Document is already shared with this user.");
+            }
+
+            var share = new DocumentShare
+            {
+                DocumentId = documentId,
+                UserId = targetUser.UserId,
+                SharedAt = DateTime.UtcNow
+            };
+
+            _context.DocumentShares.Add(share);
+            await _context.SaveChangesAsync();
         }
     }
 }

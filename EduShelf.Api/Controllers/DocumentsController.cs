@@ -158,6 +158,14 @@ namespace EduShelf.Api.Controllers
             return NoContent();
         }
 
+        [HttpPost("{id}/share")]
+        public async Task<IActionResult> ShareDocument(int id, [FromBody] ShareDocumentDto shareDto)
+        {
+            var userId = GetCurrentUserId();
+            await _documentService.ShareDocumentAsync(id, shareDto.Email, userId);
+            return Ok(new { message = "Document shared successfully." });
+        }
+
         // Helper methods
         private int GetCurrentUserId()
         {
