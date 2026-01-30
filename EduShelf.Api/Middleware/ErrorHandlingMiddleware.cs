@@ -64,6 +64,10 @@ public class ErrorHandlingMiddleware
                 code = HttpStatusCode.Unauthorized;
                 result = JsonSerializer.Serialize(new { error = authenticationException.Message });
                 break;
+            case UnauthorizedAccessException unauthorizedAccessException:
+                code = HttpStatusCode.Unauthorized;
+                result = JsonSerializer.Serialize(new { error = unauthorizedAccessException.Message });
+                break;
             case AuthorizationException authorizationException:
                 code = HttpStatusCode.Forbidden;
                 result = JsonSerializer.Serialize(new { error = authorizationException.Message });
