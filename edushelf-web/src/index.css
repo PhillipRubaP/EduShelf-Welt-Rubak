@@ -49,6 +49,28 @@
   --selected-color: #ffc107;
   --disabled-color: #6c757d;
 
+  /* New Quiz UI Variables (Dark Mode Default) */
+  --quiz-card-bg: linear-gradient(145deg, #2c3440, #1f252e);
+  --quiz-card-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  --quiz-card-hover-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  --quiz-card-text: var(--neutral-white);
+  --quiz-results-bg: #2c2c2c;
+  --quiz-option-bg: #3a3a3a;
+  --quiz-option-border: #555;
+  --quiz-option-hover-bg: #4a4a4a;
+  --quiz-option-hover-border: #666;
+  --quiz-stat-card-bg: #3a3a3a;
+  --quiz-stat-card-border: #555;
+
+  /* Modal Specifics */
+  --modal-background: #2c2c2c;
+  --modal-text-color: #ffffff;
+  --modal-input-bg: #3a3a3a;
+  --modal-input-border: #555;
+  --modal-input-focus-border: var(--primary-green);
+  --modal-close-color: #aaa;
+  --modal-close-hover-color: #fff;
+
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -86,6 +108,27 @@
   /* Quiz variables */
   --quiz-answer-hover-text-color: var(--neutral-white);
   --quiz-results-stat-card-text-color: var(--text-color);
+
+  /* New Quiz UI Variables (Light Mode) */
+  --quiz-card-bg: linear-gradient(145deg, #ffffff, #f0f4f8);
+  --quiz-card-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  --quiz-card-hover-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  --quiz-card-text: #2c3e50;
+  --quiz-results-bg: #ffffff;
+  --quiz-option-bg: #ffffff;
+  --quiz-option-border: #e0e0e0;
+  --quiz-option-hover-bg: #f8f9fa;
+  --quiz-option-hover-border: #764ba2;
+  --quiz-stat-card-bg: #f8f9fa;
+  --quiz-stat-card-border: #eee;
+
+  /* Modal Specifics Light Mode */
+  --modal-background: #ffffff;
+  --modal-text-color: #333333;
+  --modal-input-bg: #f9f9f9;
+  --modal-input-border: #e0e0e0;
+  --modal-close-color: #888;
+  --modal-close-hover-color: #007bff;
 }
 
 a {
