@@ -5,11 +5,15 @@
   --secondary-mint: #DFF5E1;
   --highlight-amber: #FFC947;
   --neutral-blue-gray: #DFF5E1;
-  
+
   /* Dark theme variables */
   --primary-color: var(--neutral-anthracite);
   --secondary-color: #4a4a4a;
   --text-color: var(--neutral-white);
+  --text-muted: #b0b3b8;
+  --accent-color: var(--primary-green);
+  --primary-rgb: 59, 178, 115;
+  /* RGB of #3BB273 */
   --sidebar-background: #2c2c2c;
   --header-background: var(--neutral-anthracite);
   --bot-message-background: #4a4a4a;
@@ -89,6 +93,7 @@ a {
   color: var(--primary-green);
   text-decoration: inherit;
 }
+
 a:hover {
   color: var(--secondary-mint);
 }
@@ -118,18 +123,20 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
 }
+
 [data-theme='light'] button:hover {
   background-color: var(--secondary-mint);
   color: var(--primary-green);
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
 button:hover {
-    background-color: var(--primary-green-dark);
-    color: var(--button-text-color);
+  background-color: var(--primary-green-dark);
+  color: var(--button-text-color);
 }
 
 input[style*="--primary-green"] {
