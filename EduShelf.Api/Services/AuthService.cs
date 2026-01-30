@@ -14,11 +14,13 @@ public class AuthService : IAuthService
 {
     private readonly ApiDbContext _context;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IEmailService _emailService;
 
-    public AuthService(ApiDbContext context, IHttpContextAccessor httpContextAccessor)
+    public AuthService(ApiDbContext context, IHttpContextAccessor httpContextAccessor, IEmailService emailService)
     {
         _context = context;
         _httpContextAccessor = httpContextAccessor;
+        _emailService = emailService;
     }
 
     private int GetCurrentUserId()
@@ -41,6 +43,11 @@ public class AuthService : IAuthService
         if (user == null || !BCrypt.Net.BCrypt.Verify(login.Password, user.PasswordHash))
         {
             throw new UnauthorizedAccessException("Invalid credentials.");
+        }
+
+        if (!user.IsEmailConfirmed)
+        {
+            throw new UnauthorizedAccessException("Email not confirmed.");
         }
 
         var claims = new List<Claim>
@@ -94,7 +101,10 @@ public class AuthService : IAuthService
         {
             Username = userRegister.Username,
             Email = userRegister.Email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(userRegister.Password)
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(userRegister.Password),
+            IsEmailConfirmed = false,
+            EmailConfirmationToken = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)),
+            EmailConfirmationTokenExpiresAt = DateTime.UtcNow.AddHours(24)
         };
 
         var studentRole = await _context.Roles.SingleOrDefaultAsync(r => r.Name == Roles.Student);
@@ -107,6 +117,8 @@ public class AuthService : IAuthService
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
+
+        await _emailService.SendEmailAsync(user.Email, "Confirm your email", $"Your confirmation token is: {user.EmailConfirmationToken}");
 
         return new UserDto
         {
@@ -152,5 +164,34 @@ public class AuthService : IAuthService
             Username = user.Username,
             Email = user.Email
         };
+    }
+
+    public async Task ConfirmEmailAsync(ConfirmEmailDto confirmEmailDto)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == confirmEmailDto.Email);
+        if (user == null)
+        {
+             throw new NotFoundException("User not found.");
+        }
+
+        if (user.IsEmailConfirmed)
+        {
+             return;
+        }
+
+        if (user.EmailConfirmationToken != confirmEmailDto.Token)
+        {
+             throw new BadRequestException("Invalid token.");
+        }
+
+        if (user.EmailConfirmationTokenExpiresAt < DateTime.UtcNow)
+        {
+             throw new BadRequestException("Token expired.");
+        }
+
+        user.IsEmailConfirmed = true;
+        user.EmailConfirmationToken = null;
+        user.EmailConfirmationTokenExpiresAt = null;
+        await _context.SaveChangesAsync();
     }
 }

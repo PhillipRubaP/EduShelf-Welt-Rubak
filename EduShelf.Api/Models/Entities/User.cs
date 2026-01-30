@@ -17,6 +17,10 @@ public class User
     [StringLength(100)]
     public string Email { get; set; } = string.Empty;
 
+    public bool IsEmailConfirmed { get; set; } = false;
+    public string? EmailConfirmationToken { get; set; }
+    public DateTime? EmailConfirmationTokenExpiresAt { get; set; }
+
     public string PasswordHash { get; set; } = string.Empty;
 
     [NotMapped]

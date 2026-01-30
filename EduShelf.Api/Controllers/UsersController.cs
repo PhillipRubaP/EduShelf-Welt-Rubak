@@ -54,6 +54,14 @@ namespace EduShelf.Api.Controllers
             return CreatedAtAction(nameof(GetUser), new { id = userDto.UserId }, userDto);
         }
 
+        [HttpPost("confirm-email")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailDto confirmEmailDto)
+        {
+            await _authService.ConfirmEmailAsync(confirmEmailDto);
+            return Ok(new { message = "Email confirmed successfully." });
+        }
+
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<ActionResult<UserDto>> Login([FromBody] UserLogin login)

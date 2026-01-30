@@ -10,4 +10,5 @@ public interface IAuthService
     Task LogoutAsync();
     Task ChangePasswordAsync(int userId, PasswordChangeDto passwordChange);
     Task<UserDto> GetMeAsync();
+    Task ConfirmEmailAsync(ConfirmEmailDto confirmEmailDto);
 }
