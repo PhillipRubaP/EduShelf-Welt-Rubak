@@ -59,10 +59,35 @@
 
 .file-list-header {
   display: flex;
-  justify-content: flex-start;
-  align-items: baseline;
+  justify-content: space-between;
+  /* Changed from flex-start to space-between for better layout */
+  align-items: center;
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
+}
+
+.search-bar-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  margin: 0 2rem;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--secondary-color);
+  background-color: var(--flashcard-front-background);
+  color: var(--text-color);
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary-green);
 }
 
 .add-file-button {
