@@ -152,6 +152,6 @@ namespace EduShelf.Api.Controllers
 
     public class TagUpdateDto
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
     }
 }

@@ -350,8 +350,8 @@ namespace EduShelf.Api.Controllers
 
     public class FlashcardUpdateDto
     {
-        public string Question { get; set; }
-        public string Answer { get; set; }
-        public List<string> Tags { get; set; }
+        public string Question { get; set; } = string.Empty;
+        public string Answer { get; set; } = string.Empty;
+        public List<string> Tags { get; set; } = new();
     }
 }
