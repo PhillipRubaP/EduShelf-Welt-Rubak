@@ -1,23 +1,32 @@
+/* Flashcards Grid - Geometric Style */
 .flashcards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+    padding: 1rem;
 }
 
 .flashcard-scene {
     width: 100%;
-    height: 150px;
-    perspective: 600px;
+    height: 180px;
+    perspective: 1000px;
     background-color: transparent;
     border: none;
+    cursor: pointer;
 }
 
 .flashcard-container {
     width: 100%;
     height: 100%;
     position: relative;
-    transition: transform 0.6s;
+    transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
     transform-style: preserve-3d;
+
+    /* Hover effect handled on the container or faces */
+}
+
+.flashcard-scene:hover .flashcard-container {
+    transform: scale(1.02);
 }
 
 .flashcard-scene.flipped .flashcard-container {
@@ -32,33 +41,49 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 2rem;
     box-sizing: border-box;
-    border-radius: 8px;
-    color: var(--flashcard-text-color);
-    font-size: 1.1rem;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 500;
+
+    /* Geometric Shape - Chamfered Corners */
+    clip-path: polygon(10px 0, 100% 0,
+            100% calc(100% - 10px), calc(100% - 10px) 100%,
+            0 100%, 0 10px);
+
+    /* Shadow/Glow for Border effect */
+    filter: drop-shadow(0 0 2px var(--quiz-border-color));
 }
 
 .flashcard-front {
-    background-color: var(--flashcard-front-background);
-    border: 1px solid var(--flashcard-front-border);
-    color: var(--flashcard-text-color);
+    background-color: var(--quiz-question-background);
+    color: var(--quiz-question-text-color);
+    /* No border property because of clip-path, using drop-shadow instead */
 }
 
 .flashcard-back {
-    background-color: var(--flashcard-back-background);
-    border: 1px solid var(--flashcard-back-border);
+    background-color: var(--quiz-question-background);
+    /* Slightly darker/different for back */
+    color: var(--text-color);
     transform: rotateY(180deg);
-    color: var(--flashcard-back-text-color);
+    /* Distinguish back face */
+    filter: drop-shadow(0 0 2px var(--secondary-mint));
 }
 
+.flashcard-face p {
+    margin: 0;
+    word-break: break-word;
+}
+
+/* Action Buttons (Edit/Delete) - Absolute positioning might need adjustment with clip-path */
 .file-card-buttons {
     position: absolute;
     bottom: 10px;
-    right: 10px;
-    z-index: 10; /* Ensure buttons are on top */
+    right: 15px;
+    z-index: 10;
+    /* Ensure they are visible on top of the clipped area */
 }
 
-.review-button {
-    width: 100px;
-}
+/* Ensure buttons don't get clipped if they are near the edge. 
+   We might need to inset them slightly more. */
