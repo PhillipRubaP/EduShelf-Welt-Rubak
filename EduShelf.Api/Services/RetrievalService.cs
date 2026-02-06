@@ -6,19 +6,20 @@ using Microsoft.SemanticKernel.Embeddings;
 using Pgvector;
 using Pgvector.EntityFrameworkCore;
 using System.IO;
+using Microsoft.Extensions.AI;
 
 namespace EduShelf.Api.Services
 {
     public class RetrievalService
     {
         private readonly ApiDbContext _context;
-        private readonly Kernel _kernel;
+        private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingGenerator;
         private readonly ILogger<RetrievalService> _logger;
 
-        public RetrievalService(ApiDbContext context, Kernel kernel, ILogger<RetrievalService> logger)
+        public RetrievalService(ApiDbContext context, IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator, ILogger<RetrievalService> logger)
         {
             _context = context;
-            _kernel = kernel;
+            _embeddingGenerator = embeddingGenerator;
             _logger = logger;
         }
 
@@ -38,7 +39,6 @@ namespace EduShelf.Api.Services
                             EF.Functions.ILike(dc.Document.Title, documentNameWithoutExtension)))
                     .ToListAsync();
 
-                // System.Console.WriteLine($"[DEBUG] Found {chunks.Count} chunks for document '{documentNameWithoutExtension}' (UserId: {userId})");
                 if (chunks.Any())
                 {
                     Console.WriteLine($"[RetrievalService] Found {chunks.Count} chunks by name match ('{intent.DocumentName}')");
@@ -50,16 +50,15 @@ namespace EduShelf.Api.Services
                 Console.WriteLine($"[RetrievalService] No chunks found by name ('{intent.DocumentName}'). Falling back to semantic search.");
             }
             
-            // Fallthrough to embedding search (remove 'else' block wrapper)
-                var embeddingGenerator = _kernel.GetRequiredService<ITextEmbeddingGenerationService>();
-                var promptEmbedding = await embeddingGenerator.GenerateEmbeddingAsync(userInput);
-                var k = GetDynamicK(userInput);
-                return await _context.DocumentChunks
-                    .Include(dc => dc.Document)
-                    .Where(dc => dc.Document.UserId == userId)
-                    .OrderBy(dc => dc.Embedding.L2Distance(new Vector(promptEmbedding)))
-                    .Take(k)
-                    .ToListAsync();
+            // Fallthrough to embedding search
+            var promptEmbedding = await _embeddingGenerator.GenerateAsync(userInput);
+            var k = GetDynamicK(userInput);
+            return await _context.DocumentChunks
+                .Include(dc => dc.Document)
+                .Where(dc => dc.Document.UserId == userId)
+                .OrderBy(dc => dc.Embedding.L2Distance(new Vector(promptEmbedding.Vector)))
+                .Take(k)
+                .ToListAsync();
         }
 
 

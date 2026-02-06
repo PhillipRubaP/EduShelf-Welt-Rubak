@@ -33,7 +33,7 @@ public static class ServiceCollectionExtensions
             httpClient: ollamaClient);
 
         #pragma warning disable SKEXP0070
-        kernelBuilder.AddOllamaTextEmbeddingGeneration(
+        kernelBuilder.AddOllamaEmbeddingGenerator(
             modelId: configuration["AIService:EmbeddingModel"]!,
             httpClient: ollamaClient);
 
@@ -57,15 +57,6 @@ public static class ServiceCollectionExtensions
         // Background Job Processing
         services.AddSingleton<IBackgroundJobQueue, BackgroundJobQueue>();
         services.AddHostedService<BackgroundJobService>();
-
-        // Embedding Generators (Workaround)
-        #pragma warning disable SKEXP0001
-        services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(sp =>
-        {
-            var kernel = sp.GetRequiredService<Kernel>();
-            var textEmbeddingService = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
-            return new TextEmbeddingGenerationServiceAdapter(textEmbeddingService);
-        });
 
         return services;
     }
