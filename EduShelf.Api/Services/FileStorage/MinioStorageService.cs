@@ -63,7 +63,7 @@ namespace EduShelf.Api.Services.FileStorage
             }
         }
 
-        public async Task<Stream> DownloadFileAsync(string fileName)
+        public async Task<Stream?> DownloadFileAsync(string fileName)
         {
             try
             {

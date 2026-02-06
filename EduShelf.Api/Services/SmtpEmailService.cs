@@ -32,12 +32,14 @@ public class SmtpEmailService : IEmailService
         using var client = new SmtpClient(host, port)
         {
             Credentials = new NetworkCredential(user, pass),
-            EnableSsl = true
+            EnableSsl = true,
+            DeliveryMethod = SmtpDeliveryMethod.Network,
+            UseDefaultCredentials = false
         };
 
         var mailMessage = new MailMessage
         {
-            From = new MailAddress(from ?? user),
+            From = new MailAddress(!string.IsNullOrEmpty(from) && from.Contains("@") ? from : "noreply@edushelf.com"),
             Subject = subject,
             Body = htmlBody,
             IsBodyHtml = true

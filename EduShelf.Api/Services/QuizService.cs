@@ -137,7 +137,7 @@ namespace EduShelf.Api.Services
 
             foreach (var questionDto in quizUpdateDto.Questions)
             {
-                Question question;
+                Question? question;
                 if (questionDto.Id != 0) // Existing Question
                 {
                     question = quiz.Questions.FirstOrDefault(q => q.Id == questionDto.Id);

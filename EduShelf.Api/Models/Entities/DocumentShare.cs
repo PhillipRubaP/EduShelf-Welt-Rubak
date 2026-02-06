@@ -17,8 +17,8 @@ public class DocumentShare
     public DateTime SharedAt { get; set; } = DateTime.UtcNow;
 
     [ForeignKey("DocumentId")]
-    public virtual Document Document { get; set; }
+    public virtual Document Document { get; set; } = null!;
 
     [ForeignKey("UserId")]
-    public virtual User User { get; set; }
+    public virtual User User { get; set; } = null!;
 }

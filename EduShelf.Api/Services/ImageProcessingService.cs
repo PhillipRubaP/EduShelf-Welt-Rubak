@@ -40,7 +40,7 @@ namespace EduShelf.Api.Services
 
             var responseBody = await response.Content.ReadAsStringAsync();
             var jsonResponse = JsonDocument.Parse(responseBody);
-            return jsonResponse.RootElement.GetProperty("response").GetString();
+            return jsonResponse.RootElement.GetProperty("response").GetString() ?? string.Empty;
         }
     }
 }

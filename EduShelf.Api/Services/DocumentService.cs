@@ -471,9 +471,13 @@ namespace EduShelf.Api.Services
                 using (var wordDoc = WordprocessingDocument.Open(fileStream, false))
                 {
                     var stringBuilder = new StringBuilder();
-                    foreach (var p in wordDoc.MainDocumentPart.Document.Body.Elements<Paragraph>())
+                    var body = wordDoc.MainDocumentPart?.Document?.Body;
+                    if (body != null)
                     {
-                        stringBuilder.AppendLine(p.InnerText);
+                        foreach (var p in body.Elements<Paragraph>())
+                        {
+                            stringBuilder.AppendLine(p.InnerText);
+                        }
                     }
                     content = stringBuilder.ToString();
                 }

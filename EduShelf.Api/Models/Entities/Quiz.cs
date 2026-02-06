@@ -21,6 +21,6 @@ namespace EduShelf.Api.Models.Entities
         [ForeignKey("UserId")]
         public virtual User? User { get; set; }
 
-        public virtual ICollection<Question>? Questions { get; set; }
+        public virtual ICollection<Question> Questions { get; set; } = new List<Question>();
     }
 }

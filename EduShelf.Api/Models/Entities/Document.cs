@@ -27,7 +27,7 @@ public class Document
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     [ForeignKey("UserId")]
-    public virtual User User { get; set; }
+    public virtual User User { get; set; } = null!;
 
-    public virtual ICollection<DocumentTag> DocumentTags { get; set; }
+    public virtual ICollection<DocumentTag> DocumentTags { get; set; } = new List<DocumentTag>();
 }

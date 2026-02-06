@@ -118,7 +118,16 @@ public class AuthService : IAuthService
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        await _emailService.SendEmailAsync(user.Email, "Confirm your email", $"Your confirmation token is: {user.EmailConfirmationToken}");
+        try
+        {
+            await _emailService.SendEmailAsync(user.Email, "Confirm your email", $"Your confirmation token is: {user.EmailConfirmationToken}");
+        }
+        catch (Exception ex)
+        {
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+            throw new Exception($"Registration failed: Could not send confirmation email. Error: {ex.Message}");
+        }
 
         return new UserDto
         {
