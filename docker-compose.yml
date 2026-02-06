@@ -14,7 +14,13 @@ services:
       - Minio__Bucket=${MINIO_BUCKET}
       - Jwt__Key=${JWT_KEY}
       - Seeding__AdminPassword=${ADMIN_PASSWORD}
+      - Seeding__AdminPassword=${ADMIN_PASSWORD}
       - Seeding__StudentPassword=${STUDENT_PASSWORD}
+      - EmailSettings__SmtpHost=${SMTP_HOST}
+      - EmailSettings__SmtpPort=${SMTP_PORT}
+      - EmailSettings__SmtpUser=${SMTP_USER}
+      - EmailSettings__SmtpPass=${SMTP_PASS}
+      - EmailSettings__FromEmail=${FROM_EMAIL}
     volumes:
       - ./EduShelf.Api/Uploads:/app/Uploads
     networks:
