@@ -1,98 +1,90 @@
 using Xunit;
 using EduShelf.Api.Controllers;
-using EduShelf.Api.Data;
 using EduShelf.Api.Models.Entities;
+using EduShelf.Api.Models.Dtos;
+using EduShelf.Api.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Moq;
+using System.Collections.Generic;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using EduShelf.Api.Models.Dtos;
-using System;
+using System.Threading.Tasks;
 
 namespace EduShelf.Api.Tests
 {
     public class FlashcardsControllerTests
     {
-        private async Task<(ApiDbContext, FlashcardsController)> SetupTest(int userId, string role = "User")
+        private readonly Mock<IFlashcardService> _mockFlashcardService;
+        private readonly FlashcardsController _controller;
+        private readonly ClaimsPrincipal _user;
+
+        public FlashcardsControllerTests()
         {
-            var dbContextOptions = new DbContextOptionsBuilder<ApiDbContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) // Unique name for each test
-                .Options;
+            _mockFlashcardService = new Mock<IFlashcardService>();
             
-            var configurationMock = new Mock<IConfiguration>();
-
-            var context = new TestApiDbContext(dbContextOptions, configurationMock.Object);
-            
-            context.Flashcards.AddRange(
-                new Flashcard { Id = 1, Question = "Q1", Answer = "A1", UserId = 1 },
-                new Flashcard { Id = 2, Question = "Q2", Answer = "A2", UserId = 1 },
-                new Flashcard { Id = 3, Question = "Q3", Answer = "A3", UserId = 2 }
-            );
-            await context.SaveChangesAsync();
-
-            var claims = new List<Claim>
+            _user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
             {
-                new Claim(ClaimTypes.NameIdentifier, userId.ToString())
+                new Claim(ClaimTypes.NameIdentifier, "1"),
+                new Claim(ClaimTypes.Role, "Student")
+            }, "mock"));
+
+            _controller = new FlashcardsController(_mockFlashcardService.Object);
+            _controller.ControllerContext = new ControllerContext()
+            {
+                HttpContext = new DefaultHttpContext() { User = _user }
+            };
+        }
+
+        [Fact]
+        public async Task GetFlashcards_ShouldReturnFlashcardsFromService()
+        {
+            // Arrange
+            var flashcards = new List<FlashcardDto>
+            {
+                new FlashcardDto { Id = 1, Question = "Q1", Answer = "A1", UserId = 1, Tags = new List<string>() },
+                new FlashcardDto { Id = 2, Question = "Q2", Answer = "A2", UserId = 1, Tags = new List<string>() }
             };
 
-            if (!string.IsNullOrEmpty(role))
+            _mockFlashcardService.Setup(s => s.GetFlashcardsAsync(1, false))
+                .ReturnsAsync(flashcards);
+
+            // Act
+            var result = await _controller.GetFlashcards();
+
+            // Assert
+            var actionResult = Assert.IsType<ActionResult<IEnumerable<FlashcardDto>>>(result);
+            var returnedFlashcards = Assert.IsAssignableFrom<IEnumerable<FlashcardDto>>(actionResult.Result as OkObjectResult != null ? (actionResult.Result as OkObjectResult).Value : actionResult.Value);
+            
+            // Handle both ActionResult wrapping or direct value
+            if (actionResult.Result is OkObjectResult okResult)
             {
-                claims.Add(new Claim(ClaimTypes.Role, role));
+                returnedFlashcards = Assert.IsAssignableFrom<IEnumerable<FlashcardDto>>(okResult.Value);
             }
-
-            var user = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuthentication"));
             
-            var controller = new FlashcardsController(context)
+            Assert.Equal(2, ((List<FlashcardDto>)returnedFlashcards).Count);
+        }
+
+        [Fact]
+        public async Task GetFlashcard_ShouldReturnFlashcard()
+        {
+            // Arrange
+            var flashcard = new FlashcardDto { Id = 1, Question = "Q1", Answer = "A1", UserId = 1, Tags = new List<string>() };
+            _mockFlashcardService.Setup(s => s.GetFlashcardAsync(1, 1, false))
+                .ReturnsAsync(flashcard);
+
+            // Act
+            var result = await _controller.GetFlashcard(1);
+
+            // Assert
+            var actionResult = Assert.IsType<ActionResult<FlashcardDto>>(result);
+            if (actionResult.Result is OkObjectResult okResult)
             {
-                ControllerContext = new ControllerContext
-                {
-                    HttpContext = new DefaultHttpContext { User = user }
-                }
-            };
-            
-            return (context, controller);
-        }
-
-        [Fact]
-        public async Task GetFlashcards_AsAdmin_ShouldReturnAllFlashcards()
-        {
-            // Arrange
-            var (context, controller) = await SetupTest(99, "Admin");
-
-            // Act
-            var result = await controller.GetFlashcards();
-
-            // Assert
-            var actionResult = Assert.IsType<ActionResult<IEnumerable<FlashcardDto>>>(result);
-            var flashcards = Assert.IsAssignableFrom<IEnumerable<FlashcardDto>>(actionResult.Value);
-            Assert.Equal(3, flashcards.Count());
-
-            // Cleanup
-            await context.DisposeAsync();
-        }
-
-        [Fact]
-        public async Task GetFlashcards_AsNonAdmin_ShouldReturnOnlyOwnFlashcards()
-        {
-            // Arrange
-            var (context, controller) = await SetupTest(1, "User");
-
-            // Act
-            var result = await controller.GetFlashcards();
-
-            // Assert
-            var actionResult = Assert.IsType<ActionResult<IEnumerable<FlashcardDto>>>(result);
-            var flashcards = Assert.IsAssignableFrom<IEnumerable<FlashcardDto>>(actionResult.Value);
-            Assert.Equal(2, flashcards.Count());
-            Assert.All(flashcards, f => Assert.Equal(1, f.UserId));
-
-            // Cleanup
-            await context.DisposeAsync();
+                Assert.Equal(flashcard, okResult.Value);
+            }
+            else 
+            {
+               Assert.Equal(flashcard, actionResult.Value);
+            }
         }
     }
 }

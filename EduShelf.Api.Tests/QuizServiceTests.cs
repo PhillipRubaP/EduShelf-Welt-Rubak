@@ -14,17 +14,31 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Xunit;
 
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.Extensions.DependencyInjection; // For service provider if needed
+
 namespace EduShelf.Api.Tests
 {
     public class QuizServiceTests
     {
         private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
         private readonly Mock<IConfiguration> _mockConfiguration;
+        private readonly Mock<IDocumentService> _mockDocumentService;
+        private readonly Mock<IChatCompletionService> _mockChatCompletionService;
+        private readonly Kernel _mockKernel;
 
         public QuizServiceTests()
         {
             _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
             _mockConfiguration = new Mock<IConfiguration>();
+            _mockDocumentService = new Mock<IDocumentService>();
+            _mockChatCompletionService = new Mock<IChatCompletionService>();
+
+            // Setup Kernel with mock ChatCompletionService
+            var services = new ServiceCollection();
+            services.AddSingleton(_mockChatCompletionService.Object);
+            _mockKernel = new Kernel(services.BuildServiceProvider());
         }
 
         private ApiDbContext CreateContext()
@@ -50,7 +64,12 @@ namespace EduShelf.Api.Tests
 
             _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
 
-            return new QuizService(context, _mockHttpContextAccessor.Object);
+            return new QuizService(
+                context, 
+                _mockHttpContextAccessor.Object, 
+                _mockKernel, 
+                _mockConfiguration.Object, 
+                _mockDocumentService.Object);
         }
 
         [Fact]
