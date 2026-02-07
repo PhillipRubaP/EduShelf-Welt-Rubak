@@ -1,14 +1,10 @@
-using EduShelf.Api.Data;
 using EduShelf.Api.Models.Dtos;
-using EduShelf.Api.Models.Entities;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using System.Security.Claims;
+using EduShelf.Api.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace EduShelf.Api.Controllers
 {
@@ -18,231 +14,68 @@ namespace EduShelf.Api.Controllers
     [ApiExplorerSettings(GroupName = "Flashcards")]
     public class FlashcardsController : ControllerBase
     {
-        private readonly ApiDbContext _context;
+        private readonly IFlashcardService _flashcardService;
 
-        public FlashcardsController(ApiDbContext context)
+        public FlashcardsController(IFlashcardService flashcardService)
         {
-            _context = context;
+            _flashcardService = flashcardService;
         }
 
         // GET: api/Flashcards
         [HttpGet]
         public async Task<ActionResult<IEnumerable<FlashcardDto>>> GetFlashcards()
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdString, out var userId))
-            {
-                return Unauthorized("Invalid user identifier.");
-            }
-            var isAdmin = User.IsInRole("Admin");
-
-            var query = _context.Flashcards.AsQueryable();
-
-            if (!isAdmin)
-            {
-                query = query.Where(f => f.UserId == userId);
-            }
-
-            return await query
-                .Include(f => f.FlashcardTags)
-                .ThenInclude(ft => ft.Tag)
-                .Select(f => new FlashcardDto
-                {
-                    Id = f.Id,
-                    UserId = f.UserId,
-                    Question = f.Question,
-                    Answer = f.Answer,
-                    CreatedAt = f.CreatedAt,
-                    Tags = f.FlashcardTags.Select(ft => ft.Tag.Name).ToList()
-                })
-                .ToListAsync();
+            var userId = GetUserId();
+            var isAdmin = IsAdmin();
+            var flashcards = await _flashcardService.GetFlashcardsAsync(userId, isAdmin);
+            return Ok(flashcards);
         }
 
         // GET: api/Flashcards/5
         [HttpGet("{id}")]
         public async Task<ActionResult<FlashcardDto>> GetFlashcard(int id)
         {
-            var flashcard = await _context.Flashcards
-                .Include(f => f.FlashcardTags)
-                .ThenInclude(ft => ft.Tag)
-                .Select(f => new FlashcardDto
-                {
-                    Id = f.Id,
-                    UserId = f.UserId,
-                    Question = f.Question,
-                    Answer = f.Answer,
-                    CreatedAt = f.CreatedAt,
-                    Tags = f.FlashcardTags.Select(ft => ft.Tag.Name).ToList()
-                })
-                .FirstOrDefaultAsync(f => f.Id == id);
-
-            if (flashcard == null)
-            {
-                return NotFound();
-            }
-
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdString, out var userId))
-            {
-                return Unauthorized("Invalid user identifier.");
-            }
-            var isAdmin = User.IsInRole("Admin");
-
-            if (!isAdmin && flashcard.UserId != userId)
-            {
-                return Forbid();
-            }
-
-            return flashcard;
+            var userId = GetUserId();
+            var isAdmin = IsAdmin();
+            var flashcard = await _flashcardService.GetFlashcardAsync(id, userId, isAdmin);
+            return Ok(flashcard);
         }
 
         // GET: api/Flashcards/tag/5
         [HttpGet("tag/{tagId}")]
         public async Task<ActionResult<IEnumerable<FlashcardDto>>> GetFlashcardsByTag(int tagId)
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdString, out var userId))
-            {
-                return Unauthorized("Invalid user identifier.");
-            }
-            var isAdmin = User.IsInRole("Admin");
-
-            var query = _context.Flashcards.AsQueryable();
-
-            if (!isAdmin)
-            {
-                query = query.Where(f => f.UserId == userId);
-            }
-
-            return await query
-                .Where(f => f.FlashcardTags.Any(ft => ft.TagId == tagId))
-                .Include(f => f.FlashcardTags)
-                .ThenInclude(ft => ft.Tag)
-                .Select(f => new FlashcardDto
-                {
-                    Id = f.Id,
-                    UserId = f.UserId,
-                    Question = f.Question,
-                    Answer = f.Answer,
-                    CreatedAt = f.CreatedAt,
-                    Tags = f.FlashcardTags.Select(ft => ft.Tag.Name).ToList()
-                })
-                .ToListAsync();
+            var userId = GetUserId();
+            var isAdmin = IsAdmin();
+            var flashcards = await _flashcardService.GetFlashcardsByTagAsync(tagId, userId, isAdmin);
+            return Ok(flashcards);
         }
 
         // POST: api/Flashcards
         [HttpPost]
         public async Task<ActionResult<FlashcardDto>> PostFlashcard(FlashcardCreateDto flashcardDto)
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdString, out var userId))
-            {
-                return Unauthorized("Invalid user identifier.");
-            }
+            var userId = GetUserId();
+            var createdFlashcard = await _flashcardService.CreateFlashcardAsync(flashcardDto, userId);
+            return CreatedAtAction(nameof(GetFlashcard), new { id = createdFlashcard.Id }, createdFlashcard);
+        }
 
-            Console.WriteLine($"Received Flashcard request from User {userId}: Question={flashcardDto.Question}, Answer={flashcardDto.Answer}");
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var flashcard = new Flashcard
-            {
-                UserId = userId,
-                Question = flashcardDto.Question,
-                Answer = flashcardDto.Answer
-            };
-
-            if (flashcardDto.Tags != null)
-            {
-                foreach (var tagName in flashcardDto.Tags)
-                {
-                    var tag = await _context.Tags.FirstOrDefaultAsync(t => t.Name == tagName);
-                    if (tag == null)
-                    {
-                        tag = new Tag { Name = tagName };
-                        _context.Tags.Add(tag);
-                    }
-                    flashcard.FlashcardTags.Add(new FlashcardTag { Tag = tag });
-                }
-            }
-
-            _context.Flashcards.Add(flashcard);
-            await _context.SaveChangesAsync();
-
-            var flashcardResultDto = new FlashcardDto
-            {
-                Id = flashcard.Id,
-                UserId = flashcard.UserId,
-                Question = flashcard.Question,
-                Answer = flashcard.Answer,
-                CreatedAt = flashcard.CreatedAt,
-                Tags = flashcard.FlashcardTags.Select(ft => ft.Tag.Name).ToList()
-            };
-
-            return CreatedAtAction("GetFlashcard", new { id = flashcard.Id }, flashcardResultDto);
+        // POST: api/Flashcards/generate
+        [HttpPost("generate")]
+        public async Task<ActionResult<List<FlashcardDto>>> GenerateFlashcards([FromBody] GenerateFlashcardsRequest request)
+        {
+            var userId = GetUserId();
+            var generatedFlashcards = await _flashcardService.GenerateFlashcardsAsync(request, userId);
+            return Ok(generatedFlashcards);
         }
 
         // PUT: api/Flashcards/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutFlashcard(int id, FlashcardCreateDto flashcardDto)
         {
-            var flashcard = await _context.Flashcards
-                .Include(f => f.FlashcardTags)
-                .FirstOrDefaultAsync(f => f.Id == id);
-
-            if (flashcard == null)
-            {
-                return NotFound();
-            }
-
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdString, out var userId))
-            {
-                return Unauthorized("Invalid user identifier.");
-            }
-            var isAdmin = User.IsInRole("Admin");
-
-            if (!isAdmin && flashcard.UserId != userId)
-            {
-                return Forbid();
-            }
-
-            flashcard.Question = flashcardDto.Question;
-            flashcard.Answer = flashcardDto.Answer;
-
-            flashcard.FlashcardTags.Clear();
-            if (flashcardDto.Tags != null)
-            {
-                foreach (var tagName in flashcardDto.Tags)
-                {
-                    var tag = await _context.Tags.FirstOrDefaultAsync(t => t.Name == tagName);
-                    if (tag == null)
-                    {
-                        tag = new Tag { Name = tagName };
-                        _context.Tags.Add(tag);
-                    }
-                    flashcard.FlashcardTags.Add(new FlashcardTag { Tag = tag });
-                }
-            }
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!FlashcardExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
+            var userId = GetUserId();
+            var isAdmin = IsAdmin();
+            await _flashcardService.UpdateFlashcardAsync(id, flashcardDto, userId, isAdmin);
             return NoContent();
         }
 
@@ -250,108 +83,37 @@ namespace EduShelf.Api.Controllers
         [HttpPatch("{id}")]
         public async Task<IActionResult> PatchFlashcard(int id, FlashcardUpdateDto flashcardUpdate)
         {
-            var flashcard = await _context.Flashcards
-                .Include(f => f.FlashcardTags)
-                .FirstOrDefaultAsync(f => f.Id == id);
-
-            if (flashcard == null)
-            {
-                return NotFound();
-            }
-
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdString, out var userId))
-            {
-                return Unauthorized("Invalid user identifier.");
-            }
-            var isAdmin = User.IsInRole("Admin");
-
-            if (!isAdmin && flashcard.UserId != userId)
-            {
-                return Forbid();
-            }
-
-            if (!string.IsNullOrEmpty(flashcardUpdate.Question))
-            {
-                flashcard.Question = flashcardUpdate.Question;
-            }
-
-            if (!string.IsNullOrEmpty(flashcardUpdate.Answer))
-            {
-                flashcard.Answer = flashcardUpdate.Answer;
-            }
-
-            if (flashcardUpdate.Tags != null)
-            {
-                flashcard.FlashcardTags.Clear();
-                foreach (var tagName in flashcardUpdate.Tags)
-                {
-                    var tag = await _context.Tags.FirstOrDefaultAsync(t => t.Name == tagName);
-                    if (tag == null)
-                    {
-                        tag = new Tag { Name = tagName };
-                        _context.Tags.Add(tag);
-                    }
-                    flashcard.FlashcardTags.Add(new FlashcardTag { Tag = tag });
-                }
-            }
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!FlashcardExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
+            var userId = GetUserId();
+            var isAdmin = IsAdmin();
+            await _flashcardService.PatchFlashcardAsync(id, flashcardUpdate, userId, isAdmin);
             return NoContent();
         }
+
         // DELETE: api/Flashcards/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFlashcard(int id)
         {
-            var flashcard = await _context.Flashcards.FindAsync(id);
-            if (flashcard == null)
-            {
-                return NotFound();
-            }
-
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdString, out var userId))
-            {
-                return Unauthorized("Invalid user identifier.");
-            }
-            var isAdmin = User.IsInRole("Admin");
-
-            if (!isAdmin && flashcard.UserId != userId)
-            {
-                return Forbid();
-            }
-
-            _context.Flashcards.Remove(flashcard);
-            await _context.SaveChangesAsync();
-
+            var userId = GetUserId();
+            var isAdmin = IsAdmin();
+            await _flashcardService.DeleteFlashcardAsync(id, userId, isAdmin);
             return NoContent();
         }
 
-        private bool FlashcardExists(int id)
+        private int GetUserId()
         {
-            return _context.Flashcards.Any(e => e.Id == id);
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                throw new System.UnauthorizedAccessException("Invalid user identifier.");
+            }
+            return userId;
+        }
+
+        private bool IsAdmin()
+        {
+            return User.IsInRole("Admin");
         }
     }
 
-    public class FlashcardUpdateDto
-    {
-        public string Question { get; set; } = string.Empty;
-        public string Answer { get; set; } = string.Empty;
-        public List<string> Tags { get; set; } = new();
-    }
+
 }

@@ -48,6 +48,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IQuizService, QuizService>();
         services.AddScoped<IDocumentService, DocumentService>();
+        services.AddScoped<IFlashcardService, FlashcardService>();
         
         // File Storage
         services.AddSingleton<IFileStorageService, MinioStorageService>();
