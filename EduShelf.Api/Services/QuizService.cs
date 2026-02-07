@@ -11,6 +11,15 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 
 using EduShelf.Api.Constants;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.Extensions.DependencyInjection; // For GetRequiredService if needed, but it's on Kernel which is a service provider? No, Kernel is not IServiceProvider. 
+// Actually Kernel.GetRequiredService is extension? 
+// Let's check FlashcardService imports. 
+// FlashcardService used: 
+// using Microsoft.SemanticKernel;
+// using Microsoft.SemanticKernel.ChatCompletion;
+// using System.Text.Json;
 
 namespace EduShelf.Api.Services
 {
@@ -18,11 +27,22 @@ namespace EduShelf.Api.Services
     {
         private readonly ApiDbContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IChatCompletionService _chatCompletionService;
+        private readonly IConfiguration _configuration;
+        private readonly IDocumentService _documentService;
 
-        public QuizService(ApiDbContext context, IHttpContextAccessor httpContextAccessor)
+        public QuizService(
+            ApiDbContext context, 
+            IHttpContextAccessor httpContextAccessor, 
+            Kernel kernel, 
+            IConfiguration configuration,
+            IDocumentService documentService)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
+            _chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+            _configuration = configuration;
+            _documentService = documentService;
         }
 
         private int GetCurrentUserId()
@@ -252,6 +272,102 @@ namespace EduShelf.Api.Services
 
             _context.Quizzes.Remove(quiz);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<QuizDto> GenerateQuizAsync(GenerateQuizRequest request, int userId)
+        {
+            // 1. Retrieve Document Content
+            string documentContent;
+            
+            try 
+            {
+                var doc = await _documentService.GetDocumentAsync(request.DocumentId, userId, Roles.Student);
+                documentContent = await _documentService.GetDocumentContentAsync(request.DocumentId, userId, Roles.Student);
+            } 
+            catch (Exception ex)
+            {
+                 // Handle or log
+                 throw new ArgumentException("Could not retrieve document content for generation.");
+            }
+
+            if (string.IsNullOrWhiteSpace(documentContent))
+            {
+                throw new ArgumentException("Document content is empty or unreadable.");
+            }
+
+            // Limit content size roughly to fit context window if needed, but assuming model handles or truncates 4096 tokens.
+            if (documentContent.Length > 15000)
+            {
+                documentContent = documentContent.Substring(0, 15000); // Rough truncation
+            }
+
+            // 2. Prepare AI Prompt
+            var promptTemplate = _configuration.GetValue<string>("AIService:Prompts:Quiz");
+            var prompt = $"{promptTemplate}\n\nCount: {request.Count}\n\n[Text Analysis]:\n{documentContent}";
+
+            // 3. Call AI
+            var chatHistory = new ChatHistory();
+            chatHistory.AddUserMessage(prompt);
+
+            var result = await _chatCompletionService.GetChatMessageContentAsync(chatHistory);
+            var rawJson = result.Content ?? "{}";
+
+            // 4. Parse JSON
+            var cleanedJson = CleanJson(rawJson);
+            GeneratedQuizJson generatedQuiz;
+            try
+            {
+                generatedQuiz = System.Text.Json.JsonSerializer.Deserialize<GeneratedQuizJson>(cleanedJson, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                throw new InvalidOperationException("AI failed to generate valid JSON for the quiz.");
+            }
+            
+            if (generatedQuiz == null) throw new InvalidOperationException("Generated quiz is null.");
+
+            // 5. Save Quiz
+            var newQuiz = new Quiz
+            {
+                Title = generatedQuiz.Title,
+                UserId = userId,
+                Questions = generatedQuiz.Questions.Select(q => new Question
+                {
+                    Text = q.Text,
+                    Answers = q.Answers.Select(a => new Answer
+                    {
+                        Text = a.Text,
+                        IsCorrect = a.IsCorrect
+                    }).ToList()
+                }).ToList()
+            };
+
+            // Associate with document via Tags if possible? 
+            // Quiz entity doesn't have direct document link or tag link in the default schema shown, maybe it does?
+            // Assuming Quiz entity is simple.
+            
+            _context.Quizzes.Add(newQuiz);
+            await _context.SaveChangesAsync();
+
+            return MapToDto(newQuiz);
+        }
+
+        private static string CleanJson(string raw)
+        {
+            var cleaned = raw.Trim();
+            if (cleaned.StartsWith("```json"))
+            {
+                cleaned = cleaned.Substring(7);
+            }
+            if (cleaned.StartsWith("```"))
+            {
+                cleaned = cleaned.Substring(3);
+            }
+            if (cleaned.EndsWith("```"))
+            {
+                cleaned = cleaned.Substring(0, cleaned.Length - 3);
+            }
+            return cleaned.Trim();
         }
 
         private static QuizDto MapToDto(Quiz quiz)

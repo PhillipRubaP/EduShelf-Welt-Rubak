@@ -12,5 +12,6 @@ namespace EduShelf.Api.Services
         Task<QuizDto> UpdateQuizAsync(int id, QuizUpdateDto quizUpdateDto);
         Task PatchQuizAsync(int id, QuizUpdateDto quizUpdateDto);
         Task DeleteQuizAsync(int id);
+        Task<QuizDto> GenerateQuizAsync(GenerateQuizRequest request, int userId);
     }
 }

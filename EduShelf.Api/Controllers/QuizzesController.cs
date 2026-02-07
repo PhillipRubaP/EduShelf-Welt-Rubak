@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace EduShelf.Api.Controllers
 {
@@ -43,6 +44,23 @@ namespace EduShelf.Api.Controllers
         {
             var createdQuiz = await _quizService.CreateQuizAsync(quizDto);
             return CreatedAtAction(nameof(GetQuiz), new { id = createdQuiz.Id }, createdQuiz);
+        }
+
+        // POST: api/Quizzes/generate
+        [HttpPost("generate")]
+        public async Task<ActionResult<QuizDto>> GenerateQuiz([FromBody] GenerateQuizRequest request)
+        {
+            // GetUserId not implemented in Controller like in FlashcardController? 
+            // Ah, I see GetUserId private method is missing in this controller, but User.FindFirstValue is standard.
+            // Let's implement helper or use inline.
+            var userIdString = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized();
+            }
+
+            var generatedQuiz = await _quizService.GenerateQuizAsync(request, userId);
+            return CreatedAtAction(nameof(GetQuiz), new { id = generatedQuiz.Id }, generatedQuiz);
         }
 
         // PUT: api/Quizzes/5
