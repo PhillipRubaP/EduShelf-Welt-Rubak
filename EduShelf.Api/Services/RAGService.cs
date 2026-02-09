@@ -15,12 +15,14 @@ namespace EduShelf.Api.Services
     {
         private readonly ApiDbContext _context;
         private readonly IEmbeddingGenerator<string, Embedding<float>> _embeddingService;
+        private readonly ITokenService _tokenService;
         private readonly int _maxContextLength;
 
-        public RAGService(ApiDbContext context, IEmbeddingGenerator<string, Embedding<float>> embeddingService, IConfiguration configuration)
+        public RAGService(ApiDbContext context, IEmbeddingGenerator<string, Embedding<float>> embeddingService, IConfiguration configuration, ITokenService tokenService)
         {
             _context = context;
             _embeddingService = embeddingService;
+            _tokenService = tokenService;
             _maxContextLength = configuration.GetValue<int>("AIService:ContextLengthLimit", 4096);
         }
 
@@ -48,25 +50,7 @@ namespace EduShelf.Api.Services
             {
                 contextBuilder.AppendLine(chunk.Content);
             }
-            return TruncateContext(contextBuilder.ToString());
-        }
-
-        private string TruncateContext(string context)
-        {
-            if (context.Length <= _maxContextLength)
-            {
-                return context;
-            }
-
-            var truncated = context.Substring(0, _maxContextLength);
-            var lastSentenceEnd = Math.Max(truncated.LastIndexOf('.'), Math.Max(truncated.LastIndexOf('?'), truncated.LastIndexOf('!')));
-
-            if (lastSentenceEnd > -1)
-            {
-                return truncated.Substring(0, lastSentenceEnd + 1);
-            }
-
-            return truncated;
+            return _tokenService.Truncate(contextBuilder.ToString(), _maxContextLength);
         }
     }
 }

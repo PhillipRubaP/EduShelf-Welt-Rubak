@@ -24,6 +24,7 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 // Add Application Services
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+builder.Services.AddSingleton<ITokenService, TokenService>();
 
 builder.Services.AddDbContext<ApiDbContext>((serviceProvider, options) =>
 {
