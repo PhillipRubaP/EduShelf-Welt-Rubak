@@ -17,6 +17,7 @@ using Xunit;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.Extensions.DependencyInjection; // For service provider if needed
+using EduShelf.Api.Constants;
 
 namespace EduShelf.Api.Tests
 {
@@ -190,6 +191,83 @@ namespace EduShelf.Api.Tests
             Assert.Equal("New Title", result.Title);
             var dbQuiz = await context.Quizzes.Include(q => q.Questions).FirstAsync();
             Assert.Equal("Updated Q", dbQuiz.Questions.First().Text);
+        }
+
+        [Fact]
+        public async Task GenerateQuizAsync_ValidContent_ShouldCreateQuiz()
+        {
+            // Arrange
+            using var context = CreateContext();
+            var service = CreateService(context, userId: 1);
+            var request = new GenerateQuizRequest { DocumentId = 1, Count = 2 };
+
+            _mockDocumentService.Setup(d => d.GetDocumentAsync(1, 1, Roles.Student))
+                .ReturnsAsync(new DocumentDto { Id = 1, Title = "Test Doc", FileType = "txt" });
+            _mockDocumentService.Setup(d => d.GetDocumentContentAsync(1, 1, Roles.Student))
+                .ReturnsAsync("Content about Physics.");
+
+            _mockConfiguration.Setup(c => c.GetSection("AIService:Prompts:Quiz").Value).Returns("Generate a quiz.");
+
+            var jsonResponse = "{ \"Title\": \"Physics Quiz\", \"Questions\": [ { \"Text\": \"What is gravity?\", \"Answers\": [ { \"Text\": \"A force\", \"IsCorrect\": true }, { \"Text\": \"A fruit\", \"IsCorrect\": false } ] } ] }";
+            var chatMessageContent = new ChatMessageContent(AuthorRole.Assistant, jsonResponse);
+
+            _mockChatCompletionService.Setup(c => c.GetChatMessageContentsAsync(
+                It.IsAny<ChatHistory>(),
+                It.IsAny<PromptExecutionSettings>(),
+                It.IsAny<Kernel>(),
+                It.IsAny<System.Threading.CancellationToken>()))
+                .ReturnsAsync(new List<ChatMessageContent> { chatMessageContent });
+
+            // Act
+            var result = await service.GenerateQuizAsync(request, 1);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal("Physics Quiz", result.Title);
+            Assert.Single(result.Questions);
+            Assert.Equal("What is gravity?", result.Questions.First().Text);
+            Assert.Equal(2, result.Questions.First().Answers.Count);
+        }
+
+        [Fact]
+        public async Task GenerateQuizAsync_NoContent_ShouldThrowArgumentException()
+        {
+             // Arrange
+            using var context = CreateContext();
+            var service = CreateService(context, userId: 1);
+            var request = new GenerateQuizRequest { DocumentId = 1, Count = 2 };
+
+            _mockDocumentService.Setup(d => d.GetDocumentAsync(1, 1, Roles.Student))
+                .ReturnsAsync(new DocumentDto { Id = 1, Title = "Test Doc", FileType = "txt" });
+            
+            _mockDocumentService.Setup(d => d.GetDocumentContentAsync(1, 1, Roles.Student))
+                .ReturnsAsync(""); // Empty content
+
+             // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => service.GenerateQuizAsync(request, 1));
+        }
+
+        [Fact]
+        public async Task GenerateQuizAsync_InvalidJsonFromAI_ShouldThrowInvalidOperationException()
+        {
+            // Arrange
+            using var context = CreateContext();
+            var service = CreateService(context, userId: 1);
+            var request = new GenerateQuizRequest { DocumentId = 1, Count = 2 };
+            
+            _mockDocumentService.Setup(d => d.GetDocumentAsync(1, 1, Roles.Student))
+                .ReturnsAsync(new DocumentDto { Id = 1, Title = "Test Doc", FileType = "txt" });
+            _mockDocumentService.Setup(d => d.GetDocumentContentAsync(1, 1, Roles.Student))
+                .ReturnsAsync("Content");
+            _mockConfiguration.Setup(c => c.GetSection("AIService:Prompts:Quiz").Value).Returns("Prompt");
+
+            // Mock AI returning bad JSON
+            var chatMessageContent = new ChatMessageContent(AuthorRole.Assistant, "This is not JSON");
+            _mockChatCompletionService.Setup(c => c.GetChatMessageContentsAsync(It.IsAny<ChatHistory>(), null, null, default))
+                .ReturnsAsync(new List<ChatMessageContent> { chatMessageContent });
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(() => service.GenerateQuizAsync(request, 1));
         }
     }
 }
