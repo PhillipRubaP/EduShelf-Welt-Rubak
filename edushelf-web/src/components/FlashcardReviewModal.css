@@ -1,46 +1,101 @@
+/* Flashcard Review Modal - Immersive Geometric Style */
+
 .modal-backdrop {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.85);
+    /* Darker backdrop for focus */
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    backdrop-filter: blur(5px);
 }
 
 .modal-content {
-    background: var(--modal-background);
-    color: var(--modal-text-color);
-    padding: 20px;
-    border-radius: 8px;
-    width: 500px;
-    max-width: 90%;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    background: transparent;
+    /* Remove standard modal bg for custom shape */
+    box-shadow: none;
+    /* Handled by elements */
+    padding: 0;
+    width: 800px;
+    /* Wider for immersive feel */
+    max-width: 95%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     position: relative;
+    border: none;
 }
 
+/* Close button - Floating */
 .close-button {
     position: absolute;
-    top: 0.5rem;
-    right: 1rem;
-    font-size: 24px;
-    color: var(--modal-close-button-color);
-    cursor: pointer;
+    top: -40px;
+    right: 0;
+    font-size: 2rem;
+    color: var(--neutral-white);
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    z-index: 1002;
 }
 
 .close-button:hover {
-    color: var(--modal-close-button-hover-color);
-    background-color: transparent;
+    opacity: 1;
+    color: var(--incorrect-color);
 }
 
+/* Tag Selection View - Keep it contained */
+.tag-selection {
+    background: var(--quiz-background);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid var(--quiz-border-color);
+    text-align: center;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.tag-selection h2 {
+    margin-bottom: 2rem;
+    color: var(--text-color);
+}
+
+.tag-selection select,
+.tag-selection button {
+    width: 100%;
+    max-width: 300px;
+    margin: 0.5rem 0;
+}
+
+.tag-selection button {
+    margin-top: 1.5rem;
+    background-color: var(--primary-green);
+    color: white;
+    border: none;
+    padding: 1rem;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.tag-selection button:hover:not(:disabled) {
+    background-color: var(--primary-green-dark);
+}
+
+/* Review Scene */
 .flashcard-review-scene {
     width: 100%;
-    height: 200px;
-    perspective: 1000px;
+    height: 400px;
+    /* Big card */
+    perspective: 1500px;
     cursor: pointer;
+    margin-bottom: 3rem;
 }
 
 .flashcard-review-container {
@@ -48,7 +103,8 @@
     height: 100%;
     position: relative;
     transform-style: preserve-3d;
-    transition: transform 0.8s;
+    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* Bouncy flip */
 }
 
 .flashcard-review-scene.flipped .flashcard-review-container {
@@ -63,44 +119,108 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 8px;
-    padding: 20px;
+    padding: 3rem;
     box-sizing: border-box;
-    color: var(--flashcard-text-color);
+    font-size: 2rem;
+    font-weight: 600;
+    text-align: center;
+    color: var(--quiz-question-text-color);
+
+    /* "Millionaire" Shape */
+    clip-path: polygon(5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%, 0% 50%);
+    filter: drop-shadow(0 0 5px var(--quiz-border-color));
 }
 
 .flashcard-front {
-    background-color: var(--flashcard-front-background);
+    background-color: var(--quiz-question-background);
 }
 
 .flashcard-back {
-    background-color: var(--flashcard-back-background);
+    background-color: var(--quiz-background);
+    /* Differentiate back */
     transform: rotateY(180deg);
+    filter: drop-shadow(0 0 5px var(--secondary-mint));
+    color: var(--secondary-mint);
+    /* Highlight answer text */
 }
 
+/* Review Buttons - "Knew" / "Didn't Know" */
 .review-buttons {
     display: flex;
-    justify-content: space-around;
-    margin-top: 20px;
+    justify-content: center;
+    gap: 2rem;
+    width: 100%;
 }
-.tag-selection {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
+
+.review-buttons button {
+    padding: 1.5rem 3rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    color: white;
+    transition: transform 0.2s, filter 0.2s;
+
+    /* Hexagonal Buttons */
+    clip-path: polygon(10% 0, 100% 0, 100% 100%, 0% 100%, 0% 100%, 10% 100%, 0% 50%);
+    /* Actually let's use the Quiz Answer Button shape for consistency */
+    clip-path: polygon(5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%, 0% 50%);
+
+    min-width: 200px;
 }
-.tag-selection select {
-    width: 80%;
-    padding: 10px;
-    font-size: 1.2em;
-    border-radius: 5px;
-    background-color: var(--modal-input-background);
-    color: var(--modal-text-color);
-    border: 1px solid var(--modal-input-border-color);
+
+.review-buttons button:hover {
+    transform: translateY(-5px);
+    filter: brightness(1.1);
 }
-.tag-selection button {
-    width: 80%;
-    padding: 10px;
-    font-size: 1.2em;
-    border-radius: 5px;
+
+.review-buttons button:first-child {
+    /* Knew */
+    background-color: var(--correct-color);
+    filter: drop-shadow(0 0 5px var(--correct-color));
+}
+
+.review-buttons button:first-child:hover {
+    filter: drop-shadow(0 0 10px var(--correct-color));
+}
+
+.review-buttons button:last-child {
+    /* Didn't Know */
+    background-color: var(--incorrect-color);
+    filter: drop-shadow(0 0 5px var(--incorrect-color));
+}
+
+.review-buttons button:last-child:hover {
+    filter: drop-shadow(0 0 10px var(--incorrect-color));
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 100%;
+        padding: 1rem;
+    }
+
+    .flashcard-review-scene {
+        height: 300px;
+    }
+
+    .flashcard-face {
+        font-size: 1.5rem;
+        clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+        /* Rectangle on mobile */
+        border-radius: 12px;
+    }
+
+    .review-buttons {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .review-buttons button {
+        clip-path: none;
+        border-radius: 8px;
+        width: 100%;
+    }
 }

@@ -21,13 +21,12 @@ namespace EduShelf.Api.Services
 
     public class UserUpdateDto
     {
-        public string Username { get; set; }
-        public string Email { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
     }
 
     public class PasswordChangeDto
     {
-        public string OldPassword { get; set; }
-        public string NewPassword { get; set; }
+        public string NewPassword { get; set; } = string.Empty;
     }
 }

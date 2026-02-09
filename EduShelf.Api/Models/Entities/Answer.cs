@@ -12,7 +12,7 @@ namespace EduShelf.Api.Models.Entities
         public int QuestionId { get; set; }
 
         [Required]
-        public string? Text { get; set; }
+        public string Text { get; set; } = string.Empty;
 
         [Required]
         public bool IsCorrect { get; set; }

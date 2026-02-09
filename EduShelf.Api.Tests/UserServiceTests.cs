@@ -21,11 +21,13 @@ namespace EduShelf.Api.Tests
     {
         private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
         private readonly Mock<IConfiguration> _mockConfiguration;
+        private readonly Mock<IDocumentService> _mockDocumentService;
 
         public UserServiceTests()
         {
             _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
             _mockConfiguration = new Mock<IConfiguration>();
+            _mockDocumentService = new Mock<IDocumentService>();
         }
 
         private ApiDbContext CreateContext()
@@ -57,7 +59,7 @@ namespace EduShelf.Api.Tests
 
             _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
 
-            return new UserService(context, _mockHttpContextAccessor.Object);
+            return new UserService(context, _mockHttpContextAccessor.Object, _mockDocumentService.Object);
         }
 
         /*

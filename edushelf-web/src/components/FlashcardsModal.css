@@ -1,67 +1,128 @@
+/* Flashcards Modal (Create/Edit) - Consistent Theme */
+
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.7);
+    /* Darker backdrop */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 20;
+    z-index: 1000;
+    backdrop-filter: blur(3px);
 }
 
 .modal-content {
     background: var(--modal-background);
     color: var(--modal-text-color);
-    padding: 20px;
-    border-radius: 8px;
+    padding: 2.5rem;
+    border-radius: 12px;
     width: 600px;
-    max-height: 80vh;
+    max-width: 90%;
+    max-height: 85vh;
     overflow-y: auto;
     position: relative;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--quiz-border-color);
+    /* Theme border */
 }
 
+/* Close button - nicer style */
 .close-button {
     position: absolute;
-    top: 0.5rem;
-    right: 1rem;
-    font-size: 24px;
+    top: 1rem;
+    right: 1.5rem;
+    font-size: 1.5rem;
     color: var(--modal-close-button-color);
     cursor: pointer;
+    transition: color 0.2s;
+    background: none;
+    border: none;
 }
 
 .close-button:hover {
-    color: var(--modal-close-button-hover-color);
+    color: var(--incorrect-color);
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 2rem;
+    color: var(--primary-green);
+    text-align: center;
 }
 
 .form-group {
-    display: grid;
-    grid-template-columns: 1.5fr 2fr;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
+    display: flex;
+    /* Stack vertically for mobile friendliness or cleaner look */
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
 }
 
 .form-group label {
-    text-align: right;
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-color);
 }
 
 .form-group input,
-.form-group textarea {
+.form-group textarea,
+.form-group select {
     width: 100%;
-    padding: 8px;
+    padding: 1rem;
     box-sizing: border-box;
-    height: 40px; /* Ensure consistent height */
-    resize: vertical; /* Allow vertical resize for textarea */
+    border-radius: 8px;
     background-color: var(--modal-input-background);
     color: var(--modal-text-color);
     border: 1px solid var(--modal-input-border-color);
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 2px rgba(56, 161, 105, 0.2);
 }
 
 .modal-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.modal-actions button {
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    border: none;
+    transition: filter 0.2s;
+}
+
+.modal-actions button[type="submit"],
+.save-button {
+    background-color: var(--primary-green);
+    color: white;
+}
+
+.modal-actions button[type="button"],
+.cancel-button {
+    background-color: var(--neutral-blue-gray);
+    color: white;
+}
+
+.modal-actions button:hover {
+    filter: brightness(1.1);
 }

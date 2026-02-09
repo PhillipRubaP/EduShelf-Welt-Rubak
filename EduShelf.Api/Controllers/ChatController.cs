@@ -92,7 +92,7 @@ namespace EduShelf.Api.Controllers
     {
         [Required]
         [MaxLength(2000)]
-        public string Message { get; set; }
+        public string Message { get; set; } = string.Empty;
         public int ChatSessionId { get; set; }
         public IFormFile? Image { get; set; }
     }
@@ -101,13 +101,13 @@ namespace EduShelf.Api.Controllers
     {
         [Required]
         [MaxLength(100)]
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
     }
 
     public class UpdateSessionRequest
     {
         [Required]
         [MaxLength(100)]
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
     }
 }

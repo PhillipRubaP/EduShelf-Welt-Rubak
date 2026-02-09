@@ -10,6 +10,7 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Text;
 using DocumentFormat.OpenXml.Office2016.Excel;
+using Microsoft.Extensions.AI;
 
 namespace EduShelf.Api.Services
 {
@@ -101,8 +102,7 @@ namespace EduShelf.Api.Services
             using (var scope = _scopeFactory.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<ApiDbContext>();
-                var kernel = scope.ServiceProvider.GetRequiredService<Kernel>();
-                var embeddingGenerator = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
+                var embeddingGenerator = scope.ServiceProvider.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
 
                 // Clear old chunks before adding new ones
                 var oldChunks = await context.DocumentChunks.Where(dc => dc.DocumentId == documentId).ToListAsync();
@@ -116,12 +116,12 @@ namespace EduShelf.Api.Services
                 foreach (var chunk in chunks)
                 {
                     // Delay to avoid rate limits if necessary, though local Ollama is usually fine
-                    var embedding = await embeddingGenerator.GenerateEmbeddingAsync(chunk);
+                    var embedding = await embeddingGenerator.GenerateAsync(chunk);
                     var documentChunk = new DocumentChunk
                     {
                         DocumentId = documentId,
                         Content = chunk,
-                        Embedding = new Pgvector.Vector(embedding),
+                        Embedding = new Pgvector.Vector(embedding.Vector),
                         Page = 0 // Placeholder for now
                     };
                     context.DocumentChunks.Add(documentChunk);
@@ -142,17 +142,16 @@ namespace EduShelf.Api.Services
                 using (var scope = _scopeFactory.CreateScope())
                 {
                     var context = scope.ServiceProvider.GetRequiredService<ApiDbContext>();
-                    var kernel = scope.ServiceProvider.GetRequiredService<Kernel>();
-                    var embeddingGenerator = kernel.GetRequiredService<ITextEmbeddingGenerationService>();
+                    var embeddingGenerator = scope.ServiceProvider.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>();
 
                     foreach (var chunk in batch)
                     {
-                        var embedding = await embeddingGenerator.GenerateEmbeddingAsync(chunk);
+                        var embedding = await embeddingGenerator.GenerateAsync(chunk);
                         var documentChunk = new DocumentChunk
                         {
                             DocumentId = documentId,
                             Content = chunk,
-                            Embedding = new Pgvector.Vector(embedding),
+                            Embedding = new Pgvector.Vector(embedding.Vector),
                             Page = 0 // Placeholder
                         };
                         context.DocumentChunks.Add(documentChunk);

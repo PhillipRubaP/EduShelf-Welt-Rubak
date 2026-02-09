@@ -22,7 +22,7 @@ namespace EduShelf.Api.Services
         {
             var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
             var chatHistory = new ChatHistory();
-            chatHistory.AddSystemMessage(_configuration.GetValue<string>("AIService:Prompts:Intent"));
+            chatHistory.AddSystemMessage(_configuration.GetValue<string>("AIService:Prompts:Intent") ?? "Identify the intent.");
             chatHistory.AddUserMessage(userInput);
 
             var result = await chatCompletionService.GetChatMessageContentAsync(chatHistory);

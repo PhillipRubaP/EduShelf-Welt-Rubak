@@ -32,7 +32,7 @@ namespace EduShelf.Api.Services
             }
 
             var chatHistory = new ChatHistory();
-            chatHistory.AddSystemMessage(_configuration.GetValue<string>("AIService:Prompts:System"));
+            chatHistory.AddSystemMessage(_configuration.GetValue<string>("AIService:Prompts:System") ?? "You are a helpful assistant.");
 
             foreach (var message in chatSession.ChatMessages.OrderBy(m => m.CreatedAt))
             {
