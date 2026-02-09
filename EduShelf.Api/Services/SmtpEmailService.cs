@@ -17,7 +17,6 @@ public class SmtpEmailService : IEmailService
     {
         var emailSettings = _configuration.GetSection("EmailSettings");
         var host = emailSettings["SmtpHost"];
-        var port = int.Parse(emailSettings["SmtpPort"] ?? "587");
         var user = emailSettings["SmtpUser"];
         var pass = emailSettings["SmtpPass"];
         var from = emailSettings["FromEmail"];
@@ -27,6 +26,11 @@ public class SmtpEmailService : IEmailService
             // Log warning or throw depending on strictness. For now, we return if not configured.
             Console.WriteLine("SMTP not configured. Skipping email.");
             return;
+        }
+
+        if (!int.TryParse(emailSettings["SmtpPort"], out var port))
+        {
+            port = 587;
         }
 
         using var client = new SmtpClient(host, port)

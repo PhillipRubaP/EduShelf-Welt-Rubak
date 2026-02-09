@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
+using Microsoft.Extensions.Configuration;
+
 namespace EduShelf.Api.Services;
 
 public class AuthService : IAuthService
@@ -15,12 +17,14 @@ public class AuthService : IAuthService
     private readonly ApiDbContext _context;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IEmailService _emailService;
+    private readonly IConfiguration _configuration;
 
-    public AuthService(ApiDbContext context, IHttpContextAccessor httpContextAccessor, IEmailService emailService)
+    public AuthService(ApiDbContext context, IHttpContextAccessor httpContextAccessor, IEmailService emailService, IConfiguration configuration)
     {
         _context = context;
         _httpContextAccessor = httpContextAccessor;
         _emailService = emailService;
+        _configuration = configuration;
     }
 
     private int GetCurrentUserId()
@@ -120,7 +124,16 @@ public class AuthService : IAuthService
 
         try
         {
-            await _emailService.SendEmailAsync(user.Email, "Confirm your email", $"Your confirmation token is: {user.EmailConfirmationToken}");
+            var appUrl = _configuration["AppUrl"] ?? "http://localhost:5173";
+            var confirmationLink = $"{appUrl}/confirm-email?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(user.EmailConfirmationToken)}";
+            var emailBody = $@"
+                <h2>Welcome to EduShelf!</h2>
+                <p>Please confirm your email by clicking the link below:</p>
+                <p><a href='{confirmationLink}'>Confirm Email</a></p>
+                <p>Or copy and paste this link into your browser:</p>
+                <p>{confirmationLink}</p>";
+
+            await _emailService.SendEmailAsync(user.Email, "Confirm your email", emailBody);
         }
         catch (Exception ex)
         {

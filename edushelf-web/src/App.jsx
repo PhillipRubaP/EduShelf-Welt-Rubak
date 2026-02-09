@@ -8,6 +8,7 @@ import Quiz from './components/Quiz';
 import Flashcards from './components/Flashcards';
 import Login from './components/Login';
 import Register from './components/Register';
+import VerifyEmail from './components/VerifyEmail';
 import EditUser from './components/EditUser';
 import Settings from './components/Settings';
 import MainDashboard from './components/MainDashboard';
@@ -83,6 +84,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login setLoggedInUser={setLoggedInUser} />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/confirm-email" element={<VerifyEmail />} />
         <Route
           path="/*"
           element={
