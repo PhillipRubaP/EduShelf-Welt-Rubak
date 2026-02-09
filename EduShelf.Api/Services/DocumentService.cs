@@ -41,40 +41,31 @@ namespace EduShelf.Api.Services
             _fileStorageService = fileStorageService;
         }
 
-        public async Task<IEnumerable<DocumentDto>> GetDocumentsAsync(int userId, string role)
+        public async Task<PagedResult<DocumentDto>> GetDocumentsAsync(int userId, string role, int page, int pageSize)
         {
             var query = _context.Documents.AsQueryable();
 
             if (role != Roles.Admin)
             {
                 // Get owned documents OR shared documents
-                return await query
+                query = query
                     .Include(d => d.DocumentTags)
                     .ThenInclude(dt => dt.Tag)
                     .Include(d => d.User) // Include owner info
-                    .Select(d => new 
-                    { 
-                        Document = d, 
-                        IsShared = _context.DocumentShares.Any(ds => ds.DocumentId == d.Id && ds.UserId == userId)
-                    })
-                    .Where(x => x.Document.UserId == userId || x.IsShared)
-                    .Select(x => new DocumentDto
-                    {
-                        Id = x.Document.Id,
-                        Title = x.Document.Title,
-                        FileType = x.Document.FileType,
-                        CreatedAt = x.Document.CreatedAt,
-                        Tags = x.Document.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList(),
-                        UserId = x.Document.UserId,
-                        IsShared = x.Document.UserId != userId,
-                        OwnerName = x.Document.UserId != userId ? x.Document.User.Username : null
-                    })
-                    .ToListAsync();
+                    .Where(d => d.UserId == userId || _context.DocumentShares.Any(ds => ds.DocumentId == d.Id && ds.UserId == userId));
+            }
+            else
+            {
+                query = query
+                    .Include(d => d.DocumentTags)
+                    .ThenInclude(dt => dt.Tag);
             }
 
-            return await query
-                .Include(d => d.DocumentTags)
-                .ThenInclude(dt => dt.Tag)
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .OrderByDescending(d => d.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(d => new DocumentDto
                 {
                     Id = d.Id,
@@ -83,9 +74,12 @@ namespace EduShelf.Api.Services
                     CreatedAt = d.CreatedAt,
                     Tags = d.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList(),
                     UserId = d.UserId,
-                    IsShared = false
+                    IsShared = d.UserId != userId,
+                    OwnerName = d.UserId != userId && d.User != null ? d.User.Username : null
                 })
                 .ToListAsync();
+
+            return new PagedResult<DocumentDto>(items, totalCount, page, pageSize);
         }
 
         public async Task<DocumentDto> GetDocumentAsync(int id, int userId, string role)
@@ -330,44 +324,35 @@ namespace EduShelf.Api.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<DocumentDto>> SearchDocumentsAsync(string querySearch, int userId, string role)
+        public async Task<PagedResult<DocumentDto>> SearchDocumentsAsync(string querySearch, int userId, string role, int page, int pageSize)
         {
             var documentsQuery = _context.Documents.AsQueryable();
 
-            if (role != Roles.Admin)
-            {
-                 return await documentsQuery
-                    .Include(d => d.DocumentTags)
-                    .ThenInclude(dt => dt.Tag)
-                    .Include(d => d.User)
-                    .Select(d => new 
-                    { 
-                        Document = d, 
-                        IsShared = _context.DocumentShares.Any(ds => ds.DocumentId == d.Id && ds.UserId == userId)
-                    })
-                    .Where(x => (x.Document.UserId == userId || x.IsShared) && (string.IsNullOrEmpty(querySearch) || x.Document.Title.Contains(querySearch)))
-                    .Select(x => new DocumentDto
-                    {
-                        Id = x.Document.Id,
-                        Title = x.Document.Title,
-                        FileType = x.Document.FileType,
-                        CreatedAt = x.Document.CreatedAt,
-                        Tags = x.Document.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList(),
-                        UserId = x.Document.UserId,
-                        IsShared = x.Document.UserId != userId,
-                        OwnerName = x.Document.UserId != userId ? x.Document.User.Username : null
-                    })
-                    .ToListAsync();
-            }
-            
             if (!string.IsNullOrEmpty(querySearch))
             {
                 documentsQuery = documentsQuery.Where(d => d.Title.Contains(querySearch));
             }
 
-            return await documentsQuery
-                .Include(d => d.DocumentTags)
-                .ThenInclude(dt => dt.Tag)
+            if (role != Roles.Admin)
+            {
+                 documentsQuery = documentsQuery
+                    .Include(d => d.DocumentTags)
+                    .ThenInclude(dt => dt.Tag)
+                    .Include(d => d.User)
+                    .Where(d => (d.UserId == userId || _context.DocumentShares.Any(ds => ds.DocumentId == d.Id && ds.UserId == userId)));
+            }
+            else
+            {
+                documentsQuery = documentsQuery
+                    .Include(d => d.DocumentTags)
+                    .ThenInclude(dt => dt.Tag);
+            }
+
+            var totalCount = await documentsQuery.CountAsync();
+            var items = await documentsQuery
+                .OrderByDescending(d => d.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(d => new DocumentDto
                 {
                     Id = d.Id,
@@ -376,9 +361,12 @@ namespace EduShelf.Api.Services
                     CreatedAt = d.CreatedAt,
                     Tags = d.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList(),
                     UserId = d.UserId,
-                    IsShared = false
+                    IsShared = d.UserId != userId,
+                    OwnerName = d.UserId != userId && d.User != null ? d.User.Username : null
                 })
                 .ToListAsync();
+
+            return new PagedResult<DocumentDto>(items, totalCount, page, pageSize);
         }
 
         public async Task<(Stream FileStream, string ContentType, string FileName)> DownloadDocumentAsync(int id, int userId, string role)

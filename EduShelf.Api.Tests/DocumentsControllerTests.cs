@@ -46,23 +46,30 @@ namespace EduShelf.Api.Tests
         {
             // Arrange
             SetupUser(1);
-            var expectedDocs = new List<DocumentDto>
+            var expectedDocs = new PagedResult<DocumentDto>
             {
-                new DocumentDto { Id = 1, Title = "Doc 1", FileType = "application/pdf", Tags = new List<TagDto>() },
-                new DocumentDto { Id = 2, Title = "Doc 2", FileType = "application/pdf", Tags = new List<TagDto>() }
+                Items = new List<DocumentDto>
+                {
+                    new DocumentDto { Id = 1, Title = "Doc 1", FileType = "application/pdf", Tags = new List<TagDto>() },
+                    new DocumentDto { Id = 2, Title = "Doc 2", FileType = "application/pdf", Tags = new List<TagDto>() }
+                },
+                TotalCount = 2,
+                PageNumber = 1,
+                PageSize = 10
             };
 
-            _mockDocumentService.Setup(s => s.GetDocumentsAsync(1, "User"))
+            _mockDocumentService.Setup(s => s.GetDocumentsAsync(1, "User", 1, 10))
                 .ReturnsAsync(expectedDocs);
 
             // Act
-            var result = await _controller.GetDocuments();
+            var result = await _controller.GetDocuments(1, 10);
 
             // Assert
-            var actionResult = Assert.IsType<ActionResult<IEnumerable<DocumentDto>>>(result);
+            var actionResult = Assert.IsType<ActionResult<PagedResult<DocumentDto>>>(result);
             var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var returnedDocs = Assert.IsAssignableFrom<IEnumerable<DocumentDto>>(okResult.Value);
-            Assert.Equal(2, (returnedDocs as List<DocumentDto>).Count);
+            var returnedResult = Assert.IsType<PagedResult<DocumentDto>>(okResult.Value);
+            Assert.Equal(2, returnedResult.TotalCount);
+            Assert.Equal(2, returnedResult.Items.Count());
         }
 
         [Fact]
