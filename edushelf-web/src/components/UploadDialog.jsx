@@ -38,18 +38,38 @@ const UploadDialog = ({ onClose, onUploadSuccess }) => {
   };
 
   return (
-    <div className="upload-dialog-overlay">
-      <div className="upload-dialog">
-        <div className="modal-close-button" onClick={onClose}>
+    <div className="modal-overlay">
+      <div className="modal-container">
+        <button className="modal-close-button" onClick={onClose}>
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
+        </button>
+
+        <div className="modal-header">
+          <h2 className="modal-title">Upload File</h2>
         </div>
-        <h2>Upload File</h2>
-        <input type="file" onChange={handleFileChange} accept=".pdf,.doc,.docx,.txt" />
-        <div className="dialog-buttons">
-          <button onClick={handleUpload}>Upload</button>
-          <button onClick={onClose}>Close</button>
+
+        <div className="modal-body">
+          <div className="form-group">
+            <label className="form-label">Select File</label>
+            <input
+              type="file"
+              onChange={handleFileChange}
+              accept=".pdf,.doc,.docx,.txt"
+              className="form-input"
+              style={{ paddingTop: '0.5rem' }} // Minor adjustment for file input
+            />
+          </div>
+        </div>
+
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={onClose}>
+            Cancel
+          </button>
+          <button className="btn btn-primary" onClick={handleUpload}>
+            Upload
+          </button>
         </div>
       </div>
     </div>

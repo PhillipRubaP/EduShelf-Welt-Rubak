@@ -1,256 +1,130 @@
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(5px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    animation: fadeIn 0.3s ease-out;
-}
+/* QuizModal.css - Premium Design and Robust Layout */
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-.modal-content {
-    background: var(--modal-background);
-    color: var(--modal-text-color);
-    padding: 30px;
+/* Card styling for each question block */
+.quiz-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    width: 800px;
-    max-height: 85vh;
-    overflow-y: auto;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
     position: relative;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    animation: slideUp 0.3s ease-out;
 }
 
-@keyframes slideUp {
-    from {
-        transform: translateY(20px);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+[data-theme='light'] .quiz-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
 }
 
-.close-button {
-    /* Removed: Using global .modal-close-button */
-    display: none;
-}
+/* --- Layout Rows --- */
 
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: var(--modal-text-color);
-}
-
-/* Base input styling for better aesthetics */
-input[type="text"] {
-    font-family: inherit;
-    border: 1px solid var(--modal-input-border);
-    border-radius: 8px;
-    padding: 10px 12px;
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
-    background-color: var(--modal-input-bg);
-    color: var(--modal-text-color);
-}
-
-input[type="text"]:focus {
-    outline: none;
-    border-color: var(--modal-input-focus-border, #007bff);
-    box-shadow: 0 0 0 3px rgba(59, 178, 115, 0.2);
-    background-color: var(--modal-background);
-}
-
-.modal-content .title-form-group input {
-    width: 100%;
-    font-size: 1.1rem;
-    padding: 12px;
-}
-
-.question-block {
-    border: 1px solid var(--modal-input-border);
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 10px;
-    background-color: rgba(0, 0, 0, 0.02);
-    /* Slight tint */
-    transition: box-shadow 0.2s;
-}
-
-.question-block:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.question-header {
+/* General row for alignment */
+.question-row,
+.answer-row {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 15px;
-    margin-bottom: 15px;
-}
-
-.question-header input {
-    flex-grow: 1;
-    font-weight: 500;
-}
-
-
-/* Answer block fixes and styling */
-.answer-block {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
+    align-items: flex-end;
+    /* Align bottom so input label doesn't offset button */
+    gap: 1rem;
     width: 100%;
-    /* Ensure full width */
-    gap: 10px;
 }
 
-.answer-block input[type="radio"] {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    accent-color: var(--primary-green);
-    flex-shrink: 0;
-    margin: 0;
+.answer-row {
+    align-items: center;
+    /* Center vertically for answers since they have no labels usually */
+    margin-bottom: 0.75rem;
 }
 
-.answer-block input[type="text"] {
-    flex-grow: 1;
+/* Wrappers ensure inputs take up space */
+.input-wrapper {
+    flex: 1;
     min-width: 0;
-    /* Allows text input to shrink below its content size if needed */
-}
-
-.delete-quiz-btn {
-    background: rgba(255, 0, 0, 0.1);
-    border: none;
-    color: #dc3545;
-    cursor: pointer;
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
+    /* Critical for flex child truncation */
     display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: all 0.2s;
-    flex-shrink: 0;
-    /* Prevent button from shrinking */
-    margin: 0;
+    flex-direction: column;
 }
 
-.delete-quiz-btn:hover {
-    background: #dc3545;
-    color: white;
+/* Force inputs to 100% of their wrapper and make them larger */
+.input-wrapper .form-input {
+    width: 100%;
+    padding: 1rem;
+    /* Larger touch target/visual size */
+    font-size: 1.05rem;
+    /* Slightly larger text */
 }
 
-.modal-actions {
+/* --- Specific Elements --- */
+
+/* Delete Buttons */
+.delete-btn {
+    flex: 0 0 auto;
+    /* STRICTLY prevent growing */
+    width: 2.25rem;
+    /* Smaller button */
+    height: 2.25rem;
+    /* Smaller button */
+    padding: 0;
     display: flex;
-    justify-content: flex-end;
-    gap: 15px;
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid var(--modal-input-border);
-}
-
-.add-question-btn,
-.add-answer-btn,
-.modal-actions button {
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 0.95rem;
-    transition: all 0.2s;
-    display: inline-flex;
     align-items: center;
     justify-content: center;
+    margin-bottom: 3px;
+    /* Align with input border */
 }
 
-.add-question-btn,
-.add-answer-btn {
-    background-color: var(--button-bg-secondary, rgba(0, 0, 0, 0.05));
-    color: var(--modal-text-color);
-    width: 100%;
-    margin-top: 10px;
-    border: 1px dashed var(--modal-input-border);
-}
-
-.add-question-btn:hover,
-.add-answer-btn:hover {
-    background-color: var(--primary-green);
-    color: white;
-    border-color: var(--primary-green);
-}
-
-.modal-actions button[type="submit"] {
-    background-color: var(--primary-green);
-    color: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.modal-actions button[type="submit"]:hover {
-    background-color: var(--primary-green-dark);
-    transform: translateY(-1px);
-}
-
-.modal-actions button[type="button"] {
-    background-color: transparent;
-    color: var(--modal-text-color);
-    border: 1px solid var(--modal-input-border);
-    opacity: 0.8;
-}
-
-.modal-actions button[type="button"]:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    opacity: 1;
-}
-
-/* Ensure consistent layout for delete buttons */
-.question-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-    width: 100%;
-}
-
-.question-header label {
+.answer-row .delete-btn {
     margin-bottom: 0;
-    /* Override default label margin */
-    white-space: nowrap;
-    min-width: 80px;
-    /* Ensure label alignment */
+    /* Reset for centered rows */
 }
 
-.question-header input {
-    flex-grow: 1;
-    font-weight: 500;
+/* Radio Button Wrapper */
+.radio-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    flex-shrink: 0;
 }
 
-.delete-quiz-btn {
-    margin-left: auto;
-    /* Push to the right if space allows, though flex-grow on input does this too */
+.answer-radio {
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: var(--primary-green);
+    cursor: pointer;
+}
+
+/* Answers Section */
+.answers-section {
+    margin-top: 1.5rem;
+    padding-left: 1rem;
+    border-left: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='light'] .answers-section {
+    border-left-color: #e2e8f0;
+}
+
+.add-answer-btn {
+    margin-top: 0.5rem;
+    width: 100%;
+    font-size: 0.875rem;
+    border-style: dashed;
+}
+
+/* Add Question Section */
+.add-question-wrapper {
+    margin-top: 2rem;
+}
+
+.add-question-btn {
+    width: 100%;
+    padding: 1rem;
+    border-style: dashed;
+    font-weight: 600;
+}
+
+/* Hover effects for cards */
+.quiz-card:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme='light'] .quiz-card:hover {
+    border-color: #cbd5e1;
 }
