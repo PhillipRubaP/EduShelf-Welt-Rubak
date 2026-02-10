@@ -35,7 +35,9 @@
 
 /* Wrappers ensure inputs take up space */
 .input-wrapper {
-    flex: 1;
+    flex: 1 1 auto !important;
+    /* Force grow */
+    width: auto;
     min-width: 0;
     /* Critical for flex child truncation */
     display: flex;
@@ -55,18 +57,16 @@
 
 /* Delete Buttons */
 .delete-btn {
-    flex: 0 0 auto;
-    /* STRICTLY prevent growing */
-    width: 2.25rem;
-    /* Smaller button */
-    height: 2.25rem;
-    /* Smaller button */
-    padding: 0;
+    flex: 0 0 2.25rem !important;
+    /* Force basis to width */
+    width: 2.25rem !important;
+    max-width: 2.25rem !important;
+    height: 2.25rem !important;
+    padding: 0 !important;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 3px;
-    /* Align with input border */
 }
 
 .answer-row .delete-btn {
