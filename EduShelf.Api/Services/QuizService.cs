@@ -407,7 +407,7 @@ namespace EduShelf.Api.Services
                 
                 // Attempt standard deserialization first
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                GeneratedQuizJson result = null;
+                GeneratedQuizJson? result = null;
                 try 
                 {
                     result = jsonNode.Deserialize<GeneratedQuizJson>(options);
@@ -430,8 +430,8 @@ namespace EduShelf.Api.Services
                     manualQuiz.Questions = new List<GeneratedQuestionJson>();
                     foreach (var qItem in qArray)
                     {
-                        var qText = qItem["text"]?.ToString() ?? qItem["question"]?.ToString();
-                        var answerStr = qItem["answer"]?.ToString(); // Correct answer if string
+                        var qText = qItem?["text"]?.ToString() ?? qItem?["question"]?.ToString();
+                        var answerStr = qItem?["answer"]?.ToString(); // Correct answer if string
                         
                         var newQ = new GeneratedQuestionJson { Text = qText ?? "Unknown Question" };
                         
@@ -441,7 +441,7 @@ namespace EduShelf.Api.Services
                             newQ.Answers = new List<GeneratedAnswerJson>();
                             foreach (var opt in optsArray)
                             {
-                                string optText = null;
+                                string? optText = null;
                                 bool isCorrect = false;
 
                                 if (opt is System.Text.Json.Nodes.JsonValue) // ["Option A", "Option B"]

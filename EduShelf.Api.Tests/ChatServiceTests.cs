@@ -14,6 +14,7 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using EduShelf.Api.Exceptions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using EduShelf.Api.Services.FileStorage;
 
 namespace EduShelf.Api.Tests
 {
@@ -25,6 +26,8 @@ namespace EduShelf.Api.Tests
         private readonly Mock<IImageProcessingService> _mockImageProcessingService;
         private readonly Mock<IWebHostEnvironment> _mockEnvironment;
         private readonly Mock<IConfiguration> _mockConfiguration;
+        private readonly Mock<IFlashcardService> _mockFlashcardService;
+        private readonly Mock<IQuizService> _mockQuizService;
 
         private readonly Mock<EduShelf.Api.Services.FileStorage.IFileStorageService> _mockFileStorageService;
 
@@ -43,6 +46,8 @@ namespace EduShelf.Api.Tests
             _mockEnvironment = new Mock<IWebHostEnvironment>();
             _mockFileStorageService = new Mock<EduShelf.Api.Services.FileStorage.IFileStorageService>();
             _mockConfiguration = new Mock<IConfiguration>();
+            _mockFlashcardService = new Mock<IFlashcardService>();
+            _mockQuizService = new Mock<IQuizService>();
         }
 
         private ApiDbContext CreateContext()
@@ -71,7 +76,9 @@ namespace EduShelf.Api.Tests
                 null!, null!, null!, 
                 _mockImageProcessingService.Object,
                 _mockEnvironment.Object,
-                _mockFileStorageService.Object);
+                _mockFileStorageService.Object,
+                _mockFlashcardService.Object,
+                _mockQuizService.Object);
 
             // Act
             var session = await service.CreateChatSessionAsync(1, "Test Session");
@@ -96,7 +103,9 @@ namespace EduShelf.Api.Tests
                 null!, null!, null!, 
                 _mockImageProcessingService.Object,
                 _mockEnvironment.Object,
-                _mockFileStorageService.Object);
+                _mockFileStorageService.Object,
+                _mockFlashcardService.Object,
+                _mockQuizService.Object);
 
             // Act & Assert
             await Assert.ThrowsAsync<BadRequestException>(() => service.CreateChatSessionAsync(1, ""));
@@ -125,7 +134,9 @@ namespace EduShelf.Api.Tests
                 null!, null!, null!, 
                 _mockImageProcessingService.Object,
                 _mockEnvironment.Object,
-                _mockFileStorageService.Object);
+                _mockFileStorageService.Object,
+                _mockFlashcardService.Object,
+                _mockQuizService.Object);
 
             // Act
             var sessions = await service.GetChatSessionsAsync(1);

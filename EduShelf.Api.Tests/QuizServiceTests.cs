@@ -1,5 +1,6 @@
 using EduShelf.Api.Data;
 using EduShelf.Api.Exceptions;
+using Microsoft.Extensions.Logging;
 using EduShelf.Api.Models.Dtos;
 using EduShelf.Api.Models.Entities;
 using EduShelf.Api.Services;
@@ -27,6 +28,7 @@ namespace EduShelf.Api.Tests
         private readonly Mock<IConfiguration> _mockConfiguration;
         private readonly Mock<IDocumentService> _mockDocumentService;
         private readonly Mock<IChatCompletionService> _mockChatCompletionService;
+        private readonly Mock<ILogger<QuizService>> _mockLogger;
         private readonly Kernel _mockKernel;
 
         public QuizServiceTests()
@@ -35,6 +37,7 @@ namespace EduShelf.Api.Tests
             _mockConfiguration = new Mock<IConfiguration>();
             _mockDocumentService = new Mock<IDocumentService>();
             _mockChatCompletionService = new Mock<IChatCompletionService>();
+            _mockLogger = new Mock<ILogger<QuizService>>();
 
             // Setup Kernel with mock ChatCompletionService
             var services = new ServiceCollection();
@@ -70,7 +73,8 @@ namespace EduShelf.Api.Tests
                 _mockHttpContextAccessor.Object, 
                 _mockKernel, 
                 _mockConfiguration.Object, 
-                _mockDocumentService.Object);
+                _mockDocumentService.Object,
+                _mockLogger.Object);
         }
 
         [Fact]
