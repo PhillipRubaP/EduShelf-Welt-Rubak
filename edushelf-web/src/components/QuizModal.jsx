@@ -195,11 +195,11 @@ const QuizModal = ({ onClose, onQuizSaved, quiz }) => {
                 </div>
 
                 <div className="modal-footer">
-                    <button type="button" className="btn btn-secondary" onClick={onClose}>
-                        Cancel
-                    </button>
                     <button type="submit" form="quiz-form" className="btn btn-primary">
                         {quiz ? 'Save Quiz' : 'Create Quiz'}
+                    </button>
+                    <button type="button" className="btn btn-secondary" onClick={onClose}>
+                        Cancel
                     </button>
                 </div>
             </div>
