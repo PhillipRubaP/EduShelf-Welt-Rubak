@@ -26,11 +26,11 @@ namespace EduShelf.Api.Controllers
 
         // GET: api/Documents
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<DocumentDto>>> GetDocuments()
+        public async Task<ActionResult<PagedResult<DocumentDto>>> GetDocuments([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var userId = GetCurrentUserId();
             var userRole = GetCurrentUserRole();
-            var documents = await _documentService.GetDocumentsAsync(userId, userRole);
+            var documents = await _documentService.GetDocumentsAsync(userId, userRole, page, pageSize);
             return Ok(documents);
         }
 
@@ -113,11 +113,11 @@ namespace EduShelf.Api.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<ActionResult<IEnumerable<DocumentDto>>> SearchDocuments([FromQuery] string query)
+        public async Task<ActionResult<PagedResult<DocumentDto>>> SearchDocuments([FromQuery] string query, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var userId = GetCurrentUserId();
             var userRole = GetCurrentUserRole();
-            var documents = await _documentService.SearchDocumentsAsync(query, userId, userRole);
+            var documents = await _documentService.SearchDocumentsAsync(query, userId, userRole, page, pageSize);
             return Ok(documents);
         }
 

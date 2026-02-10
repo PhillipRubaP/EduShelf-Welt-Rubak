@@ -7,10 +7,12 @@ namespace EduShelf.Api.Services
     public class PromptGenerationService
     {
         private readonly IConfiguration _configuration;
+        private readonly ITokenService _tokenService;
 
-        public PromptGenerationService(IConfiguration configuration)
+        public PromptGenerationService(IConfiguration configuration, ITokenService tokenService)
         {
             _configuration = configuration;
+            _tokenService = tokenService;
         }
 
         public ChatHistory BuildChatHistory(ChatSession chatSession, List<DocumentChunk> relevantChunks, string userInput)
@@ -26,10 +28,9 @@ namespace EduShelf.Api.Services
 
             var contextString = contextText.ToString();
             var contextLengthLimit = _configuration.GetValue<int>("AIService:ContextLengthLimit", 4096);
-            if (contextString.Length > contextLengthLimit)
-            {
-                contextString = TruncateToTokenLimit(contextString, contextLengthLimit);
-            }
+            
+            // Truncate based on tokens
+            contextString = _tokenService.Truncate(contextString, contextLengthLimit);
 
             var chatHistory = new ChatHistory();
             chatHistory.AddSystemMessage(_configuration.GetValue<string>("AIService:Prompts:System") ?? "You are a helpful assistant.");
@@ -63,12 +64,6 @@ namespace EduShelf.Api.Services
             chatHistory.AddUserMessage(finalUserMessage.ToString());
 
             return chatHistory;
-        }
-
-        private string TruncateToTokenLimit(string text, int tokenLimit)
-        {
-            if (text.Length <= tokenLimit) return text;
-            return text.Substring(0, tokenLimit) + "...";
         }
     }
 }

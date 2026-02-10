@@ -53,7 +53,8 @@ namespace EduShelf.Api.Tests
 
             // Assert
             var actionResult = Assert.IsType<ActionResult<IEnumerable<FlashcardDto>>>(result);
-            var returnedFlashcards = Assert.IsAssignableFrom<IEnumerable<FlashcardDto>>(actionResult.Result as OkObjectResult != null ? (actionResult.Result as OkObjectResult).Value : actionResult.Value);
+            var returnedFlashcards = Assert.IsAssignableFrom<IEnumerable<FlashcardDto>>(
+                (actionResult.Result as OkObjectResult)?.Value ?? actionResult.Value);
             
             // Handle both ActionResult wrapping or direct value
             if (actionResult.Result is OkObjectResult okResult)

@@ -9,7 +9,7 @@ namespace EduShelf.Api.Services
 {
     public interface IDocumentService
     {
-        Task<IEnumerable<DocumentDto>> GetDocumentsAsync(int userId, string role);
+        Task<PagedResult<DocumentDto>> GetDocumentsAsync(int userId, string role, int page, int pageSize);
         Task<DocumentDto> GetDocumentAsync(int id, int userId, string role);
         Task<DocumentDto> UploadDocumentAsync(Stream fileStream, string fileName, string contentType, int userId, List<string> tags);
         Task UpdateDocumentAsync(int id, Document document, int userId, string role);
@@ -20,7 +20,7 @@ namespace EduShelf.Api.Services
         Task UpdateTagsForDocumentAsync(int documentId, List<int> tagIds);
         Task RemoveTagFromDocumentAsync(int documentId, int tagId);
         
-        Task<IEnumerable<DocumentDto>> SearchDocumentsAsync(string query, int userId, string role);
+        Task<PagedResult<DocumentDto>> SearchDocumentsAsync(string query, int userId, string role, int page, int pageSize);
         
         Task<(Stream FileStream, string ContentType, string FileName)> DownloadDocumentAsync(int id, int userId, string role);
         Task<string> GetDocumentContentAsync(int id, int userId, string role);

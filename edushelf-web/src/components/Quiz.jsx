@@ -181,7 +181,7 @@ const Quiz = () => {
                 {isModalOpen && <QuizModal onClose={() => { setIsModalOpen(false); setEditingQuiz(null); }} onQuizSaved={handleQuizSaved} quiz={editingQuiz} />}
                 <div className="file-grid">
                     {quizzes.map((quiz) => (
-                        <div key={quiz.id} className="file-card quiz-card" onClick={() => selectQuiz(quiz)}>
+                        <div key={quiz.id} className="file-card quiz-card" style={{ zIndex: openMenuId === quiz.id ? 100 : 1 }} onClick={() => selectQuiz(quiz)}>
                             <p>{quiz.title}</p>
                             <div className="file-card-buttons">
                                 <button className="menu-button" onClick={(e) => { e.stopPropagation(); toggleMenu(quiz.id); }}>

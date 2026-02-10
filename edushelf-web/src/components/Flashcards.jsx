@@ -71,7 +71,7 @@ const Flashcards = () => {
                 {isReviewModalOpen && <FlashcardReviewModal closeModal={() => setIsReviewModalOpen(false)} />}
                 <div className="flashcards-grid">
                     {Array.isArray(cards) && cards.map((card) => (
-                        <div key={card.id} className={`flashcard-scene ${flippedCards.has(card.id) ? 'flipped' : ''}`} onClick={() => flipCard(card.id)}>
+                        <div key={card.id} className={`flashcard-scene ${flippedCards.has(card.id) ? 'flipped' : ''}`} style={{ zIndex: openMenuId === card.id ? 100 : 'auto' }} onClick={() => flipCard(card.id)}>
                             <div className="flashcard-container">
                                 <div className="flashcard-face flashcard-front">
                                     <p>{card.question}</p>
