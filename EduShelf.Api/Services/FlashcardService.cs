@@ -226,33 +226,63 @@ namespace EduShelf.Api.Services
 
         public async Task<List<FlashcardDto>> GenerateFlashcardsAsync(GenerateFlashcardsRequest request, int userId)
         {
-            // 1. Retrieve Document Content
-            // We use the admin role internally here to allow the service to fetch content, 
-            // but we must check permissions first.
-            // Actually DocumentService.GetDocumentContentAsync checks permissions if we pass the role.
-            // We'll pass "User" role to enforce permissions.
-            string documentContent;
-            string documentTitle;
-            try 
+            // 1. Retrieve Document Content or Use Context
+            string documentContent = "";
+            string documentTitle = "Generated Flashcards";
+
+            if (!string.IsNullOrWhiteSpace(request.Context))
             {
-                var doc = await _documentService.GetDocumentAsync(request.DocumentId, userId, Roles.Student);
-                documentTitle = doc.Title;
-                
-                documentContent = await _documentService.GetDocumentContentAsync(request.DocumentId, userId, Roles.Student);
-            } 
-            catch (Exception ex)
+                documentContent = request.Context;
+                documentTitle = "Context Generated";
+            }
+            else if (request.DocumentIds != null && request.DocumentIds.Any())
             {
-                _logger.LogError(ex, "Error retrieving document content for flashcard generation.");
-                throw; // Rethrow to let controller handle (e.g. NotFound, Forbid)
+                var docs = new List<string>();
+                foreach (var docId in request.DocumentIds)
+                {
+                    try
+                    {
+                        var content = await _documentService.GetDocumentContentAsync(docId, userId, Roles.Student);
+                        if (!string.IsNullOrWhiteSpace(content))
+                        {
+                            docs.Add(content);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to retrieve content for document {DocumentId}", docId);
+                        // Continue ensuring we get at least some content
+                    }
+                }
+                documentContent = string.Join("\n\n__NEXT_DOCUMENT__\n\n", docs);
+                documentTitle = $"Multi-Doc ({request.DocumentIds.Count})";
+            }
+            else if (request.DocumentId.HasValue)
+            {
+                 try 
+                {
+                    var doc = await _documentService.GetDocumentAsync(request.DocumentId.Value, userId, Roles.Student);
+                    documentTitle = doc.Title;
+                    
+                    documentContent = await _documentService.GetDocumentContentAsync(request.DocumentId.Value, userId, Roles.Student);
+                } 
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error retrieving document content for flashcard generation.");
+                    throw; 
+                }
+            }
+            else
+            {
+                throw new BadRequestException("No context or document source provided.");
             }
 
             if (string.IsNullOrWhiteSpace(documentContent))
             {
-                 throw new BadRequestException("The document has no extractable content.");
+                 throw new BadRequestException("The source content is empty.");
             }
 
-            // Limit content length to prevent token overflow (simple truncation for now)
-            // A more robust solution would be chunking, but for flashcards, the first N chars usually contain enough context.
+            // Limit content length
             const int maxChars = 12000; 
             if (documentContent.Length > maxChars)
             {
@@ -295,9 +325,10 @@ namespace EduShelf.Api.Services
             }
 
             // 5. Save to Database
-            var savedFlashcards = new List<FlashcardDto>();
             
             // Get or Create Tag for the document
+            // If using Context, we might want a generic tag or a specific one provided in request? 
+            // For now, if Context is used, we use "Generated".
             var tag = await _context.Tags.FirstOrDefaultAsync(t => t.Name == documentTitle);
             if (tag == null)
             {
@@ -305,6 +336,8 @@ namespace EduShelf.Api.Services
                 _context.Tags.Add(tag);
                 await _context.SaveChangesAsync();
             }
+
+            var flashcardsToReturn = new List<FlashcardDto>();
 
             foreach (var gen in generatedFlashcards)
             {
@@ -318,19 +351,16 @@ namespace EduShelf.Api.Services
                 flashcard.FlashcardTags.Add(new FlashcardTag { Tag = tag });
                 
                 _context.Flashcards.Add(flashcard);
-                // We add to the list but ID is 0
+                // We need to save changes to get ID, or we can just map what we have and ID will be 0 until save?
+                // Returning with ID is better.
             }
 
             await _context.SaveChangesAsync();
 
-            // After SaveChanges, the entities in _context are updated with IDs.
-            // We can retrieve them from the Local tracker or re-query if needed.
-            // Since we just added them, they are in Local. We filter by the ones we just added.
-            // A safer way is to just map the entities we created in the loop, as their IDs are now populated.
-            
-            // Re-fetch the entities we just created from the context tracker
-            // Ideally we would keep the entity references from the loop.
-            // Let's refactor the loop slightly to keep references.
+            // Re-fetch or manually map. Manual map uses entities that are now tracked and have IDs.
+            // We need to access the entities we just added. 
+            // A simple way is to iterate the Local tracker again for these specific additions.
+            // Or better, just collect the entities in a list before adding to context.
             
             return _context.Flashcards.Local
                 .Where(f => f.UserId == userId && f.FlashcardTags.Any(ft => ft.TagId == tag.Id))

@@ -30,6 +30,8 @@ namespace EduShelf.Api.Services
         private readonly IImageProcessingService _imageProcessingService;
         private readonly IWebHostEnvironment _environment;
         private readonly IFileStorageService _fileStorageService;
+        private readonly IFlashcardService _flashcardService;
+        private readonly IQuizService _quizService;
 
         public ChatService(
             ApiDbContext context,
@@ -40,7 +42,9 @@ namespace EduShelf.Api.Services
             PromptGenerationService promptGenerationService,
             IImageProcessingService imageProcessingService,
             IWebHostEnvironment environment,
-            Services.FileStorage.IFileStorageService fileStorageService)
+            Services.FileStorage.IFileStorageService fileStorageService,
+            IFlashcardService flashcardService,
+            IQuizService quizService)
         {
             _context = context;
             _kernel = kernel;
@@ -51,6 +55,8 @@ namespace EduShelf.Api.Services
             _imageProcessingService = imageProcessingService;
             _environment = environment;
             _fileStorageService = fileStorageService;
+            _flashcardService = flashcardService;
+            _quizService = quizService;
         }
 
         public async Task<string> GetResponseAsync(string userInput, int userId, int chatSessionId, IFormFile? image = null)
@@ -103,11 +109,51 @@ namespace EduShelf.Api.Services
 
                 var intent = await _intentDetectionService.GetIntentAsync(promptInput);
                 var relevantChunks = await _retrievalService.GetRelevantChunksAsync(promptInput, userId, intent);
-                var chatHistory = _promptGenerationService.BuildChatHistory(chatSession, relevantChunks, promptInput);
 
-                var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
-                var result = await chatCompletionService.GetChatMessageContentAsync(chatHistory);
-                var responseContent = result.Content ?? "I'm sorry, I couldn't generate a response.";
+                string responseContent;
+
+                if (intent.Type == "flashcards")
+                {
+                    var context = string.Join("\n\n", relevantChunks.Select(c => c.Content));
+                    if (string.IsNullOrWhiteSpace(context))
+                    {
+                        responseContent = "I couldn't find enough relevant context to generate flashcards.";
+                    }
+                    else
+                    {
+                        await _flashcardService.GenerateFlashcardsAsync(new Models.Dtos.GenerateFlashcardsRequest
+                        {
+                            Context = context,
+                            Count = 5 // Default or could try to extract from prompt
+                        }, userId);
+                        responseContent = "I have generated flashcards based on the context. You can view them in your Flashcards collection.";
+                    }
+                }
+                else if (intent.Type == "quiz")
+                {
+                    var context = string.Join("\n\n", relevantChunks.Select(c => c.Content));
+                     if (string.IsNullOrWhiteSpace(context))
+                    {
+                        responseContent = "I couldn't find enough relevant context to generate a quiz.";
+                    }
+                    else
+                    {
+                        await _quizService.GenerateQuizAsync(new Models.Dtos.GenerateQuizRequest
+                        {
+                            Context = context,
+                            Count = 5 // Default
+                        }, userId);
+                        responseContent = "I have generated a quiz based on the context. You can view it in your Quizzes collection.";
+                    }
+                }
+                else
+                {
+                    // "summarize" or "question"
+                    var chatHistory = _promptGenerationService.BuildChatHistory(chatSession, relevantChunks, promptInput);
+                    var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
+                    var result = await chatCompletionService.GetChatMessageContentAsync(chatHistory);
+                    responseContent = result.Content ?? "I'm sorry, I couldn't generate a response.";
+                }
 
                 var chatMessage = new ChatMessage
                 {

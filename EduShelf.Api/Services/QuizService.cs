@@ -277,17 +277,52 @@ namespace EduShelf.Api.Services
         public async Task<QuizDto> GenerateQuizAsync(GenerateQuizRequest request, int userId)
         {
             // 1. Retrieve Document Content
-            string documentContent;
-            
-            try 
+            string documentContent = "";
+            string documentTitle = "Generated Quiz";
+
+            if (!string.IsNullOrWhiteSpace(request.Context))
             {
-                var doc = await _documentService.GetDocumentAsync(request.DocumentId, userId, Roles.Student);
-                documentContent = await _documentService.GetDocumentContentAsync(request.DocumentId, userId, Roles.Student);
-            } 
-            catch (Exception ex)
+                documentContent = request.Context;
+                documentTitle = "Context Generated Quiz";
+            }
+            else if (request.DocumentIds != null && request.DocumentIds.Any())
             {
-                 // Handle or log
-                 throw new ArgumentException("Could not retrieve document content for generation.");
+                var docs = new List<string>();
+                foreach (var docId in request.DocumentIds)
+                {
+                    try
+                    {
+                        var content = await _documentService.GetDocumentContentAsync(docId, userId, Roles.Student);
+                        if (!string.IsNullOrWhiteSpace(content))
+                        {
+                            docs.Add(content);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                         // Log but continue
+                    }
+                }
+                documentContent = string.Join("\n\n__NEXT_DOCUMENT__\n\n", docs);
+                documentTitle = $"Multi-Doc Quiz ({request.DocumentIds.Count})";
+            }
+            else if (request.DocumentId.HasValue)
+            {
+                 try 
+                {
+                    var doc = await _documentService.GetDocumentAsync(request.DocumentId.Value, userId, Roles.Student);
+                    documentTitle = doc.Title + " Quiz";
+                    documentContent = await _documentService.GetDocumentContentAsync(request.DocumentId.Value, userId, Roles.Student);
+                } 
+                catch (Exception ex)
+                {
+                     // Handle or log
+                     throw new ArgumentException("Could not retrieve document content for generation.");
+                }
+            }
+            else
+            {
+                 throw new BadRequestException("No context or document source provided.");
             }
 
             if (string.IsNullOrWhiteSpace(documentContent))
@@ -327,6 +362,12 @@ namespace EduShelf.Api.Services
             if (generatedQuiz == null) throw new InvalidOperationException("Generated quiz is null.");
 
             // 5. Save Quiz
+            // Use the title from AI or fallback
+            if (string.IsNullOrWhiteSpace(generatedQuiz.Title) || generatedQuiz.Title == "Geography Quiz")
+            {
+                generatedQuiz.Title = documentTitle;
+            }
+
             var newQuiz = new Quiz
             {
                 Title = generatedQuiz.Title,
@@ -342,10 +383,6 @@ namespace EduShelf.Api.Services
                 }).ToList()
             };
 
-            // Associate with document via Tags if possible? 
-            // Quiz entity doesn't have direct document link or tag link in the default schema shown, maybe it does?
-            // Assuming Quiz entity is simple.
-            
             _context.Quizzes.Add(newQuiz);
             await _context.SaveChangesAsync();
 
