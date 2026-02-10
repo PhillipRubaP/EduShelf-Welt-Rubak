@@ -40,7 +40,11 @@ const UploadDialog = ({ onClose, onUploadSuccess }) => {
   return (
     <div className="upload-dialog-overlay">
       <div className="upload-dialog">
-        <span className="close-button" onClick={onClose}>&times;</span>
+        <div className="modal-close-button" onClick={onClose}>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
         <h2>Upload File</h2>
         <input type="file" onChange={handleFileChange} accept=".pdf,.doc,.docx,.txt" />
         <div className="dialog-buttons">

@@ -185,3 +185,42 @@ button:hover {
 input[style*="--primary-green"] {
   color: black !important;
 }
+
+/* Global Modal Close Button */
+.modal-close-button {
+  position: absolute;
+  top: 1.25rem;
+  /* Matches EditUser */
+  right: 1.25rem;
+  /* Matches EditUser */
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  /* Ensure no border from default button styles */
+  padding: 0;
+  z-index: 10;
+  /* Ensure it's on top */
+}
+
+.modal-close-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+[data-theme='light'] .modal-close-button {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+[data-theme='light'] .modal-close-button:hover {
+  background: #e5e7eb;
+  color: #1f2937;
+}

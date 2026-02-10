@@ -32,19 +32,8 @@
 
 /* Close button - nicer style */
 .close-button {
-    position: absolute;
-    top: 1rem;
-    right: 1.5rem;
-    font-size: 1.5rem;
-    color: var(--modal-close-button-color);
-    cursor: pointer;
-    transition: color 0.2s;
-    background: none;
-    border: none;
-}
-
-.close-button:hover {
-    color: var(--incorrect-color);
+    /* Removed: Using global .modal-close-button */
+    display: none;
 }
 
 .modal-content h2 {

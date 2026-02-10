@@ -49,18 +49,8 @@
 }
 
 .close-button {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    font-size: 28px;
-    color: var(--modal-close-color);
-    cursor: pointer;
-    transition: color 0.2s;
-    line-height: 1;
-}
-
-.close-button:hover {
-    color: var(--modal-close-hover-color);
+    /* Removed: Using global .modal-close-button */
+    display: none;
 }
 
 .form-group {
