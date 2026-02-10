@@ -14,10 +14,20 @@ const Files = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+
   const fetchFiles = async () => {
     try {
-      const data = await api.get('/Documents');
-      setFiles(data);
+      // Use query parameters for pagination
+      const data = await api.get(`/Documents?page=${currentPage}&pageSize=${pageSize}`);
+      // data is now a PagedResult object
+      setFiles(data.items);
+      setTotalPages(data.totalPages);
+      setTotalCount(data.totalCount);
     } catch (error) {
       console.error('Error fetching files:', error);
     }
@@ -25,7 +35,7 @@ const Files = () => {
 
   useEffect(() => {
     fetchFiles();
-  }, []);
+  }, [currentPage, pageSize]); // Refetch when page or pageSize changes
 
   const handleUploadSuccess = () => {
     setUploadDialogOpen(false);
@@ -72,6 +82,18 @@ const Files = () => {
     file.title.toLowerCase().includes(searchTerm.toLowerCase()) // Filter by title
   );
 
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
   return (
     <div className="files-container">
       {viewFile ? (
@@ -112,6 +134,30 @@ const Files = () => {
               </div>
             ))}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="pagination-controls">
+              <button
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                className="pagination-button"
+              >
+                Previous
+              </button>
+              <span className="pagination-info">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className="pagination-button"
+              >
+                Next
+              </button>
+            </div>
+          )}
+
           {isUploadDialogOpen && <UploadDialog onClose={() => setUploadDialogOpen(false)} onUploadSuccess={handleUploadSuccess} />}
         </div>
       )}
