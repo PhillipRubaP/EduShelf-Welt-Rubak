@@ -20,6 +20,9 @@ const Quiz = () => {
     const [selectedAnswerId, setSelectedAnswerId] = useState(null);
     const [answerStatus, setAnswerStatus] = useState('');
 
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+
     useEffect(() => {
         const fetchQuizzes = async () => {
             try {
@@ -171,6 +174,11 @@ const Quiz = () => {
         );
     }
 
+    // Pagination constants
+    const pageSize = 10;
+    const totalPages = Math.ceil(quizzes.length / pageSize);
+    const paginatedQuizzes = quizzes.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
     return (
         <div className="files-container">
             <div className="file-list">
@@ -180,7 +188,7 @@ const Quiz = () => {
                 </div>
                 {isModalOpen && <QuizModal onClose={() => { setIsModalOpen(false); setEditingQuiz(null); }} onQuizSaved={handleQuizSaved} quiz={editingQuiz} />}
                 <div className="file-grid">
-                    {quizzes.map((quiz) => (
+                    {paginatedQuizzes.map((quiz) => (
                         <div key={quiz.id} className="file-card quiz-card" style={{ zIndex: openMenuId === quiz.id ? 100 : 1 }} onClick={() => selectQuiz(quiz)}>
                             <p>{quiz.title}</p>
                             <div className="file-card-buttons">
@@ -199,6 +207,27 @@ const Quiz = () => {
                         </div>
                     ))}
                 </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="pagination-controls">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="pagination-button"
+                        >
+                            Previous
+                        </button>
+                        <span className="pagination-info">Page {currentPage} of {totalPages}</span>
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="pagination-button"
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );
