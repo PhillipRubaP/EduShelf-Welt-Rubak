@@ -101,7 +101,7 @@ export const postChatMessage = (sessionId, message, image) => {
 };
 export const updateChatSession = (sessionId, title) => api.put(`/Chat/sessions/${sessionId}`, { title });
 
-export const getQuizzes = () => api.get('/quizzes');
+export const getQuizzes = (page = 1, pageSize = 10) => api.get(`/quizzes?page=${page}&pageSize=${pageSize}`);
 export const createQuiz = (quizData) => api.post('/quizzes', quizData);
 export const deleteQuiz = (quizId) => api.delete(`/quizzes/${quizId}`);
 export const updateQuiz = (quizId, quizData) => api.put(`/quizzes/${quizId}`, quizData);

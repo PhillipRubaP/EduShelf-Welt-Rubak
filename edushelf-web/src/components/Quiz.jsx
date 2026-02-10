@@ -22,18 +22,29 @@ const Quiz = () => {
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalCount, setTotalCount] = useState(0);
+
+    const fetchQuizzes = async () => {
+        try {
+            const result = await getQuizzes(currentPage, pageSize);
+            // Handle PagedResult
+            if (result && result.items) {
+                setQuizzes(result.items);
+                setTotalPages(result.totalPages);
+                setTotalCount(result.totalCount);
+            } else if (Array.isArray(result)) {
+                setQuizzes(result);
+            }
+        } catch (error) {
+            console.error("Failed to fetch quizzes", error);
+        }
+    };
 
     useEffect(() => {
-        const fetchQuizzes = async () => {
-            try {
-                const data = await getQuizzes();
-                setQuizzes(data);
-            } catch (error) {
-                console.error('Error fetching quizzes:', error);
-            }
-        };
         fetchQuizzes();
-    }, []);
+    }, [currentPage, pageSize]);
 
     useEffect(() => {
         if (quizTitle && quizzes.length > 0) {
@@ -80,13 +91,10 @@ const Quiz = () => {
         }, 1000);
     };
 
-    const handleQuizSaved = (savedQuiz) => {
-        const existingQuiz = quizzes.find(q => q.id === savedQuiz.id);
-        if (existingQuiz) {
-            setQuizzes(quizzes.map(q => q.id === savedQuiz.id ? savedQuiz : q));
-        } else {
-            setQuizzes([...quizzes, savedQuiz]);
-        }
+    const handleQuizSaved = () => {
+        setIsModalOpen(false);
+        setEditingQuiz(null);
+        fetchQuizzes();
     };
 
     const selectQuiz = (quiz) => {
@@ -99,11 +107,13 @@ const Quiz = () => {
     };
 
     const handleDelete = async (quizId) => {
-        try {
-            await deleteQuiz(quizId);
-            setQuizzes(quizzes.filter(q => q.id !== quizId));
-        } catch (error) {
-            console.error('Error deleting quiz:', error);
+        if (window.confirm("Are you sure you want to delete this quiz?")) {
+            try {
+                await deleteQuiz(quizId);
+                fetchQuizzes();
+            } catch (error) {
+                console.error('Error deleting quiz:', error);
+            }
         }
     };
 
@@ -174,11 +184,6 @@ const Quiz = () => {
         );
     }
 
-    // Pagination constants
-    const pageSize = 10;
-    const totalPages = Math.ceil(quizzes.length / pageSize);
-    const paginatedQuizzes = quizzes.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-
     return (
         <div className="files-container">
             <div className="file-list">
@@ -188,7 +193,7 @@ const Quiz = () => {
                 </div>
                 {isModalOpen && <QuizModal onClose={() => { setIsModalOpen(false); setEditingQuiz(null); }} onQuizSaved={handleQuizSaved} quiz={editingQuiz} />}
                 <div className="file-grid">
-                    {paginatedQuizzes.map((quiz) => (
+                    {quizzes.map((quiz) => (
                         <div key={quiz.id} className="file-card quiz-card" style={{ zIndex: openMenuId === quiz.id ? 100 : 1 }} onClick={() => selectQuiz(quiz)}>
                             <p>{quiz.title}</p>
                             <div className="file-card-buttons">
