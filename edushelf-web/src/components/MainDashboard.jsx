@@ -22,17 +22,21 @@ function MainDashboard() {
 
   const fetchData = async () => {
     try {
-      const [docs, quizzes, flashcards] = await Promise.all([
+      const [docsData, quizzes, flashcards] = await Promise.all([
         getDocuments(),
         getQuizzes(),
         getFlashcards()
       ]);
 
-      // Take only the first 3 documents
-      setRecentFiles(docs.slice(0, 3));
+      const docs = docsData.items || docsData;
+
+      if (Array.isArray(docs)) {
+        // Take only the first 3 documents
+        setRecentFiles(docs.slice(0, 3));
+      }
 
       setStats({
-        documents: docs.length,
+        documents: docsData.totalCount || (Array.isArray(docs) ? docs.length : 0),
         quizzes: quizzes.length,
         flashcards: flashcards.length
       });
@@ -82,10 +86,10 @@ function MainDashboard() {
       </header>
 
       <div className="dashboard-grid">
-        {/* Recently Viewed Files */}
+        {/* Recently Added Files */}
         <section className="dashboard-card recent-files">
           <div className="card-header">
-            <h2>Recently Viewed</h2>
+            <h2>Recently Added</h2>
             <span className="badge">Last 3</span>
           </div>
           {recentFiles.length > 0 ? (

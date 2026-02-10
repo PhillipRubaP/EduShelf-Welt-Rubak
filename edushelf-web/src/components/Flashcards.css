@@ -87,3 +87,10 @@
 
 /* Ensure buttons don't get clipped if they are near the edge. 
    We might need to inset them slightly more. */
+
+.review-button {
+    width: auto !important;
+    padding: 0 1rem;
+    font-size: 1rem;
+    font-weight: bold;
+}
