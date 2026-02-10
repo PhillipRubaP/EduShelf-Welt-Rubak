@@ -13,13 +13,7 @@ using System.Threading.Tasks;
 using EduShelf.Api.Constants;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.Extensions.DependencyInjection; // For GetRequiredService if needed, but it's on Kernel which is a service provider? No, Kernel is not IServiceProvider. 
-// Actually Kernel.GetRequiredService is extension? 
-// Let's check FlashcardService imports. 
-// FlashcardService used: 
-// using Microsoft.SemanticKernel;
-// using Microsoft.SemanticKernel.ChatCompletion;
-// using System.Text.Json;
+using System.Text.Json; // Added for parsing logic
 
 namespace EduShelf.Api.Services
 {
@@ -360,9 +354,9 @@ namespace EduShelf.Api.Services
             GeneratedQuizJson generatedQuiz;
             try
             {
-                generatedQuiz = System.Text.Json.JsonSerializer.Deserialize<GeneratedQuizJson>(cleanedJson, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+                generatedQuiz = ParseQuizResponse(cleanedJson);
             }
-            catch (System.Text.Json.JsonException ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to parse generated quiz JSON. Cleaned JSON: {CleanedJson}", cleanedJson);
                 throw new InvalidOperationException("AI failed to generate valid JSON for the quiz.", ex);
@@ -396,6 +390,96 @@ namespace EduShelf.Api.Services
             await _context.SaveChangesAsync();
 
             return MapToDto(newQuiz);
+        }
+
+        private GeneratedQuizJson ParseQuizResponse(string cleanedJson)
+        {
+            try
+            {
+                var jsonNode = System.Text.Json.Nodes.JsonNode.Parse(cleanedJson);
+                if (jsonNode == null) return new GeneratedQuizJson();
+
+                // Handle 'quiz' Wrapper
+                if (jsonNode["quiz"] != null)
+                {
+                    jsonNode = jsonNode["quiz"];
+                }
+                
+                // Attempt standard deserialization first
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                GeneratedQuizJson result = null;
+                try 
+                {
+                    result = jsonNode.Deserialize<GeneratedQuizJson>(options);
+                }
+                catch { }
+
+                // If standard worked and has questions with text, return it
+                if (result != null && result.Questions != null && result.Questions.Any() && !string.IsNullOrEmpty(result.Questions[0].Text))
+                {
+                    return result;
+                }
+
+                // Fallback: Manual Parsing for "All Lowercase / Alternative Schema"
+                var manualQuiz = new GeneratedQuizJson();
+                manualQuiz.Title = jsonNode["title"]?.ToString() ?? result?.Title ?? "Generated Quiz";
+                
+                var questionsNode = jsonNode["questions"] ?? jsonNode["Questions"];
+                if (questionsNode is System.Text.Json.Nodes.JsonArray qArray)
+                {
+                    manualQuiz.Questions = new List<GeneratedQuestionJson>();
+                    foreach (var qItem in qArray)
+                    {
+                        var qText = qItem["text"]?.ToString() ?? qItem["question"]?.ToString();
+                        var answerStr = qItem["answer"]?.ToString(); // Correct answer if string
+                        
+                        var newQ = new GeneratedQuestionJson { Text = qText ?? "Unknown Question" };
+                        
+                        var optsNode = qItem["answers"] ?? qItem["options"];
+                        if (optsNode is System.Text.Json.Nodes.JsonArray optsArray)
+                        {
+                            newQ.Answers = new List<GeneratedAnswerJson>();
+                            foreach (var opt in optsArray)
+                            {
+                                string optText = null;
+                                bool isCorrect = false;
+
+                                if (opt is System.Text.Json.Nodes.JsonValue) // ["Option A", "Option B"]
+                                {
+                                    optText = opt.ToString();
+                                    if (!string.IsNullOrEmpty(answerStr) && optText.Trim().Equals(answerStr.Trim(), StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        isCorrect = true;
+                                    }
+                                }
+                                else if (opt is System.Text.Json.Nodes.JsonObject) // [{"text": "...", "isCorrect": ...}]
+                                {
+                                    optText = opt["text"]?.ToString() ?? opt["Text"]?.ToString();
+                                    // Try to find boolean
+                                    var isCorrectNode = opt["isCorrect"] ?? opt["IsCorrect"];
+                                    if (isCorrectNode != null)
+                                    {
+                                        bool.TryParse(isCorrectNode.ToString(), out isCorrect);
+                                    }
+                                }
+
+                                if (optText != null)
+                                {
+                                    newQ.Answers.Add(new GeneratedAnswerJson { Text = optText, IsCorrect = isCorrect });
+                                }
+                            }
+                        }
+                        manualQuiz.Questions.Add(newQ);
+                    }
+                }
+
+                return manualQuiz;
+            }
+            catch (Exception ex)
+            {
+                // Log via throw
+                throw new InvalidOperationException("Failed to manually parse quiz JSON structure.", ex);
+            }
         }
 
         private static string CleanJson(string raw)
