@@ -44,25 +44,30 @@ namespace EduShelf.Api.Tests
                 new FlashcardDto { Id = 1, Question = "Q1", Answer = "A1", UserId = 1, Tags = new List<string>() },
                 new FlashcardDto { Id = 2, Question = "Q2", Answer = "A2", UserId = 1, Tags = new List<string>() }
             };
+            var pagedResult = new PagedResult<FlashcardDto>(flashcards, 2, 1, 10);
 
-            _mockFlashcardService.Setup(s => s.GetFlashcardsAsync(1, false))
-                .ReturnsAsync(flashcards);
+            _mockFlashcardService.Setup(s => s.GetFlashcardsAsync(1, false, 1, 10))
+                .ReturnsAsync(pagedResult);
 
             // Act
-            var result = await _controller.GetFlashcards();
+            var result = await _controller.GetFlashcards(1, 10);
 
             // Assert
-            var actionResult = Assert.IsType<ActionResult<IEnumerable<FlashcardDto>>>(result);
-            var returnedFlashcards = Assert.IsAssignableFrom<IEnumerable<FlashcardDto>>(
-                (actionResult.Result as OkObjectResult)?.Value ?? actionResult.Value);
+            var actionResult = Assert.IsType<ActionResult<PagedResult<FlashcardDto>>>(result);
             
-            // Handle both ActionResult wrapping or direct value
+            PagedResult<FlashcardDto> returnedResult = null;
+
+             // Handle both ActionResult wrapping or direct value
             if (actionResult.Result is OkObjectResult okResult)
             {
-                returnedFlashcards = Assert.IsAssignableFrom<IEnumerable<FlashcardDto>>(okResult.Value);
+                returnedResult = Assert.IsType<PagedResult<FlashcardDto>>(okResult.Value);
+            }
+            else
+            {
+                returnedResult = actionResult.Value;
             }
             
-            Assert.Equal(2, ((List<FlashcardDto>)returnedFlashcards).Count);
+            Assert.Equal(2, returnedResult.Items.Count());
         }
 
         [Fact]

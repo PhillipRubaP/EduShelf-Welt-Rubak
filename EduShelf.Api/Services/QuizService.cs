@@ -57,7 +57,7 @@ namespace EduShelf.Api.Services
             return _httpContextAccessor.HttpContext?.User.IsInRole(Roles.Admin) ?? false;
         }
 
-        public async Task<IEnumerable<QuizDto>> GetQuizzesAsync()
+        public async Task<PagedResult<QuizDto>> GetQuizzesAsync(int page, int pageSize)
         {
             var userId = GetCurrentUserId();
             var isAdmin = IsCurrentUserAdmin();
@@ -69,12 +69,17 @@ namespace EduShelf.Api.Services
                 query = query.Where(q => q.UserId == userId);
             }
 
+            var totalCount = await query.CountAsync();
             var quizzes = await query
                 .Include(q => q.Questions)
                 .ThenInclude(q => q.Answers)
+                .OrderByDescending(q => q.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            return quizzes.Select(MapToDto).ToList();
+            var dtos = quizzes.Select(MapToDto).ToList();
+            return new PagedResult<QuizDto>(dtos, totalCount, page, pageSize);
         }
 
         public async Task<QuizDto> GetQuizAsync(int id)

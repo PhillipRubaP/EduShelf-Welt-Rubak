@@ -90,11 +90,11 @@ namespace EduShelf.Api.Tests
             var service = CreateService(context, userId: 1);
 
             // Act
-            var result = await service.GetQuizzesAsync();
+            var result = await service.GetQuizzesAsync(1, 10);
 
             // Assert
-            Assert.Single(result);
-            Assert.Equal("My Quiz", result.First().Title);
+            Assert.Single(result.Items);
+            Assert.Equal("My Quiz", result.Items.First().Title);
         }
 
         [Fact]

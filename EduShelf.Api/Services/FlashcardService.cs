@@ -38,7 +38,7 @@ namespace EduShelf.Api.Services
             _logger = logger;
         }
 
-        public async Task<IEnumerable<FlashcardDto>> GetFlashcardsAsync(int userId, bool isAdmin)
+        public async Task<PagedResult<FlashcardDto>> GetFlashcardsAsync(int userId, bool isAdmin, int page, int pageSize)
         {
             var query = _context.Flashcards.AsQueryable();
 
@@ -47,11 +47,17 @@ namespace EduShelf.Api.Services
                 query = query.Where(f => f.UserId == userId);
             }
 
-            return await query
+            var totalCount = await query.CountAsync();
+            var items = await query
                 .Include(f => f.FlashcardTags)
                 .ThenInclude(ft => ft.Tag)
+                .OrderByDescending(f => f.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(f => MapToDto(f))
                 .ToListAsync();
+
+            return new PagedResult<FlashcardDto>(items, totalCount, page, pageSize);
         }
 
         public async Task<FlashcardDto> GetFlashcardAsync(int id, int userId, bool isAdmin)
@@ -74,7 +80,7 @@ namespace EduShelf.Api.Services
             return MapToDto(flashcard);
         }
 
-        public async Task<IEnumerable<FlashcardDto>> GetFlashcardsByTagAsync(int tagId, int userId, bool isAdmin)
+        public async Task<PagedResult<FlashcardDto>> GetFlashcardsByTagAsync(int tagId, int userId, bool isAdmin, int page, int pageSize)
         {
             var query = _context.Flashcards.AsQueryable();
 
@@ -83,12 +89,19 @@ namespace EduShelf.Api.Services
                 query = query.Where(f => f.UserId == userId);
             }
 
-            return await query
-                .Where(f => f.FlashcardTags.Any(ft => ft.TagId == tagId))
+            query = query.Where(f => f.FlashcardTags.Any(ft => ft.TagId == tagId));
+
+            var totalCount = await query.CountAsync();
+            var items = await query
                 .Include(f => f.FlashcardTags)
                 .ThenInclude(ft => ft.Tag)
+                .OrderByDescending(f => f.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(f => MapToDto(f))
                 .ToListAsync();
+
+            return new PagedResult<FlashcardDto>(items, totalCount, page, pageSize);
         }
 
         public async Task<FlashcardDto> CreateFlashcardAsync(FlashcardCreateDto flashcardDto, int userId)

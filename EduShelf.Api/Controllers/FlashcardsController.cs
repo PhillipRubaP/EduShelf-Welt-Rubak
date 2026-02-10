@@ -23,11 +23,11 @@ namespace EduShelf.Api.Controllers
 
         // GET: api/Flashcards
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<FlashcardDto>>> GetFlashcards()
+        public async Task<ActionResult<PagedResult<FlashcardDto>>> GetFlashcards([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var userId = GetUserId();
             var isAdmin = IsAdmin();
-            var flashcards = await _flashcardService.GetFlashcardsAsync(userId, isAdmin);
+            var flashcards = await _flashcardService.GetFlashcardsAsync(userId, isAdmin, page, pageSize);
             return Ok(flashcards);
         }
 
@@ -43,11 +43,11 @@ namespace EduShelf.Api.Controllers
 
         // GET: api/Flashcards/tag/5
         [HttpGet("tag/{tagId}")]
-        public async Task<ActionResult<IEnumerable<FlashcardDto>>> GetFlashcardsByTag(int tagId)
+        public async Task<ActionResult<PagedResult<FlashcardDto>>> GetFlashcardsByTag(int tagId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var userId = GetUserId();
             var isAdmin = IsAdmin();
-            var flashcards = await _flashcardService.GetFlashcardsByTagAsync(tagId, userId, isAdmin);
+            var flashcards = await _flashcardService.GetFlashcardsByTagAsync(tagId, userId, isAdmin, page, pageSize);
             return Ok(flashcards);
         }
 

@@ -24,9 +24,9 @@ namespace EduShelf.Api.Controllers
 
         // GET: api/Quizzes
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<QuizDto>>> GetQuizzes()
+        public async Task<ActionResult<PagedResult<QuizDto>>> GetQuizzes([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var quizzes = await _quizService.GetQuizzesAsync();
+            var quizzes = await _quizService.GetQuizzesAsync(page, pageSize);
             return Ok(quizzes);
         }
 
