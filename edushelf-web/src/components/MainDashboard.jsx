@@ -37,8 +37,8 @@ function MainDashboard() {
 
       setStats({
         documents: docsData.totalCount || (Array.isArray(docs) ? docs.length : 0),
-        quizzes: quizzes.length,
-        flashcards: flashcards.length
+        quizzes: quizzes.totalCount || (Array.isArray(quizzes) ? quizzes.length : 0),
+        flashcards: flashcards.totalCount || (Array.isArray(flashcards) ? flashcards.length : 0)
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);

@@ -14,13 +14,29 @@ const Flashcards = () => {
     const [openMenuId, setOpenMenuId] = useState(null);
     const [editingCard, setEditingCard] = useState(null);
 
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const pageSize = 10;
+
     useEffect(() => {
         const fetchFlashcards = async () => {
-            const fetchedCards = await getFlashcards();
-            setCards(fetchedCards);
+            try {
+                const result = await getFlashcards(currentPage, pageSize);
+                // Handle PagedResult
+                if (result && result.items) {
+                    setCards(result.items);
+                    setTotalPages(result.totalPages);
+                } else if (Array.isArray(result)) {
+                    // Fallback if API returns array (shouldn't happen with updated backend)
+                    setCards(result);
+                }
+            } catch (error) {
+                console.error("Failed to fetch flashcards", error);
+            }
         };
         fetchFlashcards();
-    }, []);
+    }, [currentPage]); // Re-fetch when page changes
 
     const addCard = async (card) => {
         const newCard = await createFlashcard(card);
@@ -96,6 +112,28 @@ const Flashcards = () => {
                         </div>
                     ))}
                 </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="pagination-controls">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="pagination-button"
+                        >
+                            Previous
+                        </button>
+                        <span className="pagination-info">Page {currentPage} of {totalPages}</span>
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="pagination-button"
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}
+
             </div>
         </div>
     );
