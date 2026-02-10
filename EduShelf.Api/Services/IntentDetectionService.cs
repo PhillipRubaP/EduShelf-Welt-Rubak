@@ -29,20 +29,7 @@ namespace EduShelf.Api.Services
             var rawContent = result.Content ?? string.Empty;
             _logger.LogInformation("Intent detection raw response: {IntentResponse}", rawContent);
 
-            var cleanedJson = rawContent.Trim();
-            if (cleanedJson.StartsWith("```json"))
-            {
-                cleanedJson = cleanedJson.Substring(7);
-            }
-            if (cleanedJson.StartsWith("```"))
-            {
-                cleanedJson = cleanedJson.Substring(3);
-            }
-            if (cleanedJson.EndsWith("```"))
-            {
-                cleanedJson = cleanedJson.Substring(0, cleanedJson.Length - 3);
-            }
-            cleanedJson = cleanedJson.Trim();
+            var cleanedJson = EduShelf.Api.Helpers.JsonHelper.ExtractJson(rawContent);
 
             try
             {

@@ -320,7 +320,7 @@ namespace EduShelf.Api.Services
             _logger.LogInformation("AI Generated Flashcards JSON: {Json}", rawContent);
 
             // 4. Parse JSON
-            var cleanedJson = CleanJson(rawContent);
+            var cleanedJson = EduShelf.Api.Helpers.JsonHelper.ExtractJson(rawContent);
             List<GeneratedFlashcardJson> generatedFlashcards;
             try
             {
@@ -381,21 +381,6 @@ namespace EduShelf.Api.Services
                 .Take(generatedFlashcards.Count)
                 .Select(MapToDto)
                 .ToList();
-        }
-
-        private static string CleanJson(string raw)
-        {
-            if (string.IsNullOrWhiteSpace(raw)) return "[]";
-
-            var start = raw.IndexOf('[');
-            var end = raw.LastIndexOf(']');
-
-            if (start >= 0 && end > start)
-            {
-                return raw.Substring(start, end - start + 1);
-            }
-
-            return raw.Trim();
         }
 
         private static FlashcardDto MapToDto(Flashcard flashcard)

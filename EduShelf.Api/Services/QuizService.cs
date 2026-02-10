@@ -355,7 +355,7 @@ namespace EduShelf.Api.Services
             _logger.LogInformation("AI Generated Quiz JSON Raw: {Json}", rawJson);
 
             // 4. Parse JSON
-            var cleanedJson = CleanJson(rawJson);
+            var cleanedJson = EduShelf.Api.Helpers.JsonHelper.ExtractJson(rawJson);
             GeneratedQuizJson generatedQuiz;
             try
             {
@@ -485,22 +485,6 @@ namespace EduShelf.Api.Services
                 // Log via throw
                 throw new InvalidOperationException("Failed to manually parse quiz JSON structure.", ex);
             }
-        }
-
-        private static string CleanJson(string raw)
-        {
-            if (string.IsNullOrWhiteSpace(raw)) return "{}";
-
-            var start = raw.IndexOf('{');
-            var end = raw.LastIndexOf('}');
-
-            if (start >= 0 && end > start)
-            {
-                return raw.Substring(start, end - start + 1);
-            }
-
-            // Fallback to basic trimming if no braces found (likely invalid)
-            return raw.Trim();
         }
 
         private static QuizDto MapToDto(Quiz quiz)
