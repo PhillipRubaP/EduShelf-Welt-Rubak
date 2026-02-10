@@ -147,3 +147,38 @@ input:checked+.slider:before {
   display: block;
   margin-top: 1rem;
 }
+
+/* Disabled State */
+.setting-item.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  /* Prevent clicks on the container label if any */
+}
+
+input:disabled+.slider {
+  background-color: rgba(255, 255, 255, 0.1);
+  cursor: not-allowed;
+}
+
+[data-theme='light'] input:disabled+.slider {
+  background-color: #e5e7eb;
+}
+
+.soon-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #9ca3af;
+  border-radius: 999px;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+[data-theme='light'] .soon-badge {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}

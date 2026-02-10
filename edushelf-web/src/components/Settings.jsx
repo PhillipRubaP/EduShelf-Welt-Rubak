@@ -82,18 +82,18 @@ const Settings = () => {
                 </button>
 
                 <div className="modal-header">
-                    <h2 className="modal-title">Einstellungen</h2>
-                    <p className="settings-subtitle">Passe EduShelf an deine Bedürfnisse an</p>
+                    <h2 className="modal-title">Settings</h2>
+                    <p className="settings-subtitle">Customize EduShelf to your needs</p>
                 </div>
 
                 <div className="modal-body settings-body">
                     <div className="settings-section">
-                        <h3 className="section-title">Erscheinungsbild</h3>
+                        <h3 className="section-title">Appearance</h3>
 
                         <div className="setting-item">
                             <div className="setting-info">
                                 <span className="setting-label">Light Mode</span>
-                                <span className="setting-desc">Helles Design für bessere Lesbarkeit am Tag</span>
+                                <span className="setting-desc">Light theme for better visibility</span>
                             </div>
                             <label className="toggle-switch">
                                 <input
@@ -105,16 +105,17 @@ const Settings = () => {
                             </label>
                         </div>
 
-                        <div className="setting-item">
+                        <div className="setting-item disabled">
                             <div className="setting-info">
-                                <span className="setting-label">Kompaktmodus</span>
-                                <span className="setting-desc">Mehr Inhalt auf weniger Platz</span>
+                                <span className="setting-label">Compact Mode <span className="soon-badge">Coming Soon</span></span>
+                                <span className="setting-desc">More content in less space</span>
                             </div>
                             <label className="toggle-switch">
                                 <input
                                     type="checkbox"
                                     checked={compactMode}
                                     onChange={handleCompactModeToggle}
+                                    disabled
                                 />
                                 <span className="slider round"></span>
                             </label>
@@ -122,33 +123,35 @@ const Settings = () => {
                     </div>
 
                     <div className="settings-section">
-                        <h3 className="section-title">Erlebnis</h3>
+                        <h3 className="section-title">Experience</h3>
 
-                        <div className="setting-item">
+                        <div className="setting-item disabled">
                             <div className="setting-info">
-                                <span className="setting-label">Animationen</span>
-                                <span className="setting-desc">Visuelle Effekte für weichere Übergänge</span>
+                                <span className="setting-label">Animations <span className="soon-badge">Coming Soon</span></span>
+                                <span className="setting-desc">Visual effects for smoother transitions</span>
                             </div>
                             <label className="toggle-switch">
                                 <input
                                     type="checkbox"
                                     checked={animationsEnabled}
                                     onChange={handleAnimationsToggle}
+                                    disabled
                                 />
                                 <span className="slider round"></span>
                             </label>
                         </div>
 
-                        <div className="setting-item">
+                        <div className="setting-item disabled">
                             <div className="setting-info">
-                                <span className="setting-label">Soundeffekte</span>
-                                <span className="setting-desc">Töne bei Interaktionen abspielen</span>
+                                <span className="setting-label">Sound Effects <span className="soon-badge">Coming Soon</span></span>
+                                <span className="setting-desc">Play sounds on interactions</span>
                             </div>
                             <label className="toggle-switch">
                                 <input
                                     type="checkbox"
                                     checked={soundEffects}
                                     onChange={handleSoundEffectsToggle}
+                                    disabled
                                 />
                                 <span className="slider round"></span>
                             </label>
