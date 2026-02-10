@@ -64,8 +64,8 @@ const Flashcards = () => {
             <div className="file-list">
                 <div className="file-list-header">
                     <h2>Flashcards</h2>
-                    <button onClick={() => { setEditingCard(null); setIsModalOpen(true); }} className="add-file-button">+</button>
                     <button onClick={() => setIsReviewModalOpen(true)} className="add-file-button review-button">Review</button>
+                    <button onClick={() => { setEditingCard(null); setIsModalOpen(true); }} className="add-file-button">+</button>
                 </div>
                 {isModalOpen && <FlashcardsModal addCard={addCard} closeModal={() => setIsModalOpen(false)} card={editingCard} updateCard={updateCard} />}
                 {isReviewModalOpen && <FlashcardReviewModal closeModal={() => setIsReviewModalOpen(false)} />}
