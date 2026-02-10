@@ -30,19 +30,22 @@ namespace EduShelf.Api.Services
         private readonly IChatCompletionService _chatCompletionService;
         private readonly IConfiguration _configuration;
         private readonly IDocumentService _documentService;
+        private readonly ILogger<QuizService> _logger;
 
         public QuizService(
             ApiDbContext context, 
             IHttpContextAccessor httpContextAccessor, 
             Kernel kernel, 
             IConfiguration configuration,
-            IDocumentService documentService)
+            IDocumentService documentService,
+            ILogger<QuizService> logger)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
             _chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
             _configuration = configuration;
             _documentService = documentService;
+            _logger = logger;
         }
 
         private int GetCurrentUserId()
@@ -298,7 +301,7 @@ namespace EduShelf.Api.Services
                             docs.Add(content);
                         }
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                          // Log but continue
                     }
@@ -314,7 +317,7 @@ namespace EduShelf.Api.Services
                     documentTitle = doc.Title + " Quiz";
                     documentContent = await _documentService.GetDocumentContentAsync(request.DocumentId.Value, userId, Roles.Student);
                 } 
-                catch (Exception ex)
+                catch (Exception)
                 {
                      // Handle or log
                      throw new ArgumentException("Could not retrieve document content for generation.");
@@ -338,25 +341,31 @@ namespace EduShelf.Api.Services
 
             // 2. Prepare AI Prompt
             var promptTemplate = _configuration.GetValue<string>("AIService:Prompts:Quiz");
-            var prompt = $"{promptTemplate}\n\nCount: {request.Count}\n\n[Text Analysis]:\n{documentContent}";
+            if (string.IsNullOrEmpty(promptTemplate))
+            {
+                 throw new InvalidOperationException("Quiz prompt is not configured.");
+            }
 
             // 3. Call AI
             var chatHistory = new ChatHistory();
-            chatHistory.AddUserMessage(prompt);
+            chatHistory.AddSystemMessage(promptTemplate.Replace("{Count}", request.Count.ToString()));
+            chatHistory.AddUserMessage($"[Text Analysis]:\n{documentContent}\n\n---\n\nIMPORTANT: Based on the text above, generate the JSON quiz now. Output strictly valid JSON. Do not include any conversational text, markdown, or explanations. Start with {{.");
 
             var result = await _chatCompletionService.GetChatMessageContentAsync(chatHistory);
             var rawJson = result.Content ?? "{}";
+            _logger.LogInformation("AI Generated Quiz JSON Raw: {Json}", rawJson);
 
             // 4. Parse JSON
             var cleanedJson = CleanJson(rawJson);
             GeneratedQuizJson generatedQuiz;
             try
             {
-                generatedQuiz = System.Text.Json.JsonSerializer.Deserialize<GeneratedQuizJson>(cleanedJson, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                generatedQuiz = System.Text.Json.JsonSerializer.Deserialize<GeneratedQuizJson>(cleanedJson, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
             }
-            catch (System.Text.Json.JsonException)
+            catch (System.Text.Json.JsonException ex)
             {
-                throw new InvalidOperationException("AI failed to generate valid JSON for the quiz.");
+                _logger.LogError(ex, "Failed to parse generated quiz JSON. Cleaned JSON: {CleanedJson}", cleanedJson);
+                throw new InvalidOperationException("AI failed to generate valid JSON for the quiz.", ex);
             }
             
             if (generatedQuiz == null) throw new InvalidOperationException("Generated quiz is null.");
@@ -391,20 +400,18 @@ namespace EduShelf.Api.Services
 
         private static string CleanJson(string raw)
         {
-            var cleaned = raw.Trim();
-            if (cleaned.StartsWith("```json"))
+            if (string.IsNullOrWhiteSpace(raw)) return "{}";
+
+            var start = raw.IndexOf('{');
+            var end = raw.LastIndexOf('}');
+
+            if (start >= 0 && end > start)
             {
-                cleaned = cleaned.Substring(7);
+                return raw.Substring(start, end - start + 1);
             }
-            if (cleaned.StartsWith("```"))
-            {
-                cleaned = cleaned.Substring(3);
-            }
-            if (cleaned.EndsWith("```"))
-            {
-                cleaned = cleaned.Substring(0, cleaned.Length - 3);
-            }
-            return cleaned.Trim();
+
+            // Fallback to basic trimming if no braces found (likely invalid)
+            return raw.Trim();
         }
 
         private static QuizDto MapToDto(Quiz quiz)

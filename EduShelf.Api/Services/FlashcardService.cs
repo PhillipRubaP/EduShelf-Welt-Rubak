@@ -298,7 +298,7 @@ namespace EduShelf.Api.Services
 
             var chatHistory = new ChatHistory();
             chatHistory.AddSystemMessage(promptTemplate.Replace("{Count}", request.Count.ToString()));
-            chatHistory.AddUserMessage($"Text to analyze:\n\n{documentContent}");
+            chatHistory.AddUserMessage($"Text to analyze:\n\n{documentContent}\n\n---\n\nIMPORTANT: Based on the text above, generate the JSON flashcards now. Output strictly valid JSON. Do not include any conversational text, markdown, or explanations. Start with [.");
 
             // 3. Call AI
             var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
@@ -311,7 +311,7 @@ namespace EduShelf.Api.Services
             List<GeneratedFlashcardJson> generatedFlashcards;
             try
             {
-                generatedFlashcards = JsonSerializer.Deserialize<List<GeneratedFlashcardJson>>(cleanedJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                generatedFlashcards = JsonSerializer.Deserialize<List<GeneratedFlashcardJson>>(cleanedJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
             }
             catch (JsonException ex)
             {
@@ -372,20 +372,17 @@ namespace EduShelf.Api.Services
 
         private static string CleanJson(string raw)
         {
-            var cleaned = raw.Trim();
-            if (cleaned.StartsWith("```json"))
+            if (string.IsNullOrWhiteSpace(raw)) return "[]";
+
+            var start = raw.IndexOf('[');
+            var end = raw.LastIndexOf(']');
+
+            if (start >= 0 && end > start)
             {
-                cleaned = cleaned.Substring(7);
+                return raw.Substring(start, end - start + 1);
             }
-            if (cleaned.StartsWith("```"))
-            {
-                cleaned = cleaned.Substring(3);
-            }
-            if (cleaned.EndsWith("```"))
-            {
-                cleaned = cleaned.Substring(0, cleaned.Length - 3);
-            }
-            return cleaned.Trim();
+
+            return raw.Trim();
         }
 
         private static FlashcardDto MapToDto(Flashcard flashcard)
