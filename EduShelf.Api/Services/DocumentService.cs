@@ -26,19 +26,22 @@ namespace EduShelf.Api.Services
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IImageProcessingService _imageProcessingService;
         private readonly IFileStorageService _fileStorageService;
+        private readonly IFileParsingService _fileParsingService;
 
         public DocumentService(
             ApiDbContext context, 
             IBackgroundJobQueue queue,
             IServiceScopeFactory scopeFactory,
             IImageProcessingService imageProcessingService, 
-            IFileStorageService fileStorageService)
+            IFileStorageService fileStorageService,
+            IFileParsingService fileParsingService)
         {
             _context = context;
             _queue = queue;
             _scopeFactory = scopeFactory;
             _imageProcessingService = imageProcessingService;
             _fileStorageService = fileStorageService;
+            _fileParsingService = fileParsingService;
         }
 
         public async Task<PagedResult<DocumentDto>> GetDocumentsAsync(int userId, string role, int page, int pageSize)
@@ -418,68 +421,20 @@ namespace EduShelf.Api.Services
             string content;
             var fileExtension = Path.GetExtension(document.Path).ToLowerInvariant();
 
-            if (fileExtension == ".pdf")
+            try 
             {
-                var stringBuilder = new StringBuilder();
-                using (var pdf = PdfDocument.Open(fileStream))
-                {
-                    foreach (var page in pdf.GetPages())
-                    {
-                        stringBuilder.AppendLine($"--- Page {page.Number} ---");
-                        stringBuilder.AppendLine(page.Text);
-
-                        foreach (var image in page.GetImages())
-                        {
-                            var imageData = image.RawBytes.ToArray();
-                            if (imageData != null && imageData.Length > 0)
-                            {
-                                var ocrText = await _imageProcessingService.ProcessImageAsync(imageData, "Extract all text from this image.");
-                                var description = await _imageProcessingService.ProcessImageAsync(imageData, "Describe this image in detail.");
-
-                                stringBuilder.AppendLine("--- Image Content ---");
-                                if (!string.IsNullOrWhiteSpace(ocrText))
-                                {
-                                    stringBuilder.AppendLine("Extracted Text:");
-                                    stringBuilder.AppendLine(ocrText);
-                                }
-                                if (!string.IsNullOrWhiteSpace(description))
-                                {
-                                    stringBuilder.AppendLine("Image Description:");
-                                    stringBuilder.AppendLine(description);
-                                }
-                                stringBuilder.AppendLine("--- End Image Content ---");
-                            }
-                        }
-                    }
-                }
-                content = stringBuilder.ToString();
+                content = await _fileParsingService.ExtractTextAsync(fileStream, fileExtension);
             }
-            else if (fileExtension == ".docx" || fileExtension == ".doc")
+            catch (BadRequestException)
             {
-                using (var wordDoc = WordprocessingDocument.Open(fileStream, false))
-                {
-                    var stringBuilder = new StringBuilder();
-                    var body = wordDoc.MainDocumentPart?.Document?.Body;
-                    if (body != null)
-                    {
-                        foreach (var p in body.Elements<Paragraph>())
-                        {
-                            stringBuilder.AppendLine(p.InnerText);
-                        }
-                    }
-                    content = stringBuilder.ToString();
-                }
+                throw; // Rethrow expected exceptions
             }
-            else if (fileExtension == ".txt")
+            catch (Exception ex)
             {
-                using (var reader = new StreamReader(fileStream))
-                {
-                    content = await reader.ReadToEndAsync();
-                }
-            }
-            else
-            {
-                throw new BadRequestException("Unsupported file type for content extraction.");
+                // Wrap other exceptions or just throw? 
+                // Original code let PdfPig or OpenXml throw. 
+                // Let's rethrow or maybe log? Protocol says just replace.
+                throw new BadRequestException($"Failed to extract content: {ex.Message}");
             }
 
             return content;
@@ -512,37 +467,18 @@ namespace EduShelf.Api.Services
             var fileExtension = Path.GetExtension(document.Path).ToLowerInvariant();
             var contentType = GetContentType(document.Path);
 
-            if (fileExtension == ".pdf")
+            try
             {
-                throw new BadRequestException("Direct content update for PDF files is not supported.");
-            }
-            else if (fileExtension == ".docx")
-            {
-                using (var wordDoc = WordprocessingDocument.Open(workingStream, true))
-                {
-                    var mainPart = wordDoc.MainDocumentPart;
-                    if (mainPart == null)
-                    {
-                        mainPart = wordDoc.AddMainDocumentPart();
-                        mainPart.Document = new DocumentFormat.OpenXml.Wordprocessing.Document();
-                    }
-                    mainPart.Document.Body = new Body(new Paragraph(new Run(new Text(documentUpdateDto.Content))));
-                    mainPart.Document.Save();
-                }
-
-                var modifiedData = workingStream.ToArray();
-                using var uploadStream = new MemoryStream(modifiedData);
+                using var uploadStream = await _fileParsingService.UpdateContentAsync(workingStream, documentUpdateDto.Content, fileExtension);
                 await _fileStorageService.UploadFileAsync(uploadStream, document.Path, contentType);
             }
-            else if (fileExtension == ".txt")
+            catch (BadRequestException)
             {
-                var bytes = Encoding.UTF8.GetBytes(documentUpdateDto.Content);
-                using var uploadStream = new MemoryStream(bytes);
-                await _fileStorageService.UploadFileAsync(uploadStream, document.Path, contentType);
+                throw;
             }
-            else
+            catch (Exception ex)
             {
-                 throw new BadRequestException("Unsupported file type for content update.");
+                 throw new BadRequestException($"Failed to update content: {ex.Message}");
             }
 
             // Fire and forget re-indexing
