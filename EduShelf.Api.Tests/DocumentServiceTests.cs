@@ -25,6 +25,7 @@ namespace EduShelf.Api.Tests
         private readonly Mock<IServiceScopeFactory> _mockScopeFactory;
         private readonly Mock<IImageProcessingService> _mockImageProcessing;
         private readonly Mock<IFileStorageService> _mockFileStorage;
+        private readonly Mock<IFileParsingService> _mockFileParsingService;
         private readonly Mock<IConfiguration> _mockConfiguration;
 
         public DocumentServiceTests()
@@ -33,6 +34,7 @@ namespace EduShelf.Api.Tests
             _mockScopeFactory = new Mock<IServiceScopeFactory>();
             _mockImageProcessing = new Mock<IImageProcessingService>();
             _mockFileStorage = new Mock<IFileStorageService>();
+            _mockFileParsingService = new Mock<IFileParsingService>();
             _mockConfiguration = new Mock<IConfiguration>();
         }
 
@@ -51,7 +53,9 @@ namespace EduShelf.Api.Tests
                 _mockQueue.Object, 
                 _mockScopeFactory.Object, 
                 _mockImageProcessing.Object, 
-                _mockFileStorage.Object);
+
+                _mockFileStorage.Object,
+                _mockFileParsingService.Object);
         }
 
         [Fact]
