@@ -9,7 +9,13 @@ const api = {
     if (!response.ok) {
       const text = await response.text();
       console.error(`API Error (${response.status}):`, text);
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      // Try to parse JSON error first, otherwise use text
+      try {
+        const jsonError = JSON.parse(text);
+        throw new Error(jsonError.message || jsonError.title || text);
+      } catch (e) {
+        throw new Error(text || `API Error: ${response.status} ${response.statusText}`);
+      }
     }
     if (options.responseType === 'blob') {
       return response.blob();
@@ -34,7 +40,12 @@ const api = {
     if (!response.ok) {
       const text = await response.text();
       console.error(`API Error (${response.status}):`, text);
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      try {
+        const jsonError = JSON.parse(text);
+        throw new Error(jsonError.message || jsonError.title || text);
+      } catch (e) {
+        throw new Error(text || `API Error: ${response.status} ${response.statusText}`);
+      }
     }
     return response.json();
   },
@@ -101,12 +112,12 @@ export const postChatMessage = (sessionId, message, image) => {
 };
 export const updateChatSession = (sessionId, title) => api.put(`/Chat/sessions/${sessionId}`, { title });
 
-export const getQuizzes = () => api.get('/quizzes');
+export const getQuizzes = (page = 1, pageSize = 10) => api.get(`/quizzes?page=${page}&pageSize=${pageSize}`);
 export const createQuiz = (quizData) => api.post('/quizzes', quizData);
 export const deleteQuiz = (quizId) => api.delete(`/quizzes/${quizId}`);
 export const updateQuiz = (quizId, quizData) => api.put(`/quizzes/${quizId}`, quizData);
 
-export const getFlashcards = () => api.get('/flashcards');
+export const getFlashcards = (page = 1, pageSize = 10) => api.get(`/flashcards?page=${page}&pageSize=${pageSize}`);
 
 export const createFlashcard = (flashcardData) => {
   // The backend will associate the user from the session
@@ -133,8 +144,12 @@ export const uploadDocument = (file, userId, tags = []) => {
   return api.postForm('/Documents', formData);
 };
 
+export const shareDocument = (documentId, emailOrUsername) => {
+  return api.post(`/Documents/${documentId}/share`, { email: emailOrUsername });
+};
+
 export const getDocuments = () => api.get('/documents');
 export const getTags = () => api.get('/tags');
-export const getFlashcardsByTag = (tagId) => api.get(`/flashcards/tag/${tagId}`);
+export const getFlashcardsByTag = (tagId, page = 1, pageSize = 10) => api.get(`/flashcards/tag/${tagId}?page=${page}&pageSize=${pageSize}`);
 
 export default api;

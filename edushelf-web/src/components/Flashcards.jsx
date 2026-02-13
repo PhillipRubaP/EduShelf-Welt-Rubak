@@ -14,13 +14,29 @@ const Flashcards = () => {
     const [openMenuId, setOpenMenuId] = useState(null);
     const [editingCard, setEditingCard] = useState(null);
 
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const pageSize = 10;
+
     useEffect(() => {
         const fetchFlashcards = async () => {
-            const fetchedCards = await getFlashcards();
-            setCards(fetchedCards);
+            try {
+                const result = await getFlashcards(currentPage, pageSize);
+                // Handle PagedResult
+                if (result && result.items) {
+                    setCards(result.items);
+                    setTotalPages(result.totalPages);
+                } else if (Array.isArray(result)) {
+                    // Fallback if API returns array (shouldn't happen with updated backend)
+                    setCards(result);
+                }
+            } catch (error) {
+                console.error("Failed to fetch flashcards", error);
+            }
         };
         fetchFlashcards();
-    }, []);
+    }, [currentPage]); // Re-fetch when page changes
 
     const addCard = async (card) => {
         const newCard = await createFlashcard(card);
@@ -62,16 +78,18 @@ const Flashcards = () => {
     return (
         <div className="files-container">
             <div className="file-list">
-                <div className="file-list-header">
+                <div className="file-list-header flashcards-header">
                     <h2>Flashcards</h2>
+                    <div className="flashcard-header-center">
+                        <button onClick={() => setIsReviewModalOpen(true)} className="add-file-button review-button">Review</button>
+                    </div>
                     <button onClick={() => { setEditingCard(null); setIsModalOpen(true); }} className="add-file-button">+</button>
-                    <button onClick={() => setIsReviewModalOpen(true)} className="add-file-button review-button">Review</button>
                 </div>
                 {isModalOpen && <FlashcardsModal addCard={addCard} closeModal={() => setIsModalOpen(false)} card={editingCard} updateCard={updateCard} />}
                 {isReviewModalOpen && <FlashcardReviewModal closeModal={() => setIsReviewModalOpen(false)} />}
                 <div className="flashcards-grid">
                     {Array.isArray(cards) && cards.map((card) => (
-                        <div key={card.id} className={`flashcard-scene ${flippedCards.has(card.id) ? 'flipped' : ''}`} onClick={() => flipCard(card.id)}>
+                        <div key={card.id} className={`flashcard-scene ${flippedCards.has(card.id) ? 'flipped' : ''}`} style={{ zIndex: openMenuId === card.id ? 100 : 'auto' }} onClick={() => flipCard(card.id)}>
                             <div className="flashcard-container">
                                 <div className="flashcard-face flashcard-front">
                                     <p>{card.question}</p>
@@ -96,6 +114,28 @@ const Flashcards = () => {
                         </div>
                     ))}
                 </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="pagination-controls">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="pagination-button"
+                        >
+                            Previous
+                        </button>
+                        <span className="pagination-info">Page {currentPage} of {totalPages}</span>
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="pagination-button"
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}
+
             </div>
         </div>
     );

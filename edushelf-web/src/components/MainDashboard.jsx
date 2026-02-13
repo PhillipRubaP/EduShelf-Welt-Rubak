@@ -22,19 +22,33 @@ function MainDashboard() {
 
   const fetchData = async () => {
     try {
-      const [docs, quizzes, flashcards] = await Promise.all([
+      const [docsData, quizzes, flashcards] = await Promise.all([
         getDocuments(),
         getQuizzes(),
         getFlashcards()
       ]);
 
-      // Take only the first 3 documents
-      setRecentFiles(docs.slice(0, 3));
+      let docs = docsData.items || docsData;
+
+      if (Array.isArray(docs)) {
+        // Filter out shared files that are not accepted or are rejected
+        const acceptedShares = JSON.parse(localStorage.getItem('edushelf_accepted_shares') || '[]');
+        const rejectedShares = JSON.parse(localStorage.getItem('edushelf_rejected_shares') || '[]');
+
+        docs = docs.filter(doc => {
+          if (!doc.isShared) return true;
+          if (rejectedShares.includes(doc.id)) return false;
+          return acceptedShares.includes(doc.id);
+        });
+
+        // Take only the first 3 documents
+        setRecentFiles(docs.slice(0, 3));
+      }
 
       setStats({
-        documents: docs.length,
-        quizzes: quizzes.length,
-        flashcards: flashcards.length
+        documents: docsData.totalCount || (Array.isArray(docs) ? docs.length : 0),
+        quizzes: quizzes.totalCount || (Array.isArray(quizzes) ? quizzes.length : 0),
+        flashcards: flashcards.totalCount || (Array.isArray(flashcards) ? flashcards.length : 0)
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -82,10 +96,10 @@ function MainDashboard() {
       </header>
 
       <div className="dashboard-grid">
-        {/* Recently Viewed Files */}
+        {/* Recently Added Files */}
         <section className="dashboard-card recent-files">
           <div className="card-header">
-            <h2>Recently Viewed</h2>
+            <h2>Recently Added</h2>
             <span className="badge">Last 3</span>
           </div>
           {recentFiles.length > 0 ? (
@@ -97,7 +111,6 @@ function MainDashboard() {
                     <span className="file-title">{file.title}</span>
                     <span className="file-meta">{file.fileType}</span>
                   </div>
-                  <button className="view-btn">View</button>
                 </li>
               ))}
             </ul>

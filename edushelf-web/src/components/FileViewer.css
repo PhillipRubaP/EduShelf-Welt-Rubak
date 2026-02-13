@@ -23,23 +23,18 @@
 }
 
 .close-button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  z-index: 1;
-  color: var(--text-color);
+  /* Removed: Using global .modal-close-button */
+  display: none;
 }
 
-.docx-container, .file-viewer-content pre, .file-viewer-content iframe {
+.docx-container,
+.file-viewer-content pre,
+.file-viewer-content iframe {
   flex-grow: 1;
   overflow: auto;
   height: 100%;
 }
 
 .docx-container {
-    padding-top: 40px;
+  padding-top: 40px;
 }

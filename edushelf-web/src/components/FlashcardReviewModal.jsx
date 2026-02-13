@@ -25,12 +25,31 @@ const FlashcardReviewModal = ({ closeModal }) => {
 
     const startReview = async () => {
         if (selectedTag) {
-            const fetchedCards = await getFlashcardsByTag(selectedTag);
-            setCards(fetchedCards);
-            setUnseenCards(fetchedCards);
-            setCurrentCardIndex(0);
-            setIsFlipped(false);
-            setReviewStarted(true);
+            try {
+                // Fetch up to 100 cards for review
+                const result = await getFlashcardsByTag(selectedTag, 1, 100);
+
+                let fetchedCards = [];
+                if (result && result.items) {
+                    fetchedCards = result.items;
+                } else if (Array.isArray(result)) {
+                    fetchedCards = result;
+                }
+
+                if (fetchedCards.length === 0) {
+                    alert("No flashcards found for this tag.");
+                    return;
+                }
+
+                setCards(fetchedCards);
+                setUnseenCards(fetchedCards);
+                setCurrentCardIndex(0);
+                setIsFlipped(false);
+                setReviewStarted(true);
+            } catch (error) {
+                console.error("Error starting review:", error);
+                alert("Failed to load flashcards. Please try again.");
+            }
         }
     };
 
@@ -57,7 +76,11 @@ const FlashcardReviewModal = ({ closeModal }) => {
     return (
         <div className="modal-backdrop">
             <div className="modal-content">
-                <span onClick={closeModal} className="close-button">&times;</span>
+                <div className="modal-close-button" onClick={closeModal}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
                 {!reviewStarted ? (
                     <div className="tag-selection">
                         <h2>Select a Tag to Review</h2>

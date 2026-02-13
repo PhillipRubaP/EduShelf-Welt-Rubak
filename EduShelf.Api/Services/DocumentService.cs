@@ -26,55 +26,49 @@ namespace EduShelf.Api.Services
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IImageProcessingService _imageProcessingService;
         private readonly IFileStorageService _fileStorageService;
+        private readonly IFileParsingService _fileParsingService;
 
         public DocumentService(
             ApiDbContext context, 
             IBackgroundJobQueue queue,
             IServiceScopeFactory scopeFactory,
             IImageProcessingService imageProcessingService, 
-            IFileStorageService fileStorageService)
+            IFileStorageService fileStorageService,
+            IFileParsingService fileParsingService)
         {
             _context = context;
             _queue = queue;
             _scopeFactory = scopeFactory;
             _imageProcessingService = imageProcessingService;
             _fileStorageService = fileStorageService;
+            _fileParsingService = fileParsingService;
         }
 
-        public async Task<IEnumerable<DocumentDto>> GetDocumentsAsync(int userId, string role)
+        public async Task<PagedResult<DocumentDto>> GetDocumentsAsync(int userId, string role, int page, int pageSize)
         {
             var query = _context.Documents.AsQueryable();
 
             if (role != Roles.Admin)
             {
                 // Get owned documents OR shared documents
-                return await query
+                query = query
                     .Include(d => d.DocumentTags)
                     .ThenInclude(dt => dt.Tag)
                     .Include(d => d.User) // Include owner info
-                    .Select(d => new 
-                    { 
-                        Document = d, 
-                        IsShared = _context.DocumentShares.Any(ds => ds.DocumentId == d.Id && ds.UserId == userId)
-                    })
-                    .Where(x => x.Document.UserId == userId || x.IsShared)
-                    .Select(x => new DocumentDto
-                    {
-                        Id = x.Document.Id,
-                        Title = x.Document.Title,
-                        FileType = x.Document.FileType,
-                        CreatedAt = x.Document.CreatedAt,
-                        Tags = x.Document.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList(),
-                        UserId = x.Document.UserId,
-                        IsShared = x.Document.UserId != userId,
-                        OwnerName = x.Document.UserId != userId ? x.Document.User.Username : null
-                    })
-                    .ToListAsync();
+                    .Where(d => d.UserId == userId || _context.DocumentShares.Any(ds => ds.DocumentId == d.Id && ds.UserId == userId));
+            }
+            else
+            {
+                query = query
+                    .Include(d => d.DocumentTags)
+                    .ThenInclude(dt => dt.Tag);
             }
 
-            return await query
-                .Include(d => d.DocumentTags)
-                .ThenInclude(dt => dt.Tag)
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .OrderByDescending(d => d.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(d => new DocumentDto
                 {
                     Id = d.Id,
@@ -83,9 +77,12 @@ namespace EduShelf.Api.Services
                     CreatedAt = d.CreatedAt,
                     Tags = d.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList(),
                     UserId = d.UserId,
-                    IsShared = false
+                    IsShared = d.UserId != userId,
+                    OwnerName = d.UserId != userId && d.User != null ? d.User.Username : null
                 })
                 .ToListAsync();
+
+            return new PagedResult<DocumentDto>(items, totalCount, page, pageSize);
         }
 
         public async Task<DocumentDto> GetDocumentAsync(int id, int userId, string role)
@@ -330,44 +327,35 @@ namespace EduShelf.Api.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<DocumentDto>> SearchDocumentsAsync(string querySearch, int userId, string role)
+        public async Task<PagedResult<DocumentDto>> SearchDocumentsAsync(string querySearch, int userId, string role, int page, int pageSize)
         {
             var documentsQuery = _context.Documents.AsQueryable();
 
-            if (role != Roles.Admin)
-            {
-                 return await documentsQuery
-                    .Include(d => d.DocumentTags)
-                    .ThenInclude(dt => dt.Tag)
-                    .Include(d => d.User)
-                    .Select(d => new 
-                    { 
-                        Document = d, 
-                        IsShared = _context.DocumentShares.Any(ds => ds.DocumentId == d.Id && ds.UserId == userId)
-                    })
-                    .Where(x => (x.Document.UserId == userId || x.IsShared) && (string.IsNullOrEmpty(querySearch) || x.Document.Title.Contains(querySearch)))
-                    .Select(x => new DocumentDto
-                    {
-                        Id = x.Document.Id,
-                        Title = x.Document.Title,
-                        FileType = x.Document.FileType,
-                        CreatedAt = x.Document.CreatedAt,
-                        Tags = x.Document.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList(),
-                        UserId = x.Document.UserId,
-                        IsShared = x.Document.UserId != userId,
-                        OwnerName = x.Document.UserId != userId ? x.Document.User.Username : null
-                    })
-                    .ToListAsync();
-            }
-            
             if (!string.IsNullOrEmpty(querySearch))
             {
                 documentsQuery = documentsQuery.Where(d => d.Title.Contains(querySearch));
             }
 
-            return await documentsQuery
-                .Include(d => d.DocumentTags)
-                .ThenInclude(dt => dt.Tag)
+            if (role != Roles.Admin)
+            {
+                 documentsQuery = documentsQuery
+                    .Include(d => d.DocumentTags)
+                    .ThenInclude(dt => dt.Tag)
+                    .Include(d => d.User)
+                    .Where(d => (d.UserId == userId || _context.DocumentShares.Any(ds => ds.DocumentId == d.Id && ds.UserId == userId)));
+            }
+            else
+            {
+                documentsQuery = documentsQuery
+                    .Include(d => d.DocumentTags)
+                    .ThenInclude(dt => dt.Tag);
+            }
+
+            var totalCount = await documentsQuery.CountAsync();
+            var items = await documentsQuery
+                .OrderByDescending(d => d.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(d => new DocumentDto
                 {
                     Id = d.Id,
@@ -376,9 +364,12 @@ namespace EduShelf.Api.Services
                     CreatedAt = d.CreatedAt,
                     Tags = d.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, Name = dt.Tag.Name }).ToList(),
                     UserId = d.UserId,
-                    IsShared = false
+                    IsShared = d.UserId != userId,
+                    OwnerName = d.UserId != userId && d.User != null ? d.User.Username : null
                 })
                 .ToListAsync();
+
+            return new PagedResult<DocumentDto>(items, totalCount, page, pageSize);
         }
 
         public async Task<(Stream FileStream, string ContentType, string FileName)> DownloadDocumentAsync(int id, int userId, string role)
@@ -430,68 +421,20 @@ namespace EduShelf.Api.Services
             string content;
             var fileExtension = Path.GetExtension(document.Path).ToLowerInvariant();
 
-            if (fileExtension == ".pdf")
+            try 
             {
-                var stringBuilder = new StringBuilder();
-                using (var pdf = PdfDocument.Open(fileStream))
-                {
-                    foreach (var page in pdf.GetPages())
-                    {
-                        stringBuilder.AppendLine($"--- Page {page.Number} ---");
-                        stringBuilder.AppendLine(page.Text);
-
-                        foreach (var image in page.GetImages())
-                        {
-                            var imageData = image.RawBytes.ToArray();
-                            if (imageData != null && imageData.Length > 0)
-                            {
-                                var ocrText = await _imageProcessingService.ProcessImageAsync(imageData, "Extract all text from this image.");
-                                var description = await _imageProcessingService.ProcessImageAsync(imageData, "Describe this image in detail.");
-
-                                stringBuilder.AppendLine("--- Image Content ---");
-                                if (!string.IsNullOrWhiteSpace(ocrText))
-                                {
-                                    stringBuilder.AppendLine("Extracted Text:");
-                                    stringBuilder.AppendLine(ocrText);
-                                }
-                                if (!string.IsNullOrWhiteSpace(description))
-                                {
-                                    stringBuilder.AppendLine("Image Description:");
-                                    stringBuilder.AppendLine(description);
-                                }
-                                stringBuilder.AppendLine("--- End Image Content ---");
-                            }
-                        }
-                    }
-                }
-                content = stringBuilder.ToString();
+                content = await _fileParsingService.ExtractTextAsync(fileStream, fileExtension);
             }
-            else if (fileExtension == ".docx" || fileExtension == ".doc")
+            catch (BadRequestException)
             {
-                using (var wordDoc = WordprocessingDocument.Open(fileStream, false))
-                {
-                    var stringBuilder = new StringBuilder();
-                    var body = wordDoc.MainDocumentPart?.Document?.Body;
-                    if (body != null)
-                    {
-                        foreach (var p in body.Elements<Paragraph>())
-                        {
-                            stringBuilder.AppendLine(p.InnerText);
-                        }
-                    }
-                    content = stringBuilder.ToString();
-                }
+                throw; // Rethrow expected exceptions
             }
-            else if (fileExtension == ".txt")
+            catch (Exception ex)
             {
-                using (var reader = new StreamReader(fileStream))
-                {
-                    content = await reader.ReadToEndAsync();
-                }
-            }
-            else
-            {
-                throw new BadRequestException("Unsupported file type for content extraction.");
+                // Wrap other exceptions or just throw? 
+                // Original code let PdfPig or OpenXml throw. 
+                // Let's rethrow or maybe log? Protocol says just replace.
+                throw new BadRequestException($"Failed to extract content: {ex.Message}");
             }
 
             return content;
@@ -524,37 +467,18 @@ namespace EduShelf.Api.Services
             var fileExtension = Path.GetExtension(document.Path).ToLowerInvariant();
             var contentType = GetContentType(document.Path);
 
-            if (fileExtension == ".pdf")
+            try
             {
-                throw new BadRequestException("Direct content update for PDF files is not supported.");
-            }
-            else if (fileExtension == ".docx")
-            {
-                using (var wordDoc = WordprocessingDocument.Open(workingStream, true))
-                {
-                    var mainPart = wordDoc.MainDocumentPart;
-                    if (mainPart == null)
-                    {
-                        mainPart = wordDoc.AddMainDocumentPart();
-                        mainPart.Document = new DocumentFormat.OpenXml.Wordprocessing.Document();
-                    }
-                    mainPart.Document.Body = new Body(new Paragraph(new Run(new Text(documentUpdateDto.Content))));
-                    mainPart.Document.Save();
-                }
-
-                var modifiedData = workingStream.ToArray();
-                using var uploadStream = new MemoryStream(modifiedData);
+                using var uploadStream = await _fileParsingService.UpdateContentAsync(workingStream, documentUpdateDto.Content, fileExtension);
                 await _fileStorageService.UploadFileAsync(uploadStream, document.Path, contentType);
             }
-            else if (fileExtension == ".txt")
+            catch (BadRequestException)
             {
-                var bytes = Encoding.UTF8.GetBytes(documentUpdateDto.Content);
-                using var uploadStream = new MemoryStream(bytes);
-                await _fileStorageService.UploadFileAsync(uploadStream, document.Path, contentType);
+                throw;
             }
-            else
+            catch (Exception ex)
             {
-                 throw new BadRequestException("Unsupported file type for content update.");
+                 throw new BadRequestException($"Failed to update content: {ex.Message}");
             }
 
             // Fire and forget re-indexing
@@ -612,8 +536,9 @@ namespace EduShelf.Api.Services
                 throw new ForbidException("You are not authorized to share this document.");
             }
 
+            var normalizedInput = emailOrUsername.ToLower();
             var targetUser = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == emailOrUsername || u.Username == emailOrUsername);
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedInput || u.Username.ToLower() == normalizedInput);
 
             if (targetUser == null)
             {

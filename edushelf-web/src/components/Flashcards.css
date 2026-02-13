@@ -87,3 +87,30 @@
 
 /* Ensure buttons don't get clipped if they are near the edge. 
    We might need to inset them slightly more. */
+
+.review-button {
+    width: auto !important;
+    padding: 0 1rem;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.flashcards-header {
+    display: grid !important;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1rem;
+}
+
+.flashcards-header h2 {
+    justify-self: start;
+}
+
+.flashcards-header .flashcard-header-center {
+    justify-self: center;
+    display: flex;
+}
+
+.flashcards-header .add-file-button:last-child {
+    justify-self: end;
+}

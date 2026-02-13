@@ -7,6 +7,7 @@ using Microsoft.SemanticKernel.Embeddings;
 using Microsoft.Extensions.AI;
 using EduShelf.Api.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
 using FluentValidation; 
@@ -24,6 +25,11 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 // Add Application Services
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+builder.Services.AddSingleton<ITokenService, TokenService>();
+
+
+builder.Services.AddDataProtection()
+    .PersistKeysToDbContext<ApiDbContext>();
 
 builder.Services.AddDbContext<ApiDbContext>((serviceProvider, options) =>
 {

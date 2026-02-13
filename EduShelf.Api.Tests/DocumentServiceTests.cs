@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.IO;
 using System;
 using Microsoft.Extensions.Configuration;
+using System.Linq;
 
 namespace EduShelf.Api.Tests
 {
@@ -24,6 +25,7 @@ namespace EduShelf.Api.Tests
         private readonly Mock<IServiceScopeFactory> _mockScopeFactory;
         private readonly Mock<IImageProcessingService> _mockImageProcessing;
         private readonly Mock<IFileStorageService> _mockFileStorage;
+        private readonly Mock<IFileParsingService> _mockFileParsingService;
         private readonly Mock<IConfiguration> _mockConfiguration;
 
         public DocumentServiceTests()
@@ -32,6 +34,7 @@ namespace EduShelf.Api.Tests
             _mockScopeFactory = new Mock<IServiceScopeFactory>();
             _mockImageProcessing = new Mock<IImageProcessingService>();
             _mockFileStorage = new Mock<IFileStorageService>();
+            _mockFileParsingService = new Mock<IFileParsingService>();
             _mockConfiguration = new Mock<IConfiguration>();
         }
 
@@ -50,7 +53,9 @@ namespace EduShelf.Api.Tests
                 _mockQueue.Object, 
                 _mockScopeFactory.Object, 
                 _mockImageProcessing.Object, 
-                _mockFileStorage.Object);
+
+                _mockFileStorage.Object,
+                _mockFileParsingService.Object);
         }
 
         [Fact]
@@ -113,6 +118,41 @@ namespace EduShelf.Api.Tests
 
             // Assert
             Assert.Equal("My Doc", result.Title);
+        }
+
+        [Fact]
+        public async Task GetDocumentsAsync_ShouldReturnPagedResult()
+        {
+            // Arrange
+            using var context = CreateContext();
+            context.Users.Add(new User { UserId = 1, Username = "TestUser", Email = "test@example.com", PasswordHash = "hash" });
+            
+            for (int i = 0; i < 5; i++)
+            {
+                context.Documents.Add(new Document 
+                { 
+                    Id = i + 1, 
+                    Title = $"Doc {i}", 
+                    UserId = 1, 
+                    FileType = "pdf", 
+                    Path = $"path/{i}", 
+                    CreatedAt = DateTime.UtcNow 
+                });
+            }
+            await context.SaveChangesAsync();
+
+            var service = CreateService(context);
+
+            // Act
+            var result = await service.GetDocumentsAsync(1, Roles.Student, 1, 2);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(5, result.TotalCount);
+            Assert.Equal(2, result.Items.Count());
+            Assert.Equal(1, result.PageNumber);
+            Assert.Equal(2, result.PageSize);
+            Assert.Equal(3, result.TotalPages);
         }
 
         [Fact]

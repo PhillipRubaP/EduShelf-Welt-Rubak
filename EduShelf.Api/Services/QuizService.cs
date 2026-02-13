@@ -13,13 +13,7 @@ using System.Threading.Tasks;
 using EduShelf.Api.Constants;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.Extensions.DependencyInjection; // For GetRequiredService if needed, but it's on Kernel which is a service provider? No, Kernel is not IServiceProvider. 
-// Actually Kernel.GetRequiredService is extension? 
-// Let's check FlashcardService imports. 
-// FlashcardService used: 
-// using Microsoft.SemanticKernel;
-// using Microsoft.SemanticKernel.ChatCompletion;
-// using System.Text.Json;
+using System.Text.Json; // Added for parsing logic
 
 namespace EduShelf.Api.Services
 {
@@ -30,19 +24,22 @@ namespace EduShelf.Api.Services
         private readonly IChatCompletionService _chatCompletionService;
         private readonly IConfiguration _configuration;
         private readonly IDocumentService _documentService;
+        private readonly ILogger<QuizService> _logger;
 
         public QuizService(
             ApiDbContext context, 
             IHttpContextAccessor httpContextAccessor, 
             Kernel kernel, 
             IConfiguration configuration,
-            IDocumentService documentService)
+            IDocumentService documentService,
+            ILogger<QuizService> logger)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
             _chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
             _configuration = configuration;
             _documentService = documentService;
+            _logger = logger;
         }
 
         private int GetCurrentUserId()
@@ -60,7 +57,7 @@ namespace EduShelf.Api.Services
             return _httpContextAccessor.HttpContext?.User.IsInRole(Roles.Admin) ?? false;
         }
 
-        public async Task<IEnumerable<QuizDto>> GetQuizzesAsync()
+        public async Task<PagedResult<QuizDto>> GetQuizzesAsync(int page, int pageSize)
         {
             var userId = GetCurrentUserId();
             var isAdmin = IsCurrentUserAdmin();
@@ -72,12 +69,17 @@ namespace EduShelf.Api.Services
                 query = query.Where(q => q.UserId == userId);
             }
 
+            var totalCount = await query.CountAsync();
             var quizzes = await query
                 .Include(q => q.Questions)
                 .ThenInclude(q => q.Answers)
+                .OrderByDescending(q => q.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            return quizzes.Select(MapToDto).ToList();
+            var dtos = quizzes.Select(MapToDto).ToList();
+            return new PagedResult<QuizDto>(dtos, totalCount, page, pageSize);
         }
 
         public async Task<QuizDto> GetQuizAsync(int id)
@@ -277,17 +279,52 @@ namespace EduShelf.Api.Services
         public async Task<QuizDto> GenerateQuizAsync(GenerateQuizRequest request, int userId)
         {
             // 1. Retrieve Document Content
-            string documentContent;
-            
-            try 
+            string documentContent = "";
+            string documentTitle = "Generated Quiz";
+
+            if (!string.IsNullOrWhiteSpace(request.Context))
             {
-                var doc = await _documentService.GetDocumentAsync(request.DocumentId, userId, Roles.Student);
-                documentContent = await _documentService.GetDocumentContentAsync(request.DocumentId, userId, Roles.Student);
-            } 
-            catch (Exception ex)
+                documentContent = request.Context;
+                documentTitle = "Context Generated Quiz";
+            }
+            else if (request.DocumentIds != null && request.DocumentIds.Any())
             {
-                 // Handle or log
-                 throw new ArgumentException("Could not retrieve document content for generation.");
+                var docs = new List<string>();
+                foreach (var docId in request.DocumentIds)
+                {
+                    try
+                    {
+                        var content = await _documentService.GetDocumentContentAsync(docId, userId, Roles.Student);
+                        if (!string.IsNullOrWhiteSpace(content))
+                        {
+                            docs.Add(content);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                         // Log but continue
+                    }
+                }
+                documentContent = string.Join("\n\n__NEXT_DOCUMENT__\n\n", docs);
+                documentTitle = $"Multi-Doc Quiz ({request.DocumentIds.Count})";
+            }
+            else if (request.DocumentId.HasValue)
+            {
+                 try 
+                {
+                    var doc = await _documentService.GetDocumentAsync(request.DocumentId.Value, userId, Roles.Student);
+                    documentTitle = doc.Title + " Quiz";
+                    documentContent = await _documentService.GetDocumentContentAsync(request.DocumentId.Value, userId, Roles.Student);
+                } 
+                catch (Exception)
+                {
+                     // Handle or log
+                     throw new ArgumentException("Could not retrieve document content for generation.");
+                }
+            }
+            else
+            {
+                 throw new BadRequestException("No context or document source provided.");
             }
 
             if (string.IsNullOrWhiteSpace(documentContent))
@@ -303,30 +340,42 @@ namespace EduShelf.Api.Services
 
             // 2. Prepare AI Prompt
             var promptTemplate = _configuration.GetValue<string>("AIService:Prompts:Quiz");
-            var prompt = $"{promptTemplate}\n\nCount: {request.Count}\n\n[Text Analysis]:\n{documentContent}";
+            if (string.IsNullOrEmpty(promptTemplate))
+            {
+                 throw new InvalidOperationException("Quiz prompt is not configured.");
+            }
 
             // 3. Call AI
             var chatHistory = new ChatHistory();
-            chatHistory.AddUserMessage(prompt);
+            chatHistory.AddSystemMessage(promptTemplate.Replace("{Count}", request.Count.ToString()));
+            chatHistory.AddUserMessage($"[Text Analysis]:\n{documentContent}\n\n---\n\nIMPORTANT: Based on the text above, generate the JSON quiz now. Output strictly valid JSON. Do not include any conversational text, markdown, or explanations. Start with {{.");
 
             var result = await _chatCompletionService.GetChatMessageContentAsync(chatHistory);
             var rawJson = result.Content ?? "{}";
+            _logger.LogInformation("AI Generated Quiz JSON Raw: {Json}", rawJson);
 
             // 4. Parse JSON
-            var cleanedJson = CleanJson(rawJson);
+            var cleanedJson = EduShelf.Api.Helpers.JsonHelper.ExtractJson(rawJson);
             GeneratedQuizJson generatedQuiz;
             try
             {
-                generatedQuiz = System.Text.Json.JsonSerializer.Deserialize<GeneratedQuizJson>(cleanedJson, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                generatedQuiz = ParseQuizResponse(cleanedJson);
             }
-            catch (System.Text.Json.JsonException)
+            catch (Exception ex)
             {
-                throw new InvalidOperationException("AI failed to generate valid JSON for the quiz.");
+                _logger.LogError(ex, "Failed to parse generated quiz JSON. Cleaned JSON: {CleanedJson}", cleanedJson);
+                throw new InvalidOperationException("AI failed to generate valid JSON for the quiz.", ex);
             }
             
             if (generatedQuiz == null) throw new InvalidOperationException("Generated quiz is null.");
 
             // 5. Save Quiz
+            // Use the title from AI or fallback
+            if (string.IsNullOrWhiteSpace(generatedQuiz.Title) || generatedQuiz.Title == "Geography Quiz")
+            {
+                generatedQuiz.Title = documentTitle;
+            }
+
             var newQuiz = new Quiz
             {
                 Title = generatedQuiz.Title,
@@ -342,32 +391,100 @@ namespace EduShelf.Api.Services
                 }).ToList()
             };
 
-            // Associate with document via Tags if possible? 
-            // Quiz entity doesn't have direct document link or tag link in the default schema shown, maybe it does?
-            // Assuming Quiz entity is simple.
-            
             _context.Quizzes.Add(newQuiz);
             await _context.SaveChangesAsync();
 
             return MapToDto(newQuiz);
         }
 
-        private static string CleanJson(string raw)
+        private GeneratedQuizJson ParseQuizResponse(string cleanedJson)
         {
-            var cleaned = raw.Trim();
-            if (cleaned.StartsWith("```json"))
+            try
             {
-                cleaned = cleaned.Substring(7);
+                var jsonNode = System.Text.Json.Nodes.JsonNode.Parse(cleanedJson);
+                if (jsonNode == null) return new GeneratedQuizJson();
+
+                // Handle 'quiz' Wrapper
+                if (jsonNode["quiz"] != null)
+                {
+                    jsonNode = jsonNode["quiz"];
+                }
+                
+                // Attempt standard deserialization first
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                GeneratedQuizJson? result = null;
+                try 
+                {
+                    result = jsonNode.Deserialize<GeneratedQuizJson>(options);
+                }
+                catch { }
+
+                // If standard worked and has questions with text, return it
+                if (result != null && result.Questions != null && result.Questions.Any() && !string.IsNullOrEmpty(result.Questions[0].Text))
+                {
+                    return result;
+                }
+
+                // Fallback: Manual Parsing for "All Lowercase / Alternative Schema"
+                var manualQuiz = new GeneratedQuizJson();
+                manualQuiz.Title = jsonNode["title"]?.ToString() ?? result?.Title ?? "Generated Quiz";
+                
+                var questionsNode = jsonNode["questions"] ?? jsonNode["Questions"];
+                if (questionsNode is System.Text.Json.Nodes.JsonArray qArray)
+                {
+                    manualQuiz.Questions = new List<GeneratedQuestionJson>();
+                    foreach (var qItem in qArray)
+                    {
+                        var qText = qItem?["text"]?.ToString() ?? qItem?["question"]?.ToString();
+                        var answerStr = qItem?["answer"]?.ToString(); // Correct answer if string
+                        
+                        var newQ = new GeneratedQuestionJson { Text = qText ?? "Unknown Question" };
+                        
+                        var optsNode = qItem["answers"] ?? qItem["options"];
+                        if (optsNode is System.Text.Json.Nodes.JsonArray optsArray)
+                        {
+                            newQ.Answers = new List<GeneratedAnswerJson>();
+                            foreach (var opt in optsArray)
+                            {
+                                string? optText = null;
+                                bool isCorrect = false;
+
+                                if (opt is System.Text.Json.Nodes.JsonValue) // ["Option A", "Option B"]
+                                {
+                                    optText = opt.ToString();
+                                    if (!string.IsNullOrEmpty(answerStr) && optText.Trim().Equals(answerStr.Trim(), StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        isCorrect = true;
+                                    }
+                                }
+                                else if (opt is System.Text.Json.Nodes.JsonObject) // [{"text": "...", "isCorrect": ...}]
+                                {
+                                    optText = opt["text"]?.ToString() ?? opt["Text"]?.ToString();
+                                    // Try to find boolean
+                                    var isCorrectNode = opt["isCorrect"] ?? opt["IsCorrect"];
+                                    if (isCorrectNode != null)
+                                    {
+                                        bool.TryParse(isCorrectNode.ToString(), out isCorrect);
+                                    }
+                                }
+
+                                if (optText != null)
+                                {
+                                    newQ.Answers.Add(new GeneratedAnswerJson { Text = optText, IsCorrect = isCorrect });
+                                }
+                            }
+                        }
+                        manualQuiz.Questions.Add(newQ);
+                    }
+                }
+
+                return manualQuiz;
             }
-            if (cleaned.StartsWith("```"))
+            catch (Exception ex)
             {
-                cleaned = cleaned.Substring(3);
+                // Log via throw
+                throw new InvalidOperationException("Failed to manually parse quiz JSON structure.", ex);
             }
-            if (cleaned.EndsWith("```"))
-            {
-                cleaned = cleaned.Substring(0, cleaned.Length - 3);
-            }
-            return cleaned.Trim();
         }
 
         private static QuizDto MapToDto(Quiz quiz)

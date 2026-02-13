@@ -36,7 +36,7 @@ namespace EduShelf.Api.Tests
         // Helper to setup Service with mocks
         private AuthService CreateService(ApiDbContext context)
         {
-            return new AuthService(context, _mockHttpContextAccessor.Object, _mockEmailService.Object);
+            return new AuthService(context, _mockHttpContextAccessor.Object, _mockEmailService.Object, _mockConfiguration.Object);
         }
 
         public AuthServiceTests()

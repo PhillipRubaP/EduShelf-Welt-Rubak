@@ -6,7 +6,7 @@ namespace EduShelf.Api.Services
 {
     public interface IQuizService
     {
-        Task<IEnumerable<QuizDto>> GetQuizzesAsync();
+        Task<PagedResult<QuizDto>> GetQuizzesAsync(int page, int pageSize);
         Task<QuizDto> GetQuizAsync(int id);
         Task<QuizDto> CreateQuizAsync(QuizCreateDto quizDto);
         Task<QuizDto> UpdateQuizAsync(int id, QuizUpdateDto quizUpdateDto);

@@ -1,11 +1,12 @@
 using EduShelf.Api.Models.Entities;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Pgvector.EntityFrameworkCore;
 using EduShelf.Api.Constants;
 
 namespace EduShelf.Api.Data;
 
-public class ApiDbContext : DbContext
+public class ApiDbContext : DbContext, IDataProtectionKeyContext
 {
     private readonly IConfiguration _configuration;
 
@@ -13,6 +14,8 @@ public class ApiDbContext : DbContext
     {
         _configuration = configuration;
     }
+
+    public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 
     public DbSet<User> Users { get; set; }
     public DbSet<Tag> Tags { get; set; }

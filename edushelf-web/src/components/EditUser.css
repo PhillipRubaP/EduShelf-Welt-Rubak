@@ -124,24 +124,8 @@
 }
 
 .close-button {
-  position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
-  width: 2rem;
-  height: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.close-button:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: rotate(90deg);
+  /* Removed: Using global .modal-close-button */
+  display: none;
 }
 
 @keyframes fadeIn {
@@ -223,14 +207,4 @@
 
 [data-theme='light'] .form-input:focus {
   background-color: white;
-}
-
-[data-theme='light'] .close-button {
-  background: #f3f4f6;
-  color: #4b5563;
-}
-
-[data-theme='light'] .close-button:hover {
-  background: #e5e7eb;
-  color: #1f2937;
 }
