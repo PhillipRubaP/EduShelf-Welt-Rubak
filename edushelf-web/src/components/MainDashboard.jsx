@@ -101,7 +101,6 @@ function MainDashboard() {
                     <span className="file-title">{file.title}</span>
                     <span className="file-meta">{file.fileType}</span>
                   </div>
-                  <button className="view-btn">View</button>
                 </li>
               ))}
             </ul>
