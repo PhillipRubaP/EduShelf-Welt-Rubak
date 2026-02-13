@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaEye, FaTrash, FaDownload, FaShareAlt, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaEye, FaTrash, FaDownload, FaShareAlt, FaCheck, FaTimes, FaEdit } from 'react-icons/fa';
 import UploadDialog from './UploadDialog';
 import FileViewer from './FileViewer';
 import ShareFileModal from './ShareFileModal';
@@ -265,7 +265,7 @@ const Files = () => {
                           setFileToEdit(file);
                           setIsEditOpen(true);
                           setOpenMenuId(null);
-                        }} title="Edit"><span role="img" aria-label="edit">✏️</span> Edit</button>
+                        }} title="Edit"><FaEdit /> Edit</button>
                       )}
 
                       {!file.isShared && (
