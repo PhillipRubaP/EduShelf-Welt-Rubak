@@ -41,13 +41,16 @@ namespace EduShelf.Api.Services
 
                 if (chunks.Any())
                 {
-                    Console.WriteLine($"[RetrievalService] Found {chunks.Count} chunks by name match ('{intent.DocumentName}')");
-                    Console.WriteLine($"[RetrievalService] Content Preview: {chunks.First().Content.Substring(0, Math.Min(100, chunks.First().Content.Length))}...");
+                    _logger.LogDebug("Found {ChunkCount} chunks by name match ('{DocumentName}')", chunks.Count, intent.DocumentName);
+                    if (chunks.First().Content.Length > 0)
+                    {
+                         _logger.LogTrace("Content Preview: {ContentPreview}...", chunks.First().Content.Substring(0, Math.Min(100, chunks.First().Content.Length)));
+                    }
                     return chunks;
                 }
                 
                 // Fallback: If no documents found by name, try semantic search
-                Console.WriteLine($"[RetrievalService] No chunks found by name ('{intent.DocumentName}'). Falling back to semantic search.");
+                _logger.LogInformation("No chunks found by name ('{DocumentName}'). Falling back to semantic search.", intent.DocumentName);
             }
             
             // Fallthrough to embedding search
