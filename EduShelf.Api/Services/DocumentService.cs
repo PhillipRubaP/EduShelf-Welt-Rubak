@@ -348,7 +348,7 @@ namespace EduShelf.Api.Services
             if (!string.IsNullOrEmpty(tag))
             {
                 var normalizedTag = tag.Trim().ToLower();
-                documentsQuery = documentsQuery.Where(d => d.DocumentTags.Any(dt => dt.Tag.Name == normalizedTag));
+                documentsQuery = documentsQuery.Where(d => d.DocumentTags.Any(dt => dt.Tag.Name.ToLower().Contains(normalizedTag)));
             }
 
             if (role != Roles.Admin)
