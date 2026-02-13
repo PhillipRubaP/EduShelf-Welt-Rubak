@@ -26,7 +26,6 @@ namespace EduShelf.Api.Services
         public async Task<List<DocumentChunk>> GetRelevantChunksAsync(string userInput, int userId, Intent intent)
         {
             _logger.LogInformation("Retrieving chunks for Intent: {IntentType}, Document: {DocumentName}", intent.Type, intent.DocumentName);
-            Console.WriteLine($"[RetrievalService] User {userId} asking about '{intent.DocumentName}' (Intent: {intent.Type})");
 
             if (!string.IsNullOrEmpty(intent.DocumentName))
             {
@@ -41,13 +40,13 @@ namespace EduShelf.Api.Services
 
                 if (chunks.Any())
                 {
-                    Console.WriteLine($"[RetrievalService] Found {chunks.Count} chunks by name match ('{intent.DocumentName}')");
-                    Console.WriteLine($"[RetrievalService] Content Preview: {chunks.First().Content.Substring(0, Math.Min(100, chunks.First().Content.Length))}...");
+                    _logger.LogInformation("Found {ChunkCount} chunks by name match ('{DocumentName}')", chunks.Count, intent.DocumentName);
+                    _logger.LogDebug("Content Preview: {ContentPreview}...", chunks.First().Content.Substring(0, Math.Min(100, chunks.First().Content.Length)));
                     return chunks;
                 }
                 
                 // Fallback: If no documents found by name, try semantic search
-                Console.WriteLine($"[RetrievalService] No chunks found by name ('{intent.DocumentName}'). Falling back to semantic search.");
+                _logger.LogInformation("No chunks found by name ('{DocumentName}'). Falling back to semantic search.", intent.DocumentName);
             }
             
             // Fallthrough to embedding search

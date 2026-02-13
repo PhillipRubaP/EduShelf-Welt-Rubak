@@ -16,6 +16,7 @@ using Tag = EduShelf.Api.Models.Entities.Tag;
 
 using EduShelf.Api.Services.Background;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace EduShelf.Api.Services
 {
@@ -27,6 +28,7 @@ namespace EduShelf.Api.Services
         private readonly IImageProcessingService _imageProcessingService;
         private readonly IFileStorageService _fileStorageService;
         private readonly IFileParsingService _fileParsingService;
+        private readonly ILogger<DocumentService> _logger;
 
         public DocumentService(
             ApiDbContext context, 
@@ -34,7 +36,8 @@ namespace EduShelf.Api.Services
             IServiceScopeFactory scopeFactory,
             IImageProcessingService imageProcessingService, 
             IFileStorageService fileStorageService,
-            IFileParsingService fileParsingService)
+            IFileParsingService fileParsingService,
+            ILogger<DocumentService> logger)
         {
             _context = context;
             _queue = queue;
@@ -42,6 +45,7 @@ namespace EduShelf.Api.Services
             _imageProcessingService = imageProcessingService;
             _fileStorageService = fileStorageService;
             _fileParsingService = fileParsingService;
+            _logger = logger;
         }
 
         public async Task<PagedResult<DocumentDto>> GetDocumentsAsync(int userId, string role, int page, int pageSize)
@@ -162,21 +166,22 @@ namespace EduShelf.Api.Services
 
             // Fire and forget the indexing process.
             // Queue background indexing
-            Console.WriteLine($"[DocumentService] Queuing background indexing for document {document.Id} ({document.Path})");
+            _logger.LogInformation("Queuing background indexing for document {DocumentId} ({DocumentPath})", document.Id, document.Path);
             await _queue.QueueBackgroundWorkItemAsync(async token =>
             {
-                Console.WriteLine($"[BackgroundJob] Starting background work item for document {document.Id}");
                 using var scope = _scopeFactory.CreateScope();
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<DocumentService>>();
+                logger.LogInformation("[BackgroundJob] Starting background work item for document {DocumentId}", document.Id);
+                
                 var indexingService = scope.ServiceProvider.GetRequiredService<IndexingService>();
                 try
                 {
                     await indexingService.IndexDocumentAsync(document.Id, document.Path);
-                    Console.WriteLine($"[BackgroundJob] Completed indexing for document {document.Id}");
+                    logger.LogInformation("[BackgroundJob] Completed indexing for document {DocumentId}", document.Id);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[BackgroundJob] Error indexing document {document.Id}: {ex.Message}");
-                    Console.WriteLine(ex.StackTrace);
+                    logger.LogError(ex, "[BackgroundJob] Error indexing document {DocumentId}: {ErrorMessage}", document.Id, ex.Message);
                 }
             });
 
@@ -236,7 +241,7 @@ namespace EduShelf.Api.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error deleting file {document.Path}: {ex.Message}");
+                _logger.LogError(ex, "Error deleting file {FilePath}: {ErrorMessage}", document.Path, ex.Message);
             }
 
             _context.Documents.Remove(document);
@@ -501,6 +506,7 @@ namespace EduShelf.Api.Services
             await _queue.QueueBackgroundWorkItemAsync(async token =>
             {
                 using var scope = _scopeFactory.CreateScope();
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<DocumentService>>();
                 var indexingService = scope.ServiceProvider.GetRequiredService<IndexingService>();
                 try
                 {
@@ -508,7 +514,7 @@ namespace EduShelf.Api.Services
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error re-indexing document {document.Id}: {ex.Message}");
+                    logger.LogError(ex, "Error re-indexing document {DocumentId}: {ErrorMessage}", document.Id, ex.Message);
                 }
             });
         }
@@ -598,7 +604,7 @@ namespace EduShelf.Api.Services
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error deleting file for user deletion: {ex.Message}");
+                    _logger.LogError(ex, "Error deleting file for user deletion: {ErrorMessage}", ex.Message);
                     // Continue deleting other files and the user record
                 }
             }

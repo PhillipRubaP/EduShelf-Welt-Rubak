@@ -34,7 +34,6 @@ namespace EduShelf.Api.Services
             try
             {
                 _logger.LogInformation("Starting indexing for document ID {DocumentId} with filename {FileName}", documentId, fileName);
-                Console.WriteLine($"[IndexingService] Processing document {documentId}: {fileName}");
                 
                 // Download file stream from storage
                 using var fileStream = await _fileStorageService.DownloadFileAsync(fileName);
@@ -128,7 +127,8 @@ namespace EduShelf.Api.Services
                 }
 
                 await context.SaveChangesAsync();
-                Console.WriteLine($"[IndexingService] Successfully saved {chunks.Count} chunks for document {documentId}");
+                await context.SaveChangesAsync();
+                _logger.LogInformation("Successfully saved {ChunkCount} chunks for document {DocumentId}", chunks.Count, documentId);
             }
             _logger.LogInformation("Successfully indexed {ChunkCount} chunks for document ID {DocumentId}", chunks.Count, documentId);
         }
