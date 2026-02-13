@@ -37,6 +37,13 @@
   margin-bottom: 2rem;
 }
 
+.file-meta {
+  font-size: 0.85rem;
+  color: #888;
+  /* Fallback */
+  color: var(--text-muted);
+}
+
 .file-card-buttons {
   position: absolute;
   bottom: 1.5rem;
