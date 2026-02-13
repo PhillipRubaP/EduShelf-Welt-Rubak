@@ -58,7 +58,7 @@ const EditUser = ({ loggedInUser, setLoggedInUser }) => {
   const handleDelete = async () => {
     if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
       try {
-        await api.delete(`/Users/${loggedInUser.id}`);
+        await api.delete('/Users/me');
         setLoggedInUser(null);
         navigate('/login');
       } catch (error) {

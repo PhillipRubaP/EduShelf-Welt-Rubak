@@ -1,6 +1,7 @@
 using EduShelf.Api.Models.Entities;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace EduShelf.Api.Services
 {
@@ -8,11 +9,13 @@ namespace EduShelf.Api.Services
     {
         private readonly IConfiguration _configuration;
         private readonly ITokenService _tokenService;
+        private readonly ILogger<PromptGenerationService> _logger;
 
-        public PromptGenerationService(IConfiguration configuration, ITokenService tokenService)
+        public PromptGenerationService(IConfiguration configuration, ITokenService tokenService, ILogger<PromptGenerationService> logger)
         {
             _configuration = configuration;
             _tokenService = tokenService;
+            _logger = logger;
         }
 
         public ChatHistory BuildChatHistory(ChatSession chatSession, List<DocumentChunk> relevantChunks, string userInput)
@@ -52,12 +55,12 @@ namespace EduShelf.Api.Services
             var finalUserMessage = new StringBuilder();
             if (!string.IsNullOrEmpty(contextString))
             {
-                Console.WriteLine($"[PromptGeneration] Injecting context of length {contextString.Length} chars into User Message.");
+                _logger.LogInformation("Injecting context of length {ContextLength} chars into User Message.", contextString.Length);
                 finalUserMessage.AppendLine($"[Context from Documents]:\n{contextString}\n");
             }
             else 
             {
-                Console.WriteLine("[PromptGeneration] No context available to inject.");
+                _logger.LogInformation("No context available to inject.");
             }
             finalUserMessage.AppendLine($"[User Question]: {userInput}");
 

@@ -27,7 +27,7 @@ const ShareFileModal = ({ isOpen, onClose, onShare, fileName }) => {
         <div className="share-file-modal-overlay">
             <div className="share-file-modal">
                 <h2>
-                    <span>📤</span> Share "{fileName}"
+                    Share "{fileName}"
                 </h2>
 
                 <form onSubmit={handleSubmit} className="share-file-form">

@@ -26,7 +26,6 @@ namespace EduShelf.Api.Services
         public async Task<List<DocumentChunk>> GetRelevantChunksAsync(string userInput, int userId, Intent intent)
         {
             _logger.LogInformation("Retrieving chunks for Intent: {IntentType}, Document: {DocumentName}", intent.Type, intent.DocumentName);
-            Console.WriteLine($"[RetrievalService] User {userId} asking about '{intent.DocumentName}' (Intent: {intent.Type})");
 
             if (!string.IsNullOrEmpty(intent.DocumentName))
             {
@@ -41,11 +40,8 @@ namespace EduShelf.Api.Services
 
                 if (chunks.Any())
                 {
-                    _logger.LogDebug("Found {ChunkCount} chunks by name match ('{DocumentName}')", chunks.Count, intent.DocumentName);
-                    if (chunks.First().Content.Length > 0)
-                    {
-                         _logger.LogTrace("Content Preview: {ContentPreview}...", chunks.First().Content.Substring(0, Math.Min(100, chunks.First().Content.Length)));
-                    }
+                    _logger.LogInformation("Found {ChunkCount} chunks by name match ('{DocumentName}')", chunks.Count, intent.DocumentName);
+                    _logger.LogDebug("Content Preview: {ContentPreview}...", chunks.First().Content.Substring(0, Math.Min(100, chunks.First().Content.Length)));
                     return chunks;
                 }
                 

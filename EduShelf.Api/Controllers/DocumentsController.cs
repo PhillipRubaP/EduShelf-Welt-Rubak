@@ -98,9 +98,9 @@ namespace EduShelf.Api.Controllers
 
         // PUT: api/Documents/5/tags
         [HttpPut("{documentId}/tags")]
-        public async Task<IActionResult> UpdateTagsForDocument(int documentId, [FromBody] List<int> tagIds)
+        public async Task<IActionResult> UpdateTagsForDocument(int documentId, [FromBody] List<string> tags)
         {
-             await _documentService.UpdateTagsForDocumentAsync(documentId, tagIds);
+             await _documentService.UpdateTagsForDocumentAsync(documentId, tags);
              return NoContent();
         }
     
@@ -113,11 +113,11 @@ namespace EduShelf.Api.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<ActionResult<PagedResult<DocumentDto>>> SearchDocuments([FromQuery] string query, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<PagedResult<DocumentDto>>> SearchDocuments([FromQuery] string? query = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? tag = null)
         {
             var userId = GetCurrentUserId();
             var userRole = GetCurrentUserRole();
-            var documents = await _documentService.SearchDocumentsAsync(query, userId, userRole, page, pageSize);
+            var documents = await _documentService.SearchDocumentsAsync(query, userId, userRole, page, pageSize, tag);
             return Ok(documents);
         }
 

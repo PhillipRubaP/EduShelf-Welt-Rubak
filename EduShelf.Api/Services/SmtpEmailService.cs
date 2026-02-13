@@ -1,16 +1,19 @@
 using System.Net;
 using System.Net.Mail;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace EduShelf.Api.Services;
 
 public class SmtpEmailService : IEmailService
 {
     private readonly IConfiguration _configuration;
+    private readonly ILogger<SmtpEmailService> _logger;
 
-    public SmtpEmailService(IConfiguration configuration)
+    public SmtpEmailService(IConfiguration configuration, ILogger<SmtpEmailService> logger)
     {
         _configuration = configuration;
+        _logger = logger;
     }
 
     public async Task SendEmailAsync(string to, string subject, string htmlBody)
@@ -24,7 +27,7 @@ public class SmtpEmailService : IEmailService
         if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass))
         {
             // Log warning or throw depending on strictness. For now, we return if not configured.
-            Console.WriteLine("SMTP not configured. Skipping email.");
+            _logger.LogWarning("SMTP not configured. Skipping email.");
             return;
         }
 

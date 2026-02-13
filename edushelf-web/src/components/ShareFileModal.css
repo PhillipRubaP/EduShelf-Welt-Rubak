@@ -13,21 +13,22 @@
 }
 
 .share-file-modal {
-    background: var(--bg-secondary);
+    background: var(--modal-background);
     border-radius: 16px;
     padding: 2rem;
     width: 90%;
     max-width: 500px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--modal-input-border);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     animation: slideIn 0.3s ease-out;
+    color: var(--modal-text-color);
 }
 
 .share-file-modal h2 {
     margin-top: 0;
     margin-bottom: 1.5rem;
     font-size: 1.5rem;
-    color: var(--text-primary);
+    color: var(--modal-text-color);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -46,7 +47,7 @@
 }
 
 .form-group label {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: 0.9rem;
     font-weight: 500;
 }
@@ -54,17 +55,17 @@
 .form-group input {
     padding: 0.8rem 1rem;
     border-radius: 8px;
-    border: 1px solid var(--border-color);
-    background: var(--bg-primary);
-    color: var(--text-primary);
+    border: 1px solid var(--modal-input-border);
+    background: var(--modal-input-bg);
+    color: var(--modal-text-color);
     font-size: 1rem;
     transition: all 0.2s;
 }
 
 .form-group input:focus {
     outline: none;
-    border-color: var(--accent-primary);
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 2px rgba(59, 178, 115, 0.2);
 }
 
 .modal-actions {
@@ -87,22 +88,27 @@
 
 .btn-cancel {
     background: transparent;
-    color: var(--text-secondary);
-    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    border: 1px solid var(--modal-input-border);
 }
 
 .btn-cancel:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--modal-text-color);
+}
+
+[data-theme='light'] .btn-cancel:hover {
+    background: #e5e7eb;
+    color: #1f2937;
 }
 
 .btn-share {
-    background: var(--accent-primary);
+    background: var(--primary-green);
     color: white;
 }
 
 .btn-share:hover {
-    background: var(--accent-hover);
+    background: var(--primary-green-dark);
     transform: translateY(-1px);
 }
 

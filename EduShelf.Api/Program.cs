@@ -15,7 +15,20 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using EduShelf.Api.Extensions;
 
+
+using Serilog;
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {

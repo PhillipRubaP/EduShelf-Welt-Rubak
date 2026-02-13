@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { FaEye, FaTrash, FaDownload, FaShareAlt, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaEye, FaTrash, FaDownload, FaShareAlt, FaCheck, FaTimes, FaEdit } from 'react-icons/fa';
 import UploadDialog from './UploadDialog';
 import FileViewer from './FileViewer';
 import ShareFileModal from './ShareFileModal';
-import api, { shareDocument } from '../services/api';
+import EditDocumentModal from './EditDocumentModal';
+import api, { shareDocument, searchDocuments, getDocuments } from '../services/api';
 import './Files.css';
 
 const Files = () => {
@@ -20,6 +21,11 @@ const Files = () => {
   const [rejectedFiles, setRejectedFiles] = useState([]);
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchTag, setSearchTag] = useState('');
+
+  // Edit State
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [fileToEdit, setFileToEdit] = useState(null);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,9 +43,14 @@ const Files = () => {
 
   const fetchFiles = async () => {
     try {
-      // Use query parameters for pagination
-      const data = await api.get(`/Documents?page=${currentPage}&pageSize=${pageSize}`);
-      // data is now a PagedResult object
+      let data;
+      // If no search term and no tag, use the standard getDocuments endpoint (more reliable for default view)
+      if (!searchTerm && !searchTag) {
+        data = await getDocuments(currentPage, pageSize);
+      } else {
+        data = await searchDocuments(searchTerm, searchTag, currentPage, pageSize);
+      }
+
       setFiles(data.items);
       setTotalPages(data.totalPages);
       setTotalCount(data.totalCount);
@@ -50,7 +61,7 @@ const Files = () => {
 
   useEffect(() => {
     fetchFiles();
-  }, [currentPage, pageSize]); // Refetch when page or pageSize changes
+  }, [currentPage, pageSize, searchTerm, searchTag]); // Refetch when any of these change
 
   const handleUploadSuccess = () => {
     setUploadDialogOpen(false);
@@ -116,12 +127,14 @@ const Files = () => {
     const newAccepted = [...acceptedFiles, fileId];
     setAcceptedFiles(newAccepted);
     localStorage.setItem('edushelf_accepted_shares', JSON.stringify(newAccepted));
+    fetchFiles(); // Refresh to potentially show the file if it matches filters
   };
 
   const handleReject = (fileId) => {
     const newRejected = [...rejectedFiles, fileId];
     setRejectedFiles(newRejected);
     localStorage.setItem('edushelf_rejected_shares', JSON.stringify(newRejected));
+    fetchFiles(); // Refresh to hide
   };
 
   const toggleMenu = (fileId) => {
@@ -129,8 +142,8 @@ const Files = () => {
   };
 
   const filteredFiles = files.filter(file => {
-    // Filter by search term
-    if (!file.title.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    // Client-side visual filtering for shared/rejected status
+    // Search Term and Tag are handled by backend now
 
     // Hide rejected files
     if (rejectedFiles.includes(file.id)) return false;
@@ -178,6 +191,13 @@ const Files = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
               />
+              <input
+                type="text"
+                placeholder="Filter by tag..."
+                value={searchTag}
+                onChange={(e) => setSearchTag(e.target.value)}
+                className="search-input tag-input"
+              />
             </div>
             <button onClick={() => setUploadDialogOpen(true)} className="add-file-button">+</button>
           </div>
@@ -218,6 +238,16 @@ const Files = () => {
                   </div>
                 )}
                 <p>{file.title}</p>
+                <div className="file-meta-row">
+                  <span className="file-meta">{file.fileType}</span>
+                  {file.tags && file.tags.length > 0 && (
+                    <div className="file-tags">
+                      {file.tags.map(t => (
+                        <span key={t.id} className="file-tag">{t.name}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 {file.isShared && <small className="file-owner">Shared by {file.ownerName}</small>}
 
                 <div className="file-card-buttons">
@@ -229,6 +259,14 @@ const Files = () => {
                   {openMenuId === file.id && (
                     <div className="dropdown-menu">
                       <button onClick={() => handleView(file)} title="View"><FaEye /> View</button>
+
+                      {!file.isShared && (
+                        <button onClick={() => {
+                          setFileToEdit(file);
+                          setIsEditOpen(true);
+                          setOpenMenuId(null);
+                        }} title="Edit"><FaEdit /> Edit</button>
+                      )}
 
                       {!file.isShared && (
                         <button onClick={() => handleShareClick(file)} title="Share"><FaShareAlt /> Share</button>
@@ -277,6 +315,17 @@ const Files = () => {
             onShare={onShareSubmit}
             fileName={fileToShare?.title}
           />
+
+          {isEditOpen && fileToEdit && (
+            <EditDocumentModal
+              file={fileToEdit}
+              onClose={() => setIsEditOpen(false)}
+              onSave={() => {
+                fetchFiles();
+                // setIsEditOpen(false); // EditDocumentModal likely closes itself or calls onClose
+              }}
+            />
+          )}
         </div>
       )}
     </div>

@@ -4,6 +4,8 @@ import api from '../services/api';
 
 const UploadDialog = ({ onClose, onUploadSuccess }) => {
   const [selectedFile, setSelectedFile] = useState(null);
+  const [tags, setTags] = useState([]);
+  const [currentTag, setCurrentTag] = useState('');
 
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
@@ -19,6 +21,8 @@ const UploadDialog = ({ onClose, onUploadSuccess }) => {
     formData.append('file', selectedFile);
     const user = JSON.parse(localStorage.getItem('user'));
     formData.append('userId', user.userId);
+
+    tags.forEach(tag => formData.append('tags', tag));
 
     try {
       const response = await api.postForm('/Documents', formData);
@@ -60,6 +64,51 @@ const UploadDialog = ({ onClose, onUploadSuccess }) => {
               className="form-input"
               style={{ paddingTop: '0.5rem' }} // Minor adjustment for file input
             />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Tags</label>
+            <div className="tags-input-container">
+              <div className="tags-list">
+                {tags.map((tag, index) => (
+                  <span key={index} className="tag-pill">
+                    {tag}
+                    <button type="button" onClick={() => setTags(tags.filter(t => t !== tag))} className="tag-remove">×</button>
+                  </span>
+                ))}
+              </div>
+              <div className="input-with-button">
+                <input
+                  type="text"
+                  value={currentTag}
+                  onChange={(e) => setCurrentTag(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && currentTag.trim()) {
+                      e.preventDefault();
+                      if (!tags.includes(currentTag.trim())) {
+                        setTags([...tags, currentTag.trim()]);
+                        setCurrentTag('');
+                      }
+                    }
+                  }}
+                  placeholder="Add tags..."
+                  className="form-input"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (currentTag.trim() && !tags.includes(currentTag.trim())) {
+                      setTags([...tags, currentTag.trim()]);
+                      setCurrentTag('');
+                    }
+                  }}
+                  className="btn btn-secondary"
+                  style={{ padding: '0.5rem' }}
+                >
+                  Add
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

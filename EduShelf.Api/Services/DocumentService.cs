@@ -16,6 +16,7 @@ using Tag = EduShelf.Api.Models.Entities.Tag;
 
 using EduShelf.Api.Services.Background;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace EduShelf.Api.Services
 {
@@ -36,7 +37,6 @@ namespace EduShelf.Api.Services
             IImageProcessingService imageProcessingService, 
             IFileStorageService fileStorageService,
             IFileParsingService fileParsingService)
-            ILogger<DocumentService> logger)
         {
             _context = context;
             _queue = queue;
@@ -168,17 +168,19 @@ namespace EduShelf.Api.Services
             _logger.LogInformation("Queuing background indexing for document {DocumentId} ({DocumentPath})", document.Id, document.Path);
             await _queue.QueueBackgroundWorkItemAsync(async token =>
             {
-                _logger.LogInformation("Starting background work item for document {DocumentId}", document.Id);
                 using var scope = _scopeFactory.CreateScope();
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<DocumentService>>();
+                logger.LogInformation("[BackgroundJob] Starting background work item for document {DocumentId}", document.Id);
+                
                 var indexingService = scope.ServiceProvider.GetRequiredService<IndexingService>();
                 try
                 {
                     await indexingService.IndexDocumentAsync(document.Id, document.Path);
-                    _logger.LogInformation("Completed indexing for document {DocumentId}", document.Id);
+                    logger.LogInformation("[BackgroundJob] Completed indexing for document {DocumentId}", document.Id);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error indexing document {DocumentId}", document.Id);
+                    logger.LogError(ex, "[BackgroundJob] Error indexing document {DocumentId}: {ErrorMessage}", document.Id, ex.Message);
                 }
             });
 
@@ -238,7 +240,7 @@ namespace EduShelf.Api.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting file {DocumentPath}", document.Path);
+                _logger.LogError(ex, "Error deleting file {FilePath}: {ErrorMessage}", document.Path, ex.Message);
             }
 
             _context.Documents.Remove(document);
@@ -289,10 +291,11 @@ namespace EduShelf.Api.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateTagsForDocumentAsync(int documentId, List<int> tagIds)
+        public async Task UpdateTagsForDocumentAsync(int documentId, List<string> tags)
         {
-             var document = await _context.Documents
+            var document = await _context.Documents
                 .Include(d => d.DocumentTags)
+                .ThenInclude(dt => dt.Tag)
                 .FirstOrDefaultAsync(d => d.Id == documentId);
 
             if (document == null)
@@ -300,16 +303,23 @@ namespace EduShelf.Api.Services
                  throw new NotFoundException("Document not found.");
             }
 
-            var validTags = await _context.Tags.Where(t => tagIds.Contains(t.Id)).ToListAsync();
-            if (validTags.Count != tagIds.Count)
-            {
-                throw new BadRequestException("One or more tags are invalid.");
-            }
-
             document.DocumentTags.Clear();
-            foreach (var tagId in tagIds)
+            
+            if (tags != null && tags.Any())
             {
-                document.DocumentTags.Add(new DocumentTag { DocumentId = documentId, TagId = tagId });
+                foreach (var tagName in tags)
+                {
+                    var normalizedTagName = tagName.Trim().ToLower();
+                    var existingTag = await _context.Tags.FirstOrDefaultAsync(t => t.Name == normalizedTagName);
+
+                    if (existingTag == null)
+                    {
+                        existingTag = new Tag { Name = normalizedTagName };
+                        _context.Tags.Add(existingTag);
+                    }
+
+                    document.DocumentTags.Add(new DocumentTag { DocumentId = documentId, Tag = existingTag });
+                }
             }
 
             await _context.SaveChangesAsync();
@@ -329,13 +339,20 @@ namespace EduShelf.Api.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PagedResult<DocumentDto>> SearchDocumentsAsync(string querySearch, int userId, string role, int page, int pageSize)
+        public async Task<PagedResult<DocumentDto>> SearchDocumentsAsync(string querySearch, int userId, string role, int page, int pageSize, string? tag = null)
         {
             var documentsQuery = _context.Documents.AsQueryable();
 
             if (!string.IsNullOrEmpty(querySearch))
             {
-                documentsQuery = documentsQuery.Where(d => d.Title.Contains(querySearch));
+                var normalizedQuery = querySearch.Trim().ToLower();
+                documentsQuery = documentsQuery.Where(d => d.Title.ToLower().Contains(normalizedQuery));
+            }
+
+            if (!string.IsNullOrEmpty(tag))
+            {
+                var normalizedTag = tag.Trim().ToLower();
+                documentsQuery = documentsQuery.Where(d => d.DocumentTags.Any(dt => dt.Tag.Name.ToLower().Contains(normalizedTag)));
             }
 
             if (role != Roles.Admin)
@@ -488,6 +505,7 @@ namespace EduShelf.Api.Services
             await _queue.QueueBackgroundWorkItemAsync(async token =>
             {
                 using var scope = _scopeFactory.CreateScope();
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<DocumentService>>();
                 var indexingService = scope.ServiceProvider.GetRequiredService<IndexingService>();
                 try
                 {
@@ -495,7 +513,7 @@ namespace EduShelf.Api.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error re-indexing document {DocumentId}", document.Id);
+                    logger.LogError(ex, "Error re-indexing document {DocumentId}: {ErrorMessage}", document.Id, ex.Message);
                 }
             });
         }
@@ -585,7 +603,7 @@ namespace EduShelf.Api.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error deleting file for user deletion");
+                    _logger.LogError(ex, "Error deleting file for user deletion: {ErrorMessage}", ex.Message);
                     // Continue deleting other files and the user record
                 }
             }

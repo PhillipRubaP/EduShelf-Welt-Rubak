@@ -4,6 +4,7 @@ import FileViewer from './FileViewer';
 import UploadDialog from './UploadDialog';
 import QuizModal from './QuizModal';
 import FlashcardsModal from './FlashcardsModal';
+import EditDocumentModal from './EditDocumentModal';
 import './MainDashboard.css';
 
 function MainDashboard() {
@@ -19,6 +20,8 @@ function MainDashboard() {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
   const [isFlashcardOpen, setIsFlashcardOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [fileToEdit, setFileToEdit] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -80,6 +83,16 @@ function MainDashboard() {
     }
   };
 
+  const handleEditFile = (e, file) => {
+    e.stopPropagation(); // Prevent opening file viewer
+    setFileToEdit(file);
+    setIsEditOpen(true);
+  }
+
+  const handleEditSuccess = () => {
+    fetchData();
+  };
+
   const handleFileClick = (file) => {
     setSelectedFile(file);
   };
@@ -109,7 +122,16 @@ function MainDashboard() {
                   <div className="file-icon">📄</div>
                   <div className="file-info">
                     <span className="file-title">{file.title}</span>
-                    <span className="file-meta">{file.fileType}</span>
+                    <div className="file-meta-row">
+                      <span className="file-meta">{file.fileType}</span>
+                      {file.tags && file.tags.length > 0 && (
+                        <div className="file-tags">
+                          {file.tags.map(t => (
+                            <span key={t.id} className="file-tag">{t.name}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </li>
               ))}
@@ -183,6 +205,14 @@ function MainDashboard() {
           addCard={handleAddFlashcard}
           card={null}
           updateCard={() => { }} // Not needed for create
+        />
+      )}
+
+      {isEditOpen && fileToEdit && (
+        <EditDocumentModal
+          file={fileToEdit}
+          onClose={() => setIsEditOpen(false)}
+          onSave={handleEditSuccess}
         />
       )}
     </div>

@@ -127,7 +127,8 @@ namespace EduShelf.Api.Services
                 }
 
                 await context.SaveChangesAsync();
-                _logger.LogDebug("Successfully saved {ChunksCount} chunks for document {DocumentId}", chunks.Count, documentId);
+                await context.SaveChangesAsync();
+                _logger.LogInformation("Successfully saved {ChunkCount} chunks for document {DocumentId}", chunks.Count, documentId);
             }
             _logger.LogInformation("Successfully indexed {ChunkCount} chunks for document ID {DocumentId}", chunks.Count, documentId);
         }
