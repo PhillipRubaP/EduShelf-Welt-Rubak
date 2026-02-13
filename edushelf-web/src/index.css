@@ -521,6 +521,8 @@ input[style*="--primary-green"] {
   margin-top: 2rem;
   padding-bottom: 2rem;
   width: 100%;
+  gap: 1rem;
+  /* Use gap instead of margin on buttons */
 }
 
 .pagination-button {
@@ -531,43 +533,16 @@ input[style*="--primary-green"] {
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
-  margin: 0 1rem;
-}
-
-.pagination-button:disabled {
-  background-color: var(--secondary-color);
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.pagination-button:hover:not(:disabled) {
-  background-color: var(--primary-green-dark);
-}
-
-.pagination-info {
-  color: var(--text-color);
-  font-weight: bold;
-}
-
-/* Global Pagination Styles */
-.pagination-controls {
+  width: 120px;
+  /* Fixed width for equal size */
+  text-align: center;
+  /* Center text within button */
   display: flex;
+  /* Flex to center content */
   justify-content: center;
+  /* Center content horizontally */
   align-items: center;
-  margin-top: 2rem;
-  padding-bottom: 2rem;
-  width: 100%;
-}
-
-.pagination-button {
-  background-color: var(--primary-green);
-  color: var(--button-text-color);
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  margin: 0 1rem;
+  /* Center content vertically */
 }
 
 .pagination-button:disabled {
@@ -583,4 +558,7 @@ input[style*="--primary-green"] {
 .pagination-info {
   color: var(--text-color);
   font-weight: bold;
+  min-width: 120px;
+  /* Ensure info text takes up space too if needed, or just let it float */
+  text-align: center;
 }
