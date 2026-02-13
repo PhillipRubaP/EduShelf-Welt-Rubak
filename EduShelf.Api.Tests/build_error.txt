@@ -1,0 +1,22 @@
+  Wiederherzustellende Projekte werden ermittelt...
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\EduShelf.Api.Tests.csproj : error NU1605: Warnung als Fehler: Ein Downgrade des Pakets "Microsoft.Extensions.Configuration.Abstractions" von 10.0.3 auf 9.0.10 wurde festgestellt. Verweisen Sie direkt aus dem Projekt auf das Paket, um eine andere Version auszuwählen. 
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\EduShelf.Api.Tests.csproj : error NU1605:  EduShelf.Api.Tests -> Microsoft.Extensions.Http.Polly 10.0.3 -> Microsoft.Extensions.Http 10.0.3 -> Microsoft.Extensions.Configuration.Abstractions (>= 10.0.3) 
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\EduShelf.Api.Tests.csproj : error NU1605:  EduShelf.Api.Tests -> Microsoft.Extensions.Configuration.Abstractions (>= 9.0.10)
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\EduShelf.Api.Tests.csproj : error NU1605: Warnung als Fehler: Ein Downgrade des Pakets "Microsoft.Extensions.Logging" von 10.0.3 auf 9.0.10 wurde festgestellt. Verweisen Sie direkt aus dem Projekt auf das Paket, um eine andere Version auszuwählen. 
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\EduShelf.Api.Tests.csproj : error NU1605:  EduShelf.Api.Tests -> Microsoft.Extensions.Http.Polly 10.0.3 -> Microsoft.Extensions.Http 10.0.3 -> Microsoft.Extensions.Logging (>= 10.0.3) 
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\EduShelf.Api.Tests.csproj : error NU1605:  EduShelf.Api.Tests -> Microsoft.Extensions.Logging (>= 9.0.10)
+  Fehler beim Wiederherstellen von "C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\EduShelf.Api.Tests.csproj" (in "1,13 Sek.").
+  1 von 2 Projekten sind für die Wiederherstellung auf dem neuesten Stand.
+
+Fehler beim Buildvorgang.
+
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\EduShelf.Api.Tests.csproj : error NU1605: Warnung als Fehler: Ein Downgrade des Pakets "Microsoft.Extensions.Configuration.Abstractions" von 10.0.3 auf 9.0.10 wurde festgestellt. Verweisen Sie direkt aus dem Projekt auf das Paket, um eine andere Version auszuwählen. 
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\EduShelf.Api.Tests.csproj : error NU1605:  EduShelf.Api.Tests -> Microsoft.Extensions.Http.Polly 10.0.3 -> Microsoft.Extensions.Http 10.0.3 -> Microsoft.Extensions.Configuration.Abstractions (>= 10.0.3) 
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\EduShelf.Api.Tests.csproj : error NU1605:  EduShelf.Api.Tests -> Microsoft.Extensions.Configuration.Abstractions (>= 9.0.10)
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\EduShelf.Api.Tests.csproj : error NU1605: Warnung als Fehler: Ein Downgrade des Pakets "Microsoft.Extensions.Logging" von 10.0.3 auf 9.0.10 wurde festgestellt. Verweisen Sie direkt aus dem Projekt auf das Paket, um eine andere Version auszuwählen. 
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\EduShelf.Api.Tests.csproj : error NU1605:  EduShelf.Api.Tests -> Microsoft.Extensions.Http.Polly 10.0.3 -> Microsoft.Extensions.Http 10.0.3 -> Microsoft.Extensions.Logging (>= 10.0.3) 
+C:\Users\Phillip\SCHULE\SJ202425\Diplomarbeit\EduShelf-Welt-Rubak\EduShelf.Api.Tests\EduShelf.Api.Tests.csproj : error NU1605:  EduShelf.Api.Tests -> Microsoft.Extensions.Logging (>= 9.0.10)
+    0 Warnung(en)
+    2 Fehler
+
+Verstrichene Zeit 00:00:02.81
