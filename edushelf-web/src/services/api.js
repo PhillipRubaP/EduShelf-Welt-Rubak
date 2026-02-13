@@ -148,7 +148,17 @@ export const shareDocument = (documentId, emailOrUsername) => {
   return api.post(`/Documents/${documentId}/share`, { email: emailOrUsername });
 };
 
-export const getDocuments = () => api.get('/documents');
+export const getDocuments = (page = 1, pageSize = 10) => api.get(`/documents?page=${page}&pageSize=${pageSize}`);
+export const searchDocuments = (query, tag = null, page = 1, pageSize = 10) => {
+  const params = new URLSearchParams();
+  if (query) params.append('query', query);
+  if (tag) params.append('tag', tag);
+  params.append('page', page);
+  params.append('pageSize', pageSize);
+
+  return api.get(`/documents/search?${params.toString()}`);
+}
+export const updateDocumentTags = (documentId, tags) => api.put(`/documents/${documentId}/tags`, tags);
 export const getTags = () => api.get('/tags');
 export const getFlashcardsByTag = (tagId, page = 1, pageSize = 10) => api.get(`/flashcards/tag/${tagId}?page=${page}&pageSize=${pageSize}`);
 

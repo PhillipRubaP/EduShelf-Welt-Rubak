@@ -17,10 +17,10 @@ namespace EduShelf.Api.Services
         
         Task<IEnumerable<Tag>> GetTagsForDocumentAsync(int documentId);
         Task AddTagToDocumentAsync(int documentId, int tagId);
-        Task UpdateTagsForDocumentAsync(int documentId, List<int> tagIds);
+        Task UpdateTagsForDocumentAsync(int documentId, List<string> tags);
         Task RemoveTagFromDocumentAsync(int documentId, int tagId);
         
-        Task<PagedResult<DocumentDto>> SearchDocumentsAsync(string query, int userId, string role, int page, int pageSize);
+        Task<PagedResult<DocumentDto>> SearchDocumentsAsync(string query, int userId, string role, int page, int pageSize, string? tag = null);
         
         Task<(Stream FileStream, string ContentType, string FileName)> DownloadDocumentAsync(int id, int userId, string role);
         Task<string> GetDocumentContentAsync(int id, int userId, string role);
