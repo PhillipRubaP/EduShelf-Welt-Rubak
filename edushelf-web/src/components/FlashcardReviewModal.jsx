@@ -25,12 +25,31 @@ const FlashcardReviewModal = ({ closeModal }) => {
 
     const startReview = async () => {
         if (selectedTag) {
-            const fetchedCards = await getFlashcardsByTag(selectedTag);
-            setCards(fetchedCards);
-            setUnseenCards(fetchedCards);
-            setCurrentCardIndex(0);
-            setIsFlipped(false);
-            setReviewStarted(true);
+            try {
+                // Fetch up to 100 cards for review
+                const result = await getFlashcardsByTag(selectedTag, 1, 100);
+
+                let fetchedCards = [];
+                if (result && result.items) {
+                    fetchedCards = result.items;
+                } else if (Array.isArray(result)) {
+                    fetchedCards = result;
+                }
+
+                if (fetchedCards.length === 0) {
+                    alert("No flashcards found for this tag.");
+                    return;
+                }
+
+                setCards(fetchedCards);
+                setUnseenCards(fetchedCards);
+                setCurrentCardIndex(0);
+                setIsFlipped(false);
+                setReviewStarted(true);
+            } catch (error) {
+                console.error("Error starting review:", error);
+                alert("Failed to load flashcards. Please try again.");
+            }
         }
     };
 
