@@ -536,8 +536,9 @@ namespace EduShelf.Api.Services
                 throw new ForbidException("You are not authorized to share this document.");
             }
 
+            var normalizedInput = emailOrUsername.ToLower();
             var targetUser = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == emailOrUsername || u.Username == emailOrUsername);
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedInput || u.Username.ToLower() == normalizedInput);
 
             if (targetUser == null)
             {
