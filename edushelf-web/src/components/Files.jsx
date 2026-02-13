@@ -239,7 +239,7 @@ const Files = () => {
                 )}
                 <p>{file.title}</p>
                 <div className="file-meta-row">
-                  {/* <span className="file-meta">{file.fileType}</span> */}
+                  <span className="file-meta">{file.fileType}</span>
                   {file.tags && file.tags.length > 0 && (
                     <div className="file-tags">
                       {file.tags.map(t => (
