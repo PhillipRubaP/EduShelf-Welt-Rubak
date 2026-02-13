@@ -427,7 +427,7 @@ namespace EduShelf.Api.Services
 
                 // Fallback: Manual Parsing for "All Lowercase / Alternative Schema"
                 var manualQuiz = new GeneratedQuizJson();
-                manualQuiz.Title = jsonNode["title"]?.ToString() ?? result?.Title ?? "Generated Quiz";
+                manualQuiz.Title = jsonNode?["title"]?.ToString() ?? result?.Title ?? "Generated Quiz";
                 
                 var questionsNode = jsonNode["questions"] ?? jsonNode["Questions"];
                 if (questionsNode is System.Text.Json.Nodes.JsonArray qArray)
@@ -440,7 +440,7 @@ namespace EduShelf.Api.Services
                         
                         var newQ = new GeneratedQuestionJson { Text = qText ?? "Unknown Question" };
                         
-                        var optsNode = qItem["answers"] ?? qItem["options"];
+                        var optsNode = qItem?["answers"] ?? qItem?["options"];
                         if (optsNode is System.Text.Json.Nodes.JsonArray optsArray)
                         {
                             newQ.Answers = new List<GeneratedAnswerJson>();

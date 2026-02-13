@@ -117,7 +117,7 @@ namespace EduShelf.Api.Controllers
         {
             var userId = GetCurrentUserId();
             var userRole = GetCurrentUserRole();
-            var documents = await _documentService.SearchDocumentsAsync(query, userId, userRole, page, pageSize, tag);
+            var documents = await _documentService.SearchDocumentsAsync(query ?? "", userId, userRole, page, pageSize, tag);
             return Ok(documents);
         }
 
