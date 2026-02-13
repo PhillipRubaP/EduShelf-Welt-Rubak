@@ -9,7 +9,13 @@ const api = {
     if (!response.ok) {
       const text = await response.text();
       console.error(`API Error (${response.status}):`, text);
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      // Try to parse JSON error first, otherwise use text
+      try {
+        const jsonError = JSON.parse(text);
+        throw new Error(jsonError.message || jsonError.title || text);
+      } catch (e) {
+        throw new Error(text || `API Error: ${response.status} ${response.statusText}`);
+      }
     }
     if (options.responseType === 'blob') {
       return response.blob();
@@ -34,7 +40,12 @@ const api = {
     if (!response.ok) {
       const text = await response.text();
       console.error(`API Error (${response.status}):`, text);
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      try {
+        const jsonError = JSON.parse(text);
+        throw new Error(jsonError.message || jsonError.title || text);
+      } catch (e) {
+        throw new Error(text || `API Error: ${response.status} ${response.statusText}`);
+      }
     }
     return response.json();
   },
@@ -131,6 +142,10 @@ export const uploadDocument = (file, userId, tags = []) => {
   formData.append('userId', userId);
   tags.forEach(tag => formData.append('tags', tag));
   return api.postForm('/Documents', formData);
+};
+
+export const shareDocument = (documentId, emailOrUsername) => {
+  return api.post(`/Documents/${documentId}/share`, { email: emailOrUsername });
 };
 
 export const getDocuments = () => api.get('/documents');

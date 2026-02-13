@@ -28,9 +28,19 @@ function MainDashboard() {
         getFlashcards()
       ]);
 
-      const docs = docsData.items || docsData;
+      let docs = docsData.items || docsData;
 
       if (Array.isArray(docs)) {
+        // Filter out shared files that are not accepted or are rejected
+        const acceptedShares = JSON.parse(localStorage.getItem('edushelf_accepted_shares') || '[]');
+        const rejectedShares = JSON.parse(localStorage.getItem('edushelf_rejected_shares') || '[]');
+
+        docs = docs.filter(doc => {
+          if (!doc.isShared) return true;
+          if (rejectedShares.includes(doc.id)) return false;
+          return acceptedShares.includes(doc.id);
+        });
+
         // Take only the first 3 documents
         setRecentFiles(docs.slice(0, 3));
       }

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FaEye, FaTrash, FaDownload } from 'react-icons/fa';
+import { FaEye, FaTrash, FaDownload, FaShareAlt, FaCheck, FaTimes } from 'react-icons/fa';
 import UploadDialog from './UploadDialog';
 import FileViewer from './FileViewer';
-import api from '../services/api';
+import ShareFileModal from './ShareFileModal';
+import api, { shareDocument } from '../services/api';
 import './Files.css';
 
 const Files = () => {
@@ -12,6 +13,12 @@ const Files = () => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [viewFile, setViewFile] = useState(null);
 
+  // Sharing State
+  const [isShareModalOpen, setShareModalOpen] = useState(false);
+  const [fileToShare, setFileToShare] = useState(null);
+  const [acceptedFiles, setAcceptedFiles] = useState([]);
+  const [rejectedFiles, setRejectedFiles] = useState([]);
+
   const [searchTerm, setSearchTerm] = useState('');
 
   // Pagination State
@@ -19,6 +26,14 @@ const Files = () => {
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+
+  // Load accepted/rejected states from local storage on mount
+  useEffect(() => {
+    const storedAccepted = JSON.parse(localStorage.getItem('edushelf_accepted_shares') || '[]');
+    const storedRejected = JSON.parse(localStorage.getItem('edushelf_rejected_shares') || '[]');
+    setAcceptedFiles(storedAccepted);
+    setRejectedFiles(storedRejected);
+  }, []);
 
   const fetchFiles = async () => {
     try {
@@ -50,9 +65,14 @@ const Files = () => {
     setViewFile(file);
   };
 
-  const handleDelete = async (fileId) => {
+  const handleDelete = async (file) => {
+    if (file.isShared) {
+      // For shared files, "Delete" just hides it (rejects it)
+      handleReject(file.id);
+      return;
+    }
     try {
-      await api.delete(`/documents/${fileId}`);
+      await api.delete(`/documents/${file.id}`);
       fetchFiles();
     } catch (error) {
       console.error('Error deleting file:', error);
@@ -74,12 +94,60 @@ const Files = () => {
     }
   };
 
+  const handleShareClick = (file) => {
+    setFileToShare(file);
+    setShareModalOpen(true);
+    setOpenMenuId(null); // Close menu
+  };
+
+  const onShareSubmit = async (emailOrUsername) => {
+    if (!fileToShare) return;
+    try {
+      await shareDocument(fileToShare.id, emailOrUsername);
+      setShareModalOpen(false);
+      setFileToShare(null);
+      alert(`File shared successfully with ${emailOrUsername}`);
+    } catch (error) {
+      alert('Failed to share file: ' + error.message);
+    }
+  };
+
+  const handleAccept = (fileId) => {
+    const newAccepted = [...acceptedFiles, fileId];
+    setAcceptedFiles(newAccepted);
+    localStorage.setItem('edushelf_accepted_shares', JSON.stringify(newAccepted));
+  };
+
+  const handleReject = (fileId) => {
+    const newRejected = [...rejectedFiles, fileId];
+    setRejectedFiles(newRejected);
+    localStorage.setItem('edushelf_rejected_shares', JSON.stringify(newRejected));
+  };
+
   const toggleMenu = (fileId) => {
     setOpenMenuId(openMenuId === fileId ? null : fileId);
   };
 
-  const filteredFiles = files.filter(file =>
-    file.title.toLowerCase().includes(searchTerm.toLowerCase()) // Filter by title
+  const filteredFiles = files.filter(file => {
+    // Filter by search term
+    if (!file.title.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+
+    // Hide rejected files
+    if (rejectedFiles.includes(file.id)) return false;
+
+    // Show if:
+    // 1. Not shared (owned by user)
+    // 2. Shared AND accepted
+    if (!file.isShared) return true;
+    if (file.isShared && acceptedFiles.includes(file.id)) return true;
+
+    return false;
+  });
+
+  const pendingShares = files.filter(file =>
+    file.isShared &&
+    !acceptedFiles.includes(file.id) &&
+    !rejectedFiles.includes(file.id)
   );
 
   const handlePreviousPage = () => {
@@ -113,10 +181,45 @@ const Files = () => {
             </div>
             <button onClick={() => setUploadDialogOpen(true)} className="add-file-button">+</button>
           </div>
+
+          {/* Pending Shares Section */}
+          {pendingShares.length > 0 && (
+            <div className="pending-shares-section">
+              <h3><FaShareAlt /> Pending Shares</h3>
+              <div className="file-grid">
+                {pendingShares.map(file => (
+                  <div key={file.id} className="file-card pending-card">
+                    <div className="shared-badge" title={`Shared by ${file.ownerName}`}>
+                      <FaShareAlt size={12} />
+                    </div>
+                    <p>{file.title}</p>
+                    <div className="file-meta">From: {file.ownerName}</div>
+                    <div className="file-card-buttons">
+                      <button className="btn-accept" onClick={() => handleAccept(file.id)} title="Accept">
+                        <FaCheck />
+                      </button>
+                      <button className="btn-reject" onClick={() => handleReject(file.id)} title="Reject">
+                        <FaTimes />
+                      </button>
+                      <button onClick={() => handleView(file)} title="View"><FaEye /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="file-grid">
             {filteredFiles.map((file) => (
               <div key={file.id} className="file-card">
+                {file.isShared && (
+                  <div className="shared-badge" title={`Shared by ${file.ownerName}`}>
+                    <FaShareAlt size={12} />
+                  </div>
+                )}
                 <p>{file.title}</p>
+                {file.isShared && <small className="file-owner">Shared by {file.ownerName}</small>}
+
                 <div className="file-card-buttons">
                   <button className="menu-button" onClick={() => toggleMenu(file.id)}>
                     <div className="menu-icon"></div>
@@ -125,9 +228,17 @@ const Files = () => {
                   </button>
                   {openMenuId === file.id && (
                     <div className="dropdown-menu">
-                      <button onClick={() => handleView(file)} title="View"><FaEye /></button>
-                      <button onClick={() => handleDelete(file.id)} title="Delete"><FaTrash /></button>
-                      <button onClick={() => handleDownload(file)} title="Download"><FaDownload /></button>
+                      <button onClick={() => handleView(file)} title="View"><FaEye /> View</button>
+
+                      {!file.isShared && (
+                        <button onClick={() => handleShareClick(file)} title="Share"><FaShareAlt /> Share</button>
+                      )}
+
+                      <button onClick={() => handleDelete(file)} title={file.isShared ? "Hide" : "Delete"}>
+                        <FaTrash /> {file.isShared ? "Hide" : "Delete"}
+                      </button>
+
+                      <button onClick={() => handleDownload(file)} title="Download"><FaDownload /> Download</button>
                     </div>
                   )}
                 </div>
@@ -159,6 +270,13 @@ const Files = () => {
           )}
 
           {isUploadDialogOpen && <UploadDialog onClose={() => setUploadDialogOpen(false)} onUploadSuccess={handleUploadSuccess} />}
+
+          <ShareFileModal
+            isOpen={isShareModalOpen}
+            onClose={() => setShareModalOpen(false)}
+            onShare={onShareSubmit}
+            fileName={fileToShare?.title}
+          />
         </div>
       )}
     </div>
