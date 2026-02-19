@@ -19,12 +19,7 @@ namespace EduShelf.Api.Controllers
         }
 
         [HttpGet("{fileName}")]
-        [AllowAnonymous] // Allow frontend to display images without auth headers if needed, or keep secured?
-        // DocumentsController required Auth. Chat images might be sensitive.
-        // However, if frontend uses <img src="..."> it might be hard to pass Bearer token unless using fetch+blob.
-        // Defaulting to AllowAnonymous for now for simplicity, similar to static files which were likely public if not protected by middleware.
-        // Wait, static files via `UseStaticFiles` are public by default unless `UseAuthorization` is placed before it and configured effectively.
-        // I will keep AllowAnonymous for parity with previous file serving behavior unless proven otherwise.
+        [AllowAnonymous] // Allow public access to images so they can be easily loaded by <img> tags
         public async Task<IActionResult> GetImage(string fileName)
         {
             var stream = await _fileStorageService.DownloadFileAsync(fileName);
