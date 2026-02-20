@@ -35,7 +35,7 @@ namespace EduShelf.Api.Tests.Helpers
         [Fact]
         public void ExtractJson_ShouldReturnEmptyObject_WhenInputNullOrEmpty()
         {
-            Assert.Equal("{}", JsonHelper.ExtractJson(null));
+            Assert.Equal("{}", JsonHelper.ExtractJson(null!));
             Assert.Equal("{}", JsonHelper.ExtractJson(""));
             Assert.Equal("{}", JsonHelper.ExtractJson("   "));
         }

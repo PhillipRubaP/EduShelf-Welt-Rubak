@@ -55,7 +55,7 @@ namespace EduShelf.Api.Tests
             // Assert
             var actionResult = Assert.IsType<ActionResult<PagedResult<FlashcardDto>>>(result);
             
-            PagedResult<FlashcardDto> returnedResult = null;
+            PagedResult<FlashcardDto>? returnedResult = null;
 
              // Handle both ActionResult wrapping or direct value
             if (actionResult.Result is OkObjectResult okResult)
@@ -67,6 +67,7 @@ namespace EduShelf.Api.Tests
                 returnedResult = actionResult.Value;
             }
             
+            Assert.NotNull(returnedResult);
             Assert.Equal(2, returnedResult.Items.Count());
         }
 

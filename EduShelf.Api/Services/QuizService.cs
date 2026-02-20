@@ -429,7 +429,7 @@ namespace EduShelf.Api.Services
                 var manualQuiz = new GeneratedQuizJson();
                 manualQuiz.Title = jsonNode?["title"]?.ToString() ?? result?.Title ?? "Generated Quiz";
                 
-                var questionsNode = jsonNode["questions"] ?? jsonNode["Questions"];
+                var questionsNode = jsonNode?["questions"] ?? jsonNode?["Questions"];
                 if (questionsNode is System.Text.Json.Nodes.JsonArray qArray)
                 {
                     manualQuiz.Questions = new List<GeneratedQuestionJson>();
