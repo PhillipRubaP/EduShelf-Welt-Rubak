@@ -43,7 +43,7 @@ services:
       - edushelf-network
     environment:
       - OLLAMA_HOST=http://ollama:11434
-    command: >
+    entrypoint: >
       sh -c "
       echo 'Waiting for Ollama to start...' &&
       sleep 10 &&
