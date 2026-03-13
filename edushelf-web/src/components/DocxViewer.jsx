@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { renderAsync } from 'docx-preview';
 
 const DocxViewer = ({ blob }) => {
@@ -10,7 +10,7 @@ const DocxViewer = ({ blob }) => {
     }
   }, [blob]);
 
-  return <div ref={containerRef} className="docx-container"></div>;
+  return <div ref={containerRef} className="docx-container" />;
 };
 
 export default DocxViewer;

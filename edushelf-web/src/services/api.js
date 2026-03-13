@@ -1,5 +1,16 @@
 import API_BASE_URL from '../config';
 
+const handleErrorResponse = async (response) => {
+  const text = await response.text();
+  console.error(`API Error (${response.status}):`, text);
+  try {
+    const json = JSON.parse(text);
+    throw new Error(json.message || json.title || text);
+  } catch {
+    throw new Error(text || `API Error: ${response.status} ${response.statusText}`);
+  }
+};
+
 const api = {
   get: async (endpoint, options = {}) => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -7,45 +18,23 @@ const api = {
       ...options,
     });
     if (!response.ok) {
-      const text = await response.text();
-      console.error(`API Error (${response.status}):`, text);
-      // Try to parse JSON error first, otherwise use text
-      try {
-        const jsonError = JSON.parse(text);
-        throw new Error(jsonError.message || jsonError.title || text);
-      } catch (e) {
-        throw new Error(text || `API Error: ${response.status} ${response.statusText}`);
-      }
+      await handleErrorResponse(response);
     }
     if (options.responseType === 'blob') {
       return response.blob();
     }
-    try {
-      return await response.json();
-    } catch (e) {
-      console.error('Failed to parse JSON response:', e);
-      throw e;
-    }
+    return response.json();
   },
 
   post: async (endpoint, body) => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify(body),
     });
     if (!response.ok) {
-      const text = await response.text();
-      console.error(`API Error (${response.status}):`, text);
-      try {
-        const jsonError = JSON.parse(text);
-        throw new Error(jsonError.message || jsonError.title || text);
-      } catch (e) {
-        throw new Error(text || `API Error: ${response.status} ${response.statusText}`);
-      }
+      await handleErrorResponse(response);
     }
     return response.json();
   },
@@ -62,9 +51,7 @@ const api = {
   put: async (endpoint, body) => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify(body),
     });
@@ -75,9 +62,7 @@ const api = {
   patch: async (endpoint, body) => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify(body),
     });
@@ -97,6 +82,7 @@ const api = {
     return api.get(endpoint, { responseType: 'blob' });
   },
 };
+
 export const getChatSessions = () => api.get('/Chat/sessions');
 export const createChatSession = (title) => api.post('/Chat/sessions', { title });
 export const deleteChatSession = (sessionId) => api.delete(`/Chat/sessions/${sessionId}`);
@@ -118,23 +104,16 @@ export const deleteQuiz = (quizId) => api.delete(`/quizzes/${quizId}`);
 export const updateQuiz = (quizId, quizData) => api.put(`/quizzes/${quizId}`, quizData);
 
 export const getFlashcards = (page = 1, pageSize = 10) => api.get(`/flashcards?page=${page}&pageSize=${pageSize}`);
-
-export const createFlashcard = (flashcardData) => {
-  // The backend will associate the user from the session
-  return api.post('/flashcards', flashcardData);
-};
+export const createFlashcard = (flashcardData) => api.post('/flashcards', flashcardData);
 export const deleteFlashcard = (flashcardId) => api.delete(`/flashcards/${flashcardId}`);
-
 export const updateFlashcard = (card) => {
-  const dataToSend = {
+  const payload = {
     Question: card.question,
     Answer: card.answer,
     Tags: card.tags || [],
   };
-  return api.put(`/flashcards/${card.id}`, dataToSend);
+  return api.put(`/flashcards/${card.id}`, payload);
 };
-
-
 
 export const uploadDocument = (file, userId, tags = []) => {
   const formData = new FormData();
@@ -144,9 +123,8 @@ export const uploadDocument = (file, userId, tags = []) => {
   return api.postForm('/Documents', formData);
 };
 
-export const shareDocument = (documentId, emailOrUsername) => {
-  return api.post(`/Documents/${documentId}/share`, { email: emailOrUsername });
-};
+export const shareDocument = (documentId, emailOrUsername) =>
+  api.post(`/Documents/${documentId}/share`, { email: emailOrUsername });
 
 export const getDocuments = (page = 1, pageSize = 10) => api.get(`/documents?page=${page}&pageSize=${pageSize}`);
 export const searchDocuments = (query, tag = null, page = 1, pageSize = 10) => {
@@ -155,11 +133,11 @@ export const searchDocuments = (query, tag = null, page = 1, pageSize = 10) => {
   if (tag) params.append('tag', tag);
   params.append('page', page);
   params.append('pageSize', pageSize);
-
   return api.get(`/documents/search?${params.toString()}`);
-}
+};
 export const updateDocumentTags = (documentId, tags) => api.put(`/documents/${documentId}/tags`, tags);
 export const getTags = () => api.get('/tags');
-export const getFlashcardsByTag = (tagId, page = 1, pageSize = 10) => api.get(`/flashcards/tag/${tagId}?page=${page}&pageSize=${pageSize}`);
+export const getFlashcardsByTag = (tagId, page = 1, pageSize = 10) =>
+  api.get(`/flashcards/tag/${tagId}?page=${page}&pageSize=${pageSize}`);
 
 export default api;

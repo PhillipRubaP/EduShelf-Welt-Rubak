@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import './EditUser.css';
@@ -25,11 +25,11 @@ const EditUser = ({ loggedInUser, setLoggedInUser }) => {
 
     if (showPasswordFields) {
       if (password !== confirmPassword) {
-        setInfo("Passwords do not match!");
+        setInfo('Passwords do not match!');
         return;
       }
       if (password.length > 0 && password.length < 6) {
-        setInfo("Password must be at least 6 characters long.");
+        setInfo('Password must be at least 6 characters long.');
         return;
       }
     }
@@ -39,37 +39,26 @@ const EditUser = ({ loggedInUser, setLoggedInUser }) => {
       if (showPasswordFields && password) {
         updateData.password = password;
       }
-
       await api.put(`/Users/${loggedInUser.id}`, updateData);
       setLoggedInUser({ ...loggedInUser, username, email });
-      setInfo("Profile updated successfully!");
-
-      // Navigate after a short delay to let user see success message
-      setTimeout(() => {
-        navigate('/');
-      }, 1500);
-
+      setInfo('Profile updated successfully!');
+      setTimeout(() => navigate('/'), 1500);
     } catch (error) {
       console.error('Error during update:', error);
-      setInfo("Failed to update profile. Please try again.");
+      setInfo('Failed to update profile. Please try again.');
     }
   };
 
   const handleDelete = async () => {
-    if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
-      try {
-        await api.delete('/Users/me');
-        setLoggedInUser(null);
-        navigate('/login');
-      } catch (error) {
-        console.error('Error during delete:', error);
-        setInfo("Failed to delete account.");
-      }
+    if (!window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) return;
+    try {
+      await api.delete('/Users/me');
+      setLoggedInUser(null);
+      navigate('/login');
+    } catch (error) {
+      console.error('Error during delete:', error);
+      setInfo('Failed to delete account.');
     }
-  };
-
-  const handleClose = () => {
-    navigate('/');
   };
 
   if (!loggedInUser) {
@@ -80,11 +69,11 @@ const EditUser = ({ loggedInUser, setLoggedInUser }) => {
     <div className="edit-user-container">
       {info && <InfoDialog message={info} onClose={() => setInfo('')} />}
       <div className="auth-box">
-        <div className="modal-close-button" onClick={handleClose}>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <button className="modal-close-button" onClick={() => navigate('/')} aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
-        </div>
+        </button>
 
         <div className="auth-header">
           <h1>Edit Profile</h1>
@@ -153,16 +142,8 @@ const EditUser = ({ loggedInUser, setLoggedInUser }) => {
           </div>
 
           <div className="button-container">
-            <button type="submit" className="btn btn-primary">
-              Save Changes
-            </button>
-            <button
-              type="button"
-              onClick={handleDelete}
-              className="btn btn-danger"
-            >
-              Delete Account
-            </button>
+            <button type="submit" className="btn btn-primary">Save Changes</button>
+            <button type="button" onClick={handleDelete} className="btn btn-danger">Delete Account</button>
           </div>
         </form>
       </div>

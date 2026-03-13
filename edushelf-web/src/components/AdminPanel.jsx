@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import api, { uploadDocument } from '../services/api';
 import './AdminPanel.css';
 
@@ -64,24 +63,17 @@ const AdminPanel = () => {
         try {
             await api.delete(`/Users/${userId}`);
             setUsers(users.filter(u => u.userId !== userId));
-            if (selectedUser && selectedUser.userId === userId) {
-                handleBackToUsers();
-            }
+            if (selectedUser?.userId === userId) handleBackToUsers();
         } catch (err) {
             console.error('Failed to delete user:', err);
             setError('Failed to delete user.');
         }
     };
 
-    const handleEditUserClick = (user) => {
-        setEditUserMode(true);
-        setEditUserData({ username: user.username, email: user.email });
-    };
-
     const handleSaveUser = async () => {
         try {
             await api.patch(`/Users/${selectedUser.userId}`, editUserData);
-            setUsers(users.map(u => (u.userId === selectedUser.userId ? { ...u, ...editUserData } : u)));
+            setUsers(users.map(u => u.userId === selectedUser.userId ? { ...u, ...editUserData } : u));
             setSelectedUser({ ...selectedUser, ...editUserData });
             setEditUserMode(false);
         } catch (err) {
@@ -108,22 +100,9 @@ const AdminPanel = () => {
 
     const handleSaveFile = async (fileId) => {
         try {
-            // Need to fetch the full document to update it properly with PUT, 
-            // but the API requires the full object. 
-            // Or we can try to just update what we have if the backend accepts partial or if we fetch first.
-            // The PUT endpoint expects an Entity object, which might be tricky if we don't have all fields.
-            // However, let's try to fetch, update title, and put back.
-
-            // Step 1: Get single document details (including proper structure if needed)
             const doc = await api.get(`/Documents/${fileId}`);
-
-            // Step 2: Update title
-            const updatedDoc = { ...doc, title: editFileTitle };
-
-            // Step 3: Put
-            await api.put(`/Documents/${fileId}`, updatedDoc);
-
-            setUserFiles(userFiles.map(f => (f.id === fileId ? { ...f, title: editFileTitle } : f)));
+            await api.put(`/Documents/${fileId}`, { ...doc, title: editFileTitle });
+            setUserFiles(userFiles.map(f => f.id === fileId ? { ...f, title: editFileTitle } : f));
             setEditFileId(null);
         } catch (err) {
             console.error('Failed to update file:', err);
@@ -134,7 +113,6 @@ const AdminPanel = () => {
     const handleFileUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
         try {
             await uploadDocument(file, selectedUser.userId);
             fetchUserFiles(selectedUser.userId);
@@ -164,7 +142,6 @@ const AdminPanel = () => {
             setError(validationErrors.join(' '));
             return;
         }
-
         try {
             await api.post('/Users', newUserData);
             setCreateUserMode(false);
@@ -176,6 +153,19 @@ const AdminPanel = () => {
         }
     };
 
+    const TrashIcon = () => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
+            <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
+        </svg>
+    );
+
+    const PencilIcon = () => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z" />
+        </svg>
+    );
+
     return (
         <div className="admin-panel-container">
             <h2 className="admin-title">Admin Panel</h2>
@@ -183,13 +173,13 @@ const AdminPanel = () => {
 
             {!selectedUser ? (
                 <div className="users-list-section">
-                    <div className="users-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <div className="users-header-row">
                         <h3>All Users</h3>
                         <button className="btn-save" onClick={() => setCreateUserMode(true)}>+ Add User</button>
                     </div>
 
                     {createUserMode && (
-                        <div className="create-user-form" style={{ marginBottom: '24px', padding: '16px', background: 'var(--secondary-color)', borderRadius: '8px' }}>
+                        <div className="create-user-form">
                             <h4>Create New User</h4>
                             <div className="form-group">
                                 <label>Username:</label>
@@ -222,7 +212,9 @@ const AdminPanel = () => {
                         </div>
                     )}
 
-                    {loading ? <p>Loading users...</p> : (
+                    {loading ? (
+                        <p>Loading users...</p>
+                    ) : (
                         <table className="users-table">
                             <thead>
                                 <tr>
@@ -240,10 +232,7 @@ const AdminPanel = () => {
                                         <td className="clickable-cell" onClick={() => handleUserClick(user)}>{user.email}</td>
                                         <td>
                                             <span className="icon-button delete-icon" onClick={() => handleDeleteUser(user.userId)} title="Delete User">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
-                                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
-                                                    <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
-                                                </svg>
+                                                <TrashIcon />
                                             </span>
                                         </td>
                                     </tr>
@@ -286,7 +275,9 @@ const AdminPanel = () => {
                                 <h3>User: {selectedUser.username} <span className="user-id">#{selectedUser.userId}</span></h3>
                                 <p>Email: {selectedUser.email}</p>
                                 <div className="user-actions">
-                                    <button className="btn-edit" onClick={() => handleEditUserClick(selectedUser)}>Edit User</button>
+                                    <button className="btn-edit" onClick={() => { setEditUserMode(true); setEditUserData({ username: selectedUser.username, email: selectedUser.email }); }}>
+                                        Edit User
+                                    </button>
                                     <button className="btn-delete" onClick={() => handleDeleteUser(selectedUser.userId)}>Delete User</button>
                                 </div>
                             </div>
@@ -294,14 +285,19 @@ const AdminPanel = () => {
                     </div>
 
                     <div className="files-section">
-                        <div className="files-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <div className="files-header-row">
                             <h4>Files</h4>
-                            <label className="btn-save" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', fontWeight: '500', padding: '8px 16px', borderRadius: '4px' }}>
+                            <label className="btn-save upload-label">
                                 + Add File
-                                <input type="file" style={{ display: 'none' }} onChange={handleFileUpload} />
+                                <input type="file" className="hidden-file-input" onChange={handleFileUpload} />
                             </label>
                         </div>
-                        {loading ? <p>Loading files...</p> : userFiles.length === 0 ? <p>No files found for this user.</p> : (
+
+                        {loading ? (
+                            <p>Loading files...</p>
+                        ) : userFiles.length === 0 ? (
+                            <p>No files found for this user.</p>
+                        ) : (
                             <ul className="files-list">
                                 {userFiles.map(file => (
                                     <li key={file.id} className="file-item">
@@ -323,15 +319,10 @@ const AdminPanel = () => {
                                                 </span>
                                                 <div className="file-actions">
                                                     <span className="icon-button edit-icon" onClick={() => startEditFile(file)} title="Rename File">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pencil" viewBox="0 0 16 16">
-                                                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z" />
-                                                        </svg>
+                                                        <PencilIcon />
                                                     </span>
                                                     <span className="icon-button delete-icon" onClick={() => handleDeleteFile(file.id)} title="Delete File">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
-                                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
-                                                            <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
-                                                        </svg>
+                                                        <TrashIcon />
                                                     </span>
                                                 </div>
                                             </>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './ShareFileModal.css';
 
 const ShareFileModal = ({ isOpen, onClose, onShare, fileName }) => {
@@ -14,9 +14,8 @@ const ShareFileModal = ({ isOpen, onClose, onShare, fileName }) => {
         setIsLoading(true);
         try {
             await onShare(emailOrUsername);
-            setEmailOrUsername(''); // Reset input on success
+            setEmailOrUsername('');
         } catch (error) {
-            // Error handling is done in parent
             console.error(error);
         } finally {
             setIsLoading(false);
@@ -26,9 +25,7 @@ const ShareFileModal = ({ isOpen, onClose, onShare, fileName }) => {
     return (
         <div className="share-file-modal-overlay">
             <div className="share-file-modal">
-                <h2>
-                    Share "{fileName}"
-                </h2>
+                <h2>Share "{fileName}"</h2>
 
                 <form onSubmit={handleSubmit} className="share-file-form">
                     <div className="form-group">
@@ -45,12 +42,7 @@ const ShareFileModal = ({ isOpen, onClose, onShare, fileName }) => {
                     </div>
 
                     <div className="modal-actions">
-                        <button
-                            type="button"
-                            className="btn-cancel"
-                            onClick={onClose}
-                            disabled={isLoading}
-                        >
+                        <button type="button" className="btn-cancel" onClick={onClose} disabled={isLoading}>
                             Cancel
                         </button>
                         <button

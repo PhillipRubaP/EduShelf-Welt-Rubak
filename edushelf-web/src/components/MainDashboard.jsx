@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getDocuments, getQuizzes, getFlashcards, createFlashcard } from '../services/api';
 import FileViewer from './FileViewer';
 import UploadDialog from './UploadDialog';
@@ -9,14 +9,8 @@ import './MainDashboard.css';
 
 function MainDashboard() {
   const [recentFiles, setRecentFiles] = useState([]);
-  const [stats, setStats] = useState({
-    documents: 0,
-    quizzes: 0,
-    flashcards: 0
-  });
+  const [stats, setStats] = useState({ documents: 0, quizzes: 0, flashcards: 0 });
   const [selectedFile, setSelectedFile] = useState(null);
-
-  // Modal states
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
   const [isFlashcardOpen, setIsFlashcardOpen] = useState(false);
@@ -28,13 +22,12 @@ function MainDashboard() {
       const [docsData, quizzes, flashcards] = await Promise.all([
         getDocuments(),
         getQuizzes(),
-        getFlashcards()
+        getFlashcards(),
       ]);
 
       let docs = docsData.items || docsData;
 
       if (Array.isArray(docs)) {
-        // Filter out shared files that are not accepted or are rejected
         const acceptedShares = JSON.parse(localStorage.getItem('edushelf_accepted_shares') || '[]');
         const rejectedShares = JSON.parse(localStorage.getItem('edushelf_rejected_shares') || '[]');
 
@@ -44,14 +37,13 @@ function MainDashboard() {
           return acceptedShares.includes(doc.id);
         });
 
-        // Take only the first 3 documents
         setRecentFiles(docs.slice(0, 3));
       }
 
       setStats({
         documents: docsData.totalCount || (Array.isArray(docs) ? docs.length : 0),
         quizzes: quizzes.totalCount || (Array.isArray(quizzes) ? quizzes.length : 0),
-        flashcards: flashcards.totalCount || (Array.isArray(flashcards) ? flashcards.length : 0)
+        flashcards: flashcards.totalCount || (Array.isArray(flashcards) ? flashcards.length : 0),
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -62,43 +54,30 @@ function MainDashboard() {
     fetchData();
   }, []);
 
-  // Quick Action Handlers
   const handleUploadSuccess = () => {
-    fetchData(); // Refresh data to show new file in stats/recent
+    fetchData();
     setIsUploadOpen(false);
   };
 
-  const handleQuizSaved = (newQuiz) => {
-    fetchData(); // Refresh stats
+  const handleQuizSaved = () => {
+    fetchData();
     setIsQuizOpen(false);
   };
 
   const handleAddFlashcard = async (cardData) => {
     try {
       await createFlashcard(cardData);
-      fetchData(); // Refresh stats
+      fetchData();
       setIsFlashcardOpen(false);
     } catch (error) {
-      console.error("Error creating flashcard:", error);
+      console.error('Error creating flashcard:', error);
     }
   };
 
   const handleEditFile = (e, file) => {
-    e.stopPropagation(); // Prevent opening file viewer
+    e.stopPropagation();
     setFileToEdit(file);
     setIsEditOpen(true);
-  }
-
-  const handleEditSuccess = () => {
-    fetchData();
-  };
-
-  const handleFileClick = (file) => {
-    setSelectedFile(file);
-  };
-
-  const handleCloseViewer = () => {
-    setSelectedFile(null);
   };
 
   return (
@@ -109,7 +88,6 @@ function MainDashboard() {
       </header>
 
       <div className="dashboard-grid">
-        {/* Recently Added Files */}
         <section className="dashboard-card recent-files">
           <div className="card-header">
             <h2>Recently Added</h2>
@@ -118,13 +96,13 @@ function MainDashboard() {
           {recentFiles.length > 0 ? (
             <ul className="file-list">
               {recentFiles.map((file) => (
-                <li key={file.id} className="file-item" onClick={() => handleFileClick(file)}>
+                <li key={file.id} className="file-item" onClick={() => setSelectedFile(file)}>
                   <div className="file-icon">📄</div>
                   <div className="file-info">
                     <span className="file-title">{file.title}</span>
                     <div className="file-meta-row">
                       <span className="file-meta">{file.fileType}</span>
-                      {file.tags && file.tags.length > 0 && (
+                      {file.tags?.length > 0 && (
                         <div className="file-tags">
                           {file.tags.map(t => (
                             <span key={t.id} className="file-tag">{t.name}</span>
@@ -143,7 +121,6 @@ function MainDashboard() {
           )}
         </section>
 
-        {/* Quick Stats */}
         <section className="dashboard-card stats-card">
           <h2>Study Stats</h2>
           <div className="stats-grid">
@@ -162,7 +139,6 @@ function MainDashboard() {
           </div>
         </section>
 
-        {/* Quick Actions */}
         <section className="dashboard-card quick-actions">
           <h2>Quick Actions</h2>
           <div className="actions-grid">
@@ -182,21 +158,14 @@ function MainDashboard() {
         </section>
       </div>
 
-      {selectedFile && <FileViewer file={selectedFile} onClose={handleCloseViewer} />}
+      {selectedFile && <FileViewer file={selectedFile} onClose={() => setSelectedFile(null)} />}
 
-      {/* Modals */}
       {isUploadOpen && (
-        <UploadDialog
-          onClose={() => setIsUploadOpen(false)}
-          onUploadSuccess={handleUploadSuccess}
-        />
+        <UploadDialog onClose={() => setIsUploadOpen(false)} onUploadSuccess={handleUploadSuccess} />
       )}
 
       {isQuizOpen && (
-        <QuizModal
-          onClose={() => setIsQuizOpen(false)}
-          onQuizSaved={handleQuizSaved}
-        />
+        <QuizModal onClose={() => setIsQuizOpen(false)} onQuizSaved={handleQuizSaved} />
       )}
 
       {isFlashcardOpen && (
@@ -204,7 +173,7 @@ function MainDashboard() {
           closeModal={() => setIsFlashcardOpen(false)}
           addCard={handleAddFlashcard}
           card={null}
-          updateCard={() => { }} // Not needed for create
+          updateCard={() => { }}
         />
       )}
 
@@ -212,7 +181,7 @@ function MainDashboard() {
         <EditDocumentModal
           file={fileToEdit}
           onClose={() => setIsEditOpen(false)}
-          onSave={handleEditSuccess}
+          onSave={fetchData}
         />
       )}
     </div>

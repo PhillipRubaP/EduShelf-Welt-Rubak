@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getTags, getFlashcardsByTag } from '../services/api';
 import './FlashcardReviewModal.css';
 
 const FlashcardReviewModal = ({ closeModal }) => {
     const [tags, setTags] = useState([]);
     const [selectedTag, setSelectedTag] = useState('');
-    const [cards, setCards] = useState([]);
     const [unseenCards, setUnseenCards] = useState([]);
     const [currentCardIndex, setCurrentCardIndex] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
@@ -19,49 +18,35 @@ const FlashcardReviewModal = ({ closeModal }) => {
         fetchTags();
     }, []);
 
-    const handleTagChange = (e) => {
-        setSelectedTag(e.target.value);
-    };
-
     const startReview = async () => {
-        if (selectedTag) {
-            try {
-                // Fetch up to 100 cards for review
-                const result = await getFlashcardsByTag(selectedTag, 1, 100);
+        if (!selectedTag) return;
+        try {
+            const result = await getFlashcardsByTag(selectedTag, 1, 100);
+            const fetchedCards = result?.items || (Array.isArray(result) ? result : []);
 
-                let fetchedCards = [];
-                if (result && result.items) {
-                    fetchedCards = result.items;
-                } else if (Array.isArray(result)) {
-                    fetchedCards = result;
-                }
-
-                if (fetchedCards.length === 0) {
-                    alert("No flashcards found for this tag.");
-                    return;
-                }
-
-                setCards(fetchedCards);
-                setUnseenCards(fetchedCards);
-                setCurrentCardIndex(0);
-                setIsFlipped(false);
-                setReviewStarted(true);
-            } catch (error) {
-                console.error("Error starting review:", error);
-                alert("Failed to load flashcards. Please try again.");
+            if (fetchedCards.length === 0) {
+                alert('No flashcards found for this tag.');
+                return;
             }
+
+            setUnseenCards(fetchedCards);
+            setCurrentCardIndex(0);
+            setIsFlipped(false);
+            setReviewStarted(true);
+        } catch (error) {
+            console.error('Error starting review:', error);
+            alert('Failed to load flashcards. Please try again.');
         }
     };
 
     const handleKnow = () => {
-        const newUnseenCards = unseenCards.filter((_, index) => index !== currentCardIndex);
-        setUnseenCards(newUnseenCards);
-
-        if (newUnseenCards.length === 0) {
+        const remaining = unseenCards.filter((_, index) => index !== currentCardIndex);
+        if (remaining.length === 0) {
             alert('Congratulations! You have reviewed all cards.');
             closeModal();
         } else {
-            setCurrentCardIndex(currentCardIndex % newUnseenCards.length);
+            setUnseenCards(remaining);
+            setCurrentCardIndex(currentCardIndex % remaining.length);
             setIsFlipped(false);
         }
     };
@@ -76,15 +61,16 @@ const FlashcardReviewModal = ({ closeModal }) => {
     return (
         <div className="modal-backdrop">
             <div className="modal-content">
-                <div className="modal-close-button" onClick={closeModal}>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <button className="modal-close-button" onClick={closeModal} aria-label="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
-                </div>
+                </button>
+
                 {!reviewStarted ? (
                     <div className="tag-selection">
                         <h2>Select a Tag to Review</h2>
-                        <select onChange={handleTagChange} value={selectedTag}>
+                        <select onChange={(e) => setSelectedTag(e.target.value)} value={selectedTag}>
                             <option value="">Select a tag</option>
                             {tags.map(tag => (
                                 <option key={tag.id} value={tag.id}>{tag.name}</option>
@@ -94,7 +80,10 @@ const FlashcardReviewModal = ({ closeModal }) => {
                     </div>
                 ) : currentCard ? (
                     <div>
-                        <div className={`flashcard-review-scene ${isFlipped ? 'flipped' : ''}`} onClick={() => setIsFlipped(!isFlipped)}>
+                        <div
+                            className={`flashcard-review-scene ${isFlipped ? 'flipped' : ''}`}
+                            onClick={() => setIsFlipped(!isFlipped)}
+                        >
                             <div className="flashcard-review-container">
                                 <div className="flashcard-face flashcard-front">
                                     <p>{currentCard.question}</p>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import './UploadDialog.css'; // Reuse existing modal styles
+import { useState, useEffect } from 'react';
+import './UploadDialog.css';
 
 const EditFileModal = ({ file, api, onClose, onUpdateSuccess }) => {
     const [title, setTitle] = useState('');
@@ -9,9 +9,8 @@ const EditFileModal = ({ file, api, onClose, onUpdateSuccess }) => {
     useEffect(() => {
         if (file) {
             setTitle(file.title);
-            // Check if tags are objects (from backend) or strings
             const tagStrings = file.tags
-                ? file.tags.map(t => typeof t === 'object' ? t.name : t)
+                ? file.tags.map(t => (typeof t === 'object' ? t.name : t))
                 : [];
             setTags(tagStrings.join(', '));
         }
@@ -20,19 +19,9 @@ const EditFileModal = ({ file, api, onClose, onUpdateSuccess }) => {
     const handleSave = async (e) => {
         e.preventDefault();
         setLoading(true);
-
-        const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-
+        const tagsArray = tags.split(',').map(tag => tag.trim()).filter(Boolean);
         try {
-            // API likely expects PascalCase for the properties as seen in Flashcards
-            // We ensure we send ONLY what is needed to avoid binding errors with duplicate/extra keys
-            const updatedDoc = {
-                Title: title,
-                Tags: tagsArray
-            };
-            console.log('Sending clean updatedDoc:', updatedDoc);
-
-            await api.put(`/Documents/${file.id}`, updatedDoc);
+            await api.put(`/Documents/${file.id}`, { Title: title, Tags: tagsArray });
             onUpdateSuccess();
             onClose();
         } catch (error) {
@@ -46,8 +35,8 @@ const EditFileModal = ({ file, api, onClose, onUpdateSuccess }) => {
     return (
         <div className="modal-overlay">
             <div className="modal-container">
-                <button className="modal-close-button" onClick={onClose}>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <button className="modal-close-button" onClick={onClose} aria-label="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
@@ -61,8 +50,8 @@ const EditFileModal = ({ file, api, onClose, onUpdateSuccess }) => {
                         <div className="form-group">
                             <label className="form-label" htmlFor="title">Title</label>
                             <input
-                                type="text"
                                 id="title"
+                                type="text"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 className="form-input"
@@ -72,8 +61,8 @@ const EditFileModal = ({ file, api, onClose, onUpdateSuccess }) => {
                         <div className="form-group">
                             <label className="form-label" htmlFor="tags">Tags</label>
                             <input
-                                type="text"
                                 id="tags"
+                                type="text"
                                 value={tags}
                                 onChange={(e) => setTags(e.target.value)}
                                 className="form-input"

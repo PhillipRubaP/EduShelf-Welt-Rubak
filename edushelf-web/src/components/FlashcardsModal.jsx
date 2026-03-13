@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import './FlashcardsModal.css';
 
 const FlashcardsModal = ({ addCard, closeModal, card, updateCard }) => {
@@ -18,33 +18,24 @@ const FlashcardsModal = ({ addCard, closeModal, card, updateCard }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (front.trim() !== '' && back.trim() !== '') {
-            const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-            const flashcardData = {
-                Question: front,
-                Answer: back,
-                Tags: tagsArray
-            };
+        if (!front.trim() || !back.trim()) return;
 
-            if (isEditing) {
-                updateCard({
-                    ...card,
-                    question: flashcardData.Question,
-                    answer: flashcardData.Answer,
-                    tags: flashcardData.Tags
-                });
-            } else {
-                addCard(flashcardData);
-            }
-            closeModal();
+        const tagsArray = tags.split(',').map(tag => tag.trim()).filter(Boolean);
+        const flashcardData = { Question: front, Answer: back, Tags: tagsArray };
+
+        if (isEditing) {
+            updateCard({ ...card, question: flashcardData.Question, answer: flashcardData.Answer, tags: flashcardData.Tags });
+        } else {
+            addCard(flashcardData);
         }
+        closeModal();
     };
 
     return (
         <div className="modal-overlay">
             <div className="modal-container">
-                <button className="modal-close-button" onClick={closeModal}>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <button className="modal-close-button" onClick={closeModal} aria-label="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
@@ -58,8 +49,8 @@ const FlashcardsModal = ({ addCard, closeModal, card, updateCard }) => {
                         <div className="form-group">
                             <label className="form-label" htmlFor="front">Front (Question)</label>
                             <input
-                                type="text"
                                 id="front"
+                                type="text"
                                 value={front}
                                 onChange={(e) => setFront(e.target.value)}
                                 className="form-input"
@@ -81,8 +72,8 @@ const FlashcardsModal = ({ addCard, closeModal, card, updateCard }) => {
                         <div className="form-group">
                             <label className="form-label" htmlFor="tags">Tags</label>
                             <input
-                                type="text"
                                 id="tags"
+                                type="text"
                                 value={tags}
                                 onChange={(e) => setTags(e.target.value)}
                                 className="form-input"
@@ -93,9 +84,7 @@ const FlashcardsModal = ({ addCard, closeModal, card, updateCard }) => {
                 </div>
 
                 <div className="modal-footer">
-                    <button type="button" className="btn btn-secondary" onClick={closeModal}>
-                        Cancel
-                    </button>
+                    <button type="button" className="btn btn-secondary" onClick={closeModal}>Cancel</button>
                     <button type="submit" form="flashcard-form" className="btn btn-primary">
                         {isEditing ? 'Update Card' : 'Add Card'}
                     </button>
