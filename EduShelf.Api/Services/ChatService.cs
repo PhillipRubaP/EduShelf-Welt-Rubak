@@ -124,7 +124,7 @@ namespace EduShelf.Api.Services
                         await _flashcardService.GenerateFlashcardsAsync(new Models.Dtos.GenerateFlashcardsRequest
                         {
                             Context = context,
-                            Count = 5 // Default or could try to extract from prompt
+                            Count = 5
                         }, userId);
                         responseContent = "I have generated flashcards based on the context. You can view them in your Flashcards collection.";
                     }
@@ -141,14 +141,13 @@ namespace EduShelf.Api.Services
                         await _quizService.GenerateQuizAsync(new Models.Dtos.GenerateQuizRequest
                         {
                             Context = context,
-                            Count = 5 // Default
+                            Count = 5
                         }, userId);
                         responseContent = "I have generated a quiz based on the context. You can view it in your Quizzes collection.";
                     }
                 }
                 else
                 {
-                    // "summarize" or "question"
                     var chatHistory = _promptGenerationService.BuildChatHistory(chatSession, relevantChunks, promptInput);
                     var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
                     var result = await chatCompletionService.GetChatMessageContentAsync(chatHistory);

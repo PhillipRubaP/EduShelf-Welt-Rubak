@@ -451,9 +451,6 @@ namespace EduShelf.Api.Services
             }
             catch (Exception ex)
             {
-                // Wrap other exceptions or just throw? 
-                // Original code let PdfPig or OpenXml throw. 
-                // Let's rethrow or maybe log? Protocol says just replace.
                 throw new BadRequestException($"Failed to extract content: {ex.Message}");
             }
 
