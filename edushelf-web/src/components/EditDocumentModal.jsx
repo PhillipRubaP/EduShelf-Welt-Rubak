@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import api, { updateDocumentTags } from '../services/api';
 import './EditDocumentModal.css';
 
@@ -30,26 +30,24 @@ const EditDocumentModal = ({ file, onClose, onSave }) => {
         setTags(tags.filter(tag => tag !== tagToRemove));
     };
 
+    const handleTagClick = (tag) => {
+        setCurrentTag(tag);
+        handleRemoveTag(tag);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            // 1. Update Title
             if (title !== file.title) {
-                await api.put(`/Documents/${file.id}`, { id: file.id, title: title, fileType: file.fileType });
+                await api.put(`/Documents/${file.id}`, { id: file.id, title, fileType: file.fileType });
             }
-
-            // 2. Update Tags
-            // We send the list of tag NAMES. The backend handles finding/creating them.
             await updateDocumentTags(file.id, tags);
-
-            if (onSave) {
-                onSave();
-            }
+            onSave?.();
             onClose();
         } catch (error) {
-            console.error("Failed to update document:", error);
-            alert("Failed to save changes.");
+            console.error('Failed to update document:', error);
+            alert('Failed to save changes.');
         } finally {
             setIsLoading(false);
         }
@@ -58,14 +56,16 @@ const EditDocumentModal = ({ file, onClose, onSave }) => {
     return (
         <div className="modal-overlay">
             <div className="modal-container">
-                <button className="modal-close-button" onClick={onClose}>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <button className="modal-close-button" onClick={onClose} aria-label="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
+
                 <div className="modal-header">
                     <h2>Edit Document</h2>
                 </div>
+
                 <div className="modal-body">
                     <form onSubmit={handleSubmit}>
                         <div className="form-group">
@@ -78,21 +78,14 @@ const EditDocumentModal = ({ file, onClose, onSave }) => {
                                 title="File renaming is disabled"
                             />
                         </div>
+
                         <div className="form-group">
                             <label>Tags</label>
                             <div className="tags-input-container">
                                 <div className="tags-list">
                                     {tags.map((tag, index) => (
                                         <span key={index} className="tag-pill">
-                                            <span
-                                                className="tag-text"
-                                                onClick={() => {
-                                                    setCurrentTag(tag);
-                                                    handleRemoveTag(tag);
-                                                    // Focus logic could be added here if we had a ref
-                                                }}
-                                                title="Click to edit"
-                                            >
+                                            <span className="tag-text" onClick={() => handleTagClick(tag)} title="Click to edit">
                                                 {tag}
                                             </span>
                                             <button type="button" onClick={() => handleRemoveTag(tag)} className="tag-remove">×</button>
@@ -112,8 +105,11 @@ const EditDocumentModal = ({ file, onClose, onSave }) => {
                                 </div>
                             </div>
                         </div>
+
                         <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" onClick={onClose} disabled={isLoading}>Cancel</button>
+                            <button type="button" className="btn btn-secondary" onClick={onClose} disabled={isLoading}>
+                                Cancel
+                            </button>
                             <button type="submit" className="btn btn-primary" disabled={isLoading}>
                                 {isLoading ? 'Saving...' : 'Save Changes'}
                             </button>

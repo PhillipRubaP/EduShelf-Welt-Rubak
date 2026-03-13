@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import api from './services/api';
 import Files from './components/Files';
@@ -22,29 +22,21 @@ function App() {
   useEffect(() => {
     const checkUserSession = async () => {
       try {
-        // api.js has been configured to include credentials
         const user = await api.get('/Users/me');
         if (user && user.userId) {
           try {
             const roles = await api.get(`/Users/${user.userId}/roles`);
             user.roles = roles.map(r => r.name);
-          } catch (roleError) {
-            // If this fails (e.g. 403 Forbidden), it means the user is not an admin, or has no access to view roles.
-            // We can assume empty roles or specific handling.
-            // However, if the user IS an admin, they should have access.
-            console.log('Could not fetch roles (normal for non-admins):', roleError);
+          } catch {
             user.roles = [];
           }
           setLoggedInUser(user);
           localStorage.setItem('user', JSON.stringify(user));
         } else {
-          // No valid session, clear local storage
           localStorage.removeItem('user');
           setLoggedInUser(null);
         }
-      } catch (error) {
-        // Likely a 401 Unauthorized error
-        // console.error('Session check failed:', error); // Silent fail for session check often better
+      } catch {
         localStorage.removeItem('user');
         setLoggedInUser(null);
       } finally {
@@ -75,8 +67,10 @@ function App() {
     }
   };
 
+  const isAdmin = loggedInUser?.roles?.includes('Admin');
+
   if (loading) {
-    return <div>Loading...</div>; // Or a spinner component
+    return <div>Loading...</div>;
   }
 
   return (
@@ -99,7 +93,7 @@ function App() {
                   <Route path="flashcards" element={<Flashcards />} />
                   <Route path="edit-user" element={<EditUser loggedInUser={loggedInUser} setLoggedInUser={setLoggedInUser} />} />
                   <Route path="settings" element={<Settings />} />
-                  <Route path="admin" element={loggedInUser && loggedInUser.roles && loggedInUser.roles.includes('Admin') ? <AdminPanel /> : <Navigate to="/" />} />
+                  <Route path="admin" element={isAdmin ? <AdminPanel /> : <Navigate to="/" />} />
                   <Route path="*" element={<Navigate to="/" />} />
                 </Route>
               </Routes>

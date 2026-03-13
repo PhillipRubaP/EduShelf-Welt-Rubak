@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Settings.css';
 
@@ -10,25 +10,10 @@ const Settings = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const currentTheme = localStorage.getItem('theme');
-        if (currentTheme === 'light') {
-            setLightMode(true);
-        }
-
-        const storedAnimations = localStorage.getItem('animationsEnabled');
-        if (storedAnimations !== null) {
-            setAnimationsEnabled(storedAnimations === 'true');
-        }
-
-        const storedCompact = localStorage.getItem('compactMode');
-        if (storedCompact !== null) {
-            setCompactMode(storedCompact === 'true');
-        }
-
-        const storedSound = localStorage.getItem('soundEffects');
-        if (storedSound !== null) {
-            setSoundEffects(storedSound === 'true');
-        }
+        setLightMode(localStorage.getItem('theme') === 'light');
+        setAnimationsEnabled(localStorage.getItem('animationsEnabled') !== 'false');
+        setCompactMode(localStorage.getItem('compactMode') === 'true');
+        setSoundEffects(localStorage.getItem('soundEffects') !== 'false');
     }, []);
 
     const handleLightModeToggle = () => {
@@ -53,11 +38,7 @@ const Settings = () => {
         const newValue = !compactMode;
         setCompactMode(newValue);
         localStorage.setItem('compactMode', String(newValue));
-        if (newValue) {
-            document.body.classList.add('compact-mode');
-        } else {
-            document.body.classList.remove('compact-mode');
-        }
+        document.body.classList.toggle('compact-mode', newValue);
     };
 
     const handleSoundEffectsToggle = () => {
@@ -66,18 +47,15 @@ const Settings = () => {
         localStorage.setItem('soundEffects', String(newValue));
     };
 
-
-    const handleClose = () => {
-        navigate(-1);
-    };
+    const handleClose = () => navigate(-1);
 
     return (
         <div className="modal-overlay" onClick={handleClose}>
             <div className="modal-container settings-modal" onClick={(e) => e.stopPropagation()}>
                 <button className="modal-close-button" onClick={handleClose} aria-label="Close">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
                 </button>
 
@@ -96,28 +74,21 @@ const Settings = () => {
                                 <span className="setting-desc">Light theme for better visibility</span>
                             </div>
                             <label className="toggle-switch">
-                                <input
-                                    type="checkbox"
-                                    checked={lightMode}
-                                    onChange={handleLightModeToggle}
-                                />
-                                <span className="slider round"></span>
+                                <input type="checkbox" checked={lightMode} onChange={handleLightModeToggle} />
+                                <span className="slider round" />
                             </label>
                         </div>
 
                         <div className="setting-item disabled">
                             <div className="setting-info">
-                                <span className="setting-label">Compact Mode <span className="soon-badge">Coming Soon</span></span>
+                                <span className="setting-label">
+                                    Compact Mode <span className="soon-badge">Coming Soon</span>
+                                </span>
                                 <span className="setting-desc">More content in less space</span>
                             </div>
                             <label className="toggle-switch">
-                                <input
-                                    type="checkbox"
-                                    checked={compactMode}
-                                    onChange={handleCompactModeToggle}
-                                    disabled
-                                />
-                                <span className="slider round"></span>
+                                <input type="checkbox" checked={compactMode} onChange={handleCompactModeToggle} disabled />
+                                <span className="slider round" />
                             </label>
                         </div>
                     </div>
@@ -127,37 +98,32 @@ const Settings = () => {
 
                         <div className="setting-item disabled">
                             <div className="setting-info">
-                                <span className="setting-label">Animations <span className="soon-badge">Coming Soon</span></span>
+                                <span className="setting-label">
+                                    Animations <span className="soon-badge">Coming Soon</span>
+                                </span>
                                 <span className="setting-desc">Visual effects for smoother transitions</span>
                             </div>
                             <label className="toggle-switch">
-                                <input
-                                    type="checkbox"
-                                    checked={animationsEnabled}
-                                    onChange={handleAnimationsToggle}
-                                    disabled
-                                />
-                                <span className="slider round"></span>
+                                <input type="checkbox" checked={animationsEnabled} onChange={handleAnimationsToggle} disabled />
+                                <span className="slider round" />
                             </label>
                         </div>
 
                         <div className="setting-item disabled">
                             <div className="setting-info">
-                                <span className="setting-label">Sound Effects <span className="soon-badge">Coming Soon</span></span>
+                                <span className="setting-label">
+                                    Sound Effects <span className="soon-badge">Coming Soon</span>
+                                </span>
                                 <span className="setting-desc">Play sounds on interactions</span>
                             </div>
                             <label className="toggle-switch">
-                                <input
-                                    type="checkbox"
-                                    checked={soundEffects}
-                                    onChange={handleSoundEffectsToggle}
-                                    disabled
-                                />
-                                <span className="slider round"></span>
+                                <input type="checkbox" checked={soundEffects} onChange={handleSoundEffectsToggle} disabled />
+                                <span className="slider round" />
                             </label>
                         </div>
                     </div>
                 </div>
+
                 <div className="modal-footer">
                     <span className="version-info">Version 1.0.2</span>
                 </div>

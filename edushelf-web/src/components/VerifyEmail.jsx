@@ -5,7 +5,7 @@ import './VerifyEmail.css';
 
 const VerifyEmail = () => {
     const [searchParams] = useSearchParams();
-    const [status, setStatus] = useState('verifying'); // verifying, success, error
+    const [status, setStatus] = useState('verifying');
     const [message, setMessage] = useState('Verifying your email...');
     const navigate = useNavigate();
 
@@ -24,9 +24,7 @@ const VerifyEmail = () => {
                 await api.post('/Users/confirm-email', { email, token });
                 setStatus('success');
                 setMessage('Email verified successfully! You can now log in.');
-                setTimeout(() => {
-                    navigate('/login');
-                }, 3000);
+                setTimeout(() => navigate('/login'), 3000);
             } catch (error) {
                 console.error('Verification failed', error);
                 setStatus('error');
@@ -46,12 +44,10 @@ const VerifyEmail = () => {
 
                 <p>{message}</p>
 
-                {status === 'success' && (
-                    <Link to="/login" className="login-link">Go to Login</Link>
-                )}
-
-                {status === 'error' && (
-                    <Link to="/login" className="login-link">Back to Login</Link>
+                {(status === 'success' || status === 'error') && (
+                    <Link to="/login" className="login-link">
+                        {status === 'success' ? 'Go to Login' : 'Back to Login'}
+                    </Link>
                 )}
             </div>
         </div>

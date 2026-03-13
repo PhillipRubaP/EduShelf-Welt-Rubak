@@ -282,3 +282,31 @@ button {
     background-color: var(--input-background);
     color: var(--input-color);
 }
+
+.users-header-row,
+.files-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.create-user-form {
+    margin-bottom: 24px;
+    padding: 16px;
+    background: var(--secondary-color);
+    border-radius: 8px;
+}
+
+.upload-label {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 4px;
+}
+
+.hidden-file-input {
+    display: none;
+}

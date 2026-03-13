@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import InfoDialog from './InfoDialog';
 import api from '../services/api';
@@ -24,21 +24,21 @@ const EmailConfirmation = () => {
         try {
             await api.post('/Users/confirm-email', { email, token });
             setMessage('Email confirmed successfully! You can now login.');
-            setTimeout(() => {
-                navigate('/login');
-            }, 3000);
+            setTimeout(() => navigate('/login'), 3000);
         } catch (error) {
             console.error('Error confirming email:', error);
             setError('Invalid email or token. Please try again.');
         }
     };
 
+    const handleDialogClose = () => {
+        setMessage('');
+        setError('');
+    };
+
     return (
         <div className="auth-container">
-            <InfoDialog message={message || error} onClose={() => {
-                setMessage('');
-                setError('');
-            }} />
+            <InfoDialog message={message || error} onClose={handleDialogClose} />
             <div className="auth-box">
                 <h1 className="text-3xl font-bold text-center">Confirm Email</h1>
                 <p className="text-center text-sm mb-4">
@@ -46,7 +46,7 @@ const EmailConfirmation = () => {
                 </p>
                 <form onSubmit={handleConfirm} className="space-y-6">
                     <div className="form-group">
-                        <label className="text-sm font-medium mb-1">Email: </label>
+                        <label className="text-sm font-medium mb-1">Email:</label>
                         <input
                             type="email"
                             value={email}
@@ -55,7 +55,7 @@ const EmailConfirmation = () => {
                         />
                     </div>
                     <div className="form-group">
-                        <label className="text-sm font-medium mb-1">Token: </label>
+                        <label className="text-sm font-medium mb-1">Token:</label>
                         <input
                             type="text"
                             value={token}
@@ -63,10 +63,7 @@ const EmailConfirmation = () => {
                             required
                         />
                     </div>
-                    <button
-                        type="submit"
-                        className="w-full button-auth"
-                    >
+                    <button type="submit" className="w-full button-auth">
                         Confirm Email
                     </button>
                 </form>
