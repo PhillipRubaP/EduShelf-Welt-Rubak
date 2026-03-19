@@ -10,7 +10,7 @@ EduShelf is a web-based platform for managing and interacting with educational c
 
 ### Installation Guide
 
-To get started, you will have to pull the repository and add an `.env.server` file.
+To get started, you will have to pull the repository, copy the example environment file (`cp .env.example .env.server`), and fill in the required values.
 
 #### Commands
 
