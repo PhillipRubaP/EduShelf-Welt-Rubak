@@ -33,10 +33,10 @@ Stop the server:
 ```bash
 docker-compose -f docker-compose.server.yml --env-file .env.server down
 ```
-
+For the chatbot functionality to work, the Large Language Models must be fully downloaded.
 Check the status of the model download:
 ```bash
-docker logs -f edushelf-welt-rubak_ollama-init_1
+docker logs -f <ollama container name>
 ```
 
 Access the application:
@@ -80,10 +80,10 @@ Server stoppen:
 ```bash
 docker-compose -f docker-compose.server.yml --env-file .env.server down
 ```
-
+Damit die Chatbotfunktionalität funktioniert müssen die Large Language Models vollständig runtergeladen sein.
 Status des Modell-Downloads überprüfen:
 ```bash
-docker logs -f edushelf-welt-rubak_ollama-init_1
+docker logs -f <ollama container name>
 ```
 
 Auf die Anwendung zugreifen:
