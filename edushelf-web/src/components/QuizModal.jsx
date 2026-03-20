@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import './QuizModal.css';
 import { createQuiz, updateQuiz } from '../services/api';
 
@@ -18,54 +18,50 @@ const QuizModal = ({ onClose, onQuizSaved, quiz }) => {
     };
 
     const handleDeleteQuestion = (questionIndex) => {
-        const newQuestions = questions.filter((_, index) => index !== questionIndex);
-        setQuestions(newQuestions);
+        setQuestions(questions.filter((_, i) => i !== questionIndex));
     };
 
     const handleAddAnswer = (questionIndex) => {
-        const newQuestions = [...questions];
-        newQuestions[questionIndex].answers.push({ text: '', isCorrect: false });
-        setQuestions(newQuestions);
+        const updated = [...questions];
+        updated[questionIndex].answers.push({ text: '', isCorrect: false });
+        setQuestions(updated);
     };
 
     const handleDeleteAnswer = (questionIndex, answerIndex) => {
-        const newQuestions = [...questions];
-        newQuestions[questionIndex].answers = newQuestions[questionIndex].answers.filter((_, index) => index !== answerIndex);
-        setQuestions(newQuestions);
+        const updated = [...questions];
+        updated[questionIndex].answers = updated[questionIndex].answers.filter((_, i) => i !== answerIndex);
+        setQuestions(updated);
     };
 
-    const handleQuestionChange = (index, event) => {
-        const newQuestions = [...questions];
-        newQuestions[index].text = event.target.value;
-        setQuestions(newQuestions);
+    const handleQuestionChange = (index, e) => {
+        const updated = [...questions];
+        updated[index].text = e.target.value;
+        setQuestions(updated);
     };
 
-    const handleAnswerChange = (questionIndex, answerIndex, event) => {
-        const newQuestions = [...questions];
-        newQuestions[questionIndex].answers[answerIndex].text = event.target.value;
-        setQuestions(newQuestions);
+    const handleAnswerChange = (questionIndex, answerIndex, e) => {
+        const updated = [...questions];
+        updated[questionIndex].answers[answerIndex].text = e.target.value;
+        setQuestions(updated);
     };
 
     const handleCorrectAnswerChange = (questionIndex, answerIndex) => {
-        const newQuestions = [...questions];
-        newQuestions[questionIndex].answers.forEach((answer, index) => {
-            answer.isCorrect = index === answerIndex;
+        const updated = [...questions];
+        updated[questionIndex].answers.forEach((answer, i) => {
+            answer.isCorrect = i === answerIndex;
         });
-        setQuestions(newQuestions);
+        setQuestions(updated);
     };
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        const quizData = {
-            title,
-            questions,
-        };
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const quizData = { title, questions };
         try {
             if (quiz) {
                 const updatedQuiz = await updateQuiz(quiz.id, quizData);
                 onQuizSaved(updatedQuiz);
             } else {
-                const newQuiz = await createQuiz({ title: quizData.title, questions: quizData.questions });
+                const newQuiz = await createQuiz(quizData);
                 onQuizSaved(newQuiz);
             }
             onClose();
@@ -74,10 +70,17 @@ const QuizModal = ({ onClose, onQuizSaved, quiz }) => {
         }
     };
 
+    const TrashIcon = ({ size = 16 }) => (
+        <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="currentColor" viewBox="0 0 16 16">
+            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
+            <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
+        </svg>
+    );
+
     return (
         <div className="modal-overlay">
             <div className="modal-container modal-xl">
-                <button className="modal-close-button" onClick={onClose}>
+                <button className="modal-close-button" onClick={onClose} aria-label="Close">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -104,7 +107,6 @@ const QuizModal = ({ onClose, onQuizSaved, quiz }) => {
                         <div className="quiz-questions-list">
                             {questions.map((question, qIndex) => (
                                 <div key={qIndex} className="quiz-card">
-                                    {/* Question Row */}
                                     <div className="question-row">
                                         <div className="input-wrapper">
                                             <label className="form-label">Question {qIndex + 1}</label>
@@ -123,14 +125,10 @@ const QuizModal = ({ onClose, onQuizSaved, quiz }) => {
                                             onClick={() => handleDeleteQuestion(qIndex)}
                                             title="Delete Question"
                                         >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
-                                                <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
-                                            </svg>
+                                            <TrashIcon />
                                         </button>
                                     </div>
 
-                                    {/* Answers Section */}
                                     <div className="answers-section">
                                         <label className="form-label">Answers</label>
                                         <div className="answers-list">
@@ -162,10 +160,7 @@ const QuizModal = ({ onClose, onQuizSaved, quiz }) => {
                                                         onClick={() => handleDeleteAnswer(qIndex, aIndex)}
                                                         title="Delete Answer"
                                                     >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
-                                                            <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
-                                                        </svg>
+                                                        <TrashIcon size={14} />
                                                     </button>
                                                 </div>
                                             ))}
@@ -183,11 +178,7 @@ const QuizModal = ({ onClose, onQuizSaved, quiz }) => {
                         </div>
 
                         <div className="add-question-wrapper">
-                            <button
-                                type="button"
-                                onClick={handleAddQuestion}
-                                className="btn btn-secondary add-question-btn"
-                            >
+                            <button type="button" onClick={handleAddQuestion} className="btn btn-secondary add-question-btn">
                                 + Add New Question
                             </button>
                         </div>
@@ -198,9 +189,7 @@ const QuizModal = ({ onClose, onQuizSaved, quiz }) => {
                     <button type="submit" form="quiz-form" className="btn btn-primary">
                         {quiz ? 'Save Quiz' : 'Create Quiz'}
                     </button>
-                    <button type="button" className="btn btn-secondary" onClick={onClose}>
-                        Cancel
-                    </button>
+                    <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
                 </div>
             </div>
         </div>

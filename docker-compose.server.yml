@@ -1,0 +1,130 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - edushelf-network
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_KEEP_ALIVE=${OLLAMA_KEEP_ALIVE:-24h}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - edushelf-network
+
+  ollama-init:
+    container_name: edushelf-welt-rubak_ollama-init_1
+    image: ollama/ollama:latest
+    depends_on:
+      - ollama
+    networks:
+      - edushelf-network
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    entrypoint: >
+      sh -c "
+      echo 'Waiting for Ollama to start...' &&
+      sleep 10 &&
+      echo 'Pulling qwen3:14b...' &&
+      ollama pull qwen3:14b &&
+      echo 'Pulling nomic-embed-text...' &&
+      ollama pull nomic-embed-text &&
+      echo 'Pulling moondream:1.8b...' &&
+      ollama pull moondream:1.8b &&
+      echo 'All models pulled successfully!'
+      "
+
+  minio:
+    image: quay.io/minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    command: server /data --console-address ":9001"
+    networks:
+      - edushelf-network
+
+  api:
+    build:
+      context: ./EduShelf.Api
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=${POSTGRES_CONNECTION_STRING}
+      - Minio__Endpoint=${MINIO_ENDPOINT}
+      - Minio__AccessKey=${MINIO_ACCESS_KEY}
+      - Minio__SecretKey=${MINIO_SECRET_KEY}
+      - Minio__Bucket=${MINIO_BUCKET}
+      - Jwt__Key=${JWT_KEY}
+      - Seeding__AdminPassword=${ADMIN_PASSWORD}
+      - Seeding__StudentPassword=${STUDENT_PASSWORD}
+      - EmailSettings__SmtpHost=${SMTP_HOST}
+      - EmailSettings__SmtpPort=${SMTP_PORT}
+      - EmailSettings__SmtpUser=${SMTP_USER}
+      - EmailSettings__SmtpPass=${SMTP_PASS}
+      - EmailSettings__FromEmail=${FROM_EMAIL}
+      - AIService__Endpoint=http://ollama:11434
+    volumes:
+      - ./EduShelf.Api/Uploads:/app/Uploads
+    networks:
+      - edushelf-network
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: ./edushelf-web
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_TARGET=http://api:8080
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - edushelf-network
+
+networks:
+  edushelf-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  ollama_data:
+  minio_data:

@@ -133,9 +133,6 @@ namespace EduShelf.Api.Services
             return MapToDto(flashcard);
         }
 
-        // Note: For Update, we might want to return nullable or handle differently, but here keeping consistent with Controller for now logic-wise
-        // The Interface defined Task<IActionResult> which was a mistake, let's fix that to be cleaner.
-        // Returning updated DTO is standard.
         public async Task<FlashcardDto> UpdateFlashcardAsync(int id, FlashcardCreateDto flashcardDto, int userId, bool isAdmin)
         {
             var flashcard = await _context.Flashcards
@@ -340,8 +337,6 @@ namespace EduShelf.Api.Services
             // 5. Save to Database
             
             // Get or Create Tag for the document
-            // If using Context, we might want a generic tag or a specific one provided in request? 
-            // For now, if Context is used, we use "Generated".
             var tag = await _context.Tags.FirstOrDefaultAsync(t => t.Name == documentTitle);
             if (tag == null)
             {
@@ -364,17 +359,10 @@ namespace EduShelf.Api.Services
                 flashcard.FlashcardTags.Add(new FlashcardTag { Tag = tag });
                 
                 _context.Flashcards.Add(flashcard);
-                // We need to save changes to get ID, or we can just map what we have and ID will be 0 until save?
-                // Returning with ID is better.
             }
 
             await _context.SaveChangesAsync();
 
-            // Re-fetch or manually map. Manual map uses entities that are now tracked and have IDs.
-            // We need to access the entities we just added. 
-            // A simple way is to iterate the Local tracker again for these specific additions.
-            // Or better, just collect the entities in a list before adding to context.
-            
             return _context.Flashcards.Local
                 .Where(f => f.UserId == userId && f.FlashcardTags.Any(ft => ft.TagId == tag.Id))
                 .OrderByDescending(f => f.Id)

@@ -19,7 +19,7 @@ namespace EduShelf.Api.Controllers
         }
 
         [HttpGet("{fileName}")]
-        [AllowAnonymous] // Allow public access to images so they can be easily loaded by <img> tags
+        [AllowAnonymous]
         public async Task<IActionResult> GetImage(string fileName)
         {
             var stream = await _fileStorageService.DownloadFileAsync(fileName);

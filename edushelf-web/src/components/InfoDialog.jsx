@@ -1,10 +1,7 @@
-import React from 'react';
 import './InfoDialog.css';
 
 const InfoDialog = ({ message, onClose }) => {
-  if (!message) {
-    return null;
-  }
+  if (!message) return null;
 
   return (
     <div className="info-dialog-overlay">

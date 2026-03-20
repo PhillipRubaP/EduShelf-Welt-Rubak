@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import './ConfirmEmail.css';
 
 const ConfirmEmail = () => {
     const [searchParams] = useSearchParams();
-    const [status, setStatus] = useState('verifying'); // verifying, success, error
+    const [status, setStatus] = useState('verifying');
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
 
@@ -24,9 +24,7 @@ const ConfirmEmail = () => {
                 await api.post('/Users/confirm-email', { email, token });
                 setStatus('success');
                 setMessage('Email confirmed successfully! You can now log in.');
-                setTimeout(() => {
-                    navigate('/login');
-                }, 3000);
+                setTimeout(() => navigate('/login'), 3000);
             } catch (error) {
                 console.error('Confirmation error:', error);
                 setStatus('error');
@@ -41,7 +39,11 @@ const ConfirmEmail = () => {
         <div className="confirm-email-container">
             <div className="confirm-email-card">
                 <h2>Email Confirmation</h2>
-                {status === 'verifying' && <p className="status-verifying">Verifying your email...</p>}
+
+                {status === 'verifying' && (
+                    <p className="status-verifying">Verifying your email...</p>
+                )}
+
                 {status === 'success' && (
                     <div className="status-success">
                         <p>{message}</p>
@@ -49,6 +51,7 @@ const ConfirmEmail = () => {
                         <Link to="/login" className="btn-login-link">Go to Login Now</Link>
                     </div>
                 )}
+
                 {status === 'error' && (
                     <div className="status-error">
                         <p>{message}</p>

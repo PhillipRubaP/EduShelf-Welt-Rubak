@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import InfoDialog from './InfoDialog';
 import api from '../services/api';
@@ -18,8 +18,7 @@ const Login = ({ setLoggedInUser }) => {
         try {
           const roles = await api.get(`/Users/${user.userId}/roles`);
           user.roles = roles.map(r => r.name);
-        } catch (roleError) {
-          console.log('Could not fetch roles:', roleError);
+        } catch {
           user.roles = [];
         }
         localStorage.setItem('user', JSON.stringify(user));
@@ -41,7 +40,7 @@ const Login = ({ setLoggedInUser }) => {
         <h1 className="text-3xl font-bold text-center">Login</h1>
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="form-group">
-            <label className="text-sm font-medium mb-1">Email: </label>
+            <label className="text-sm font-medium mb-1">Email:</label>
             <input
               type="email"
               value={email}
@@ -50,7 +49,7 @@ const Login = ({ setLoggedInUser }) => {
             />
           </div>
           <div className="form-group">
-            <label className="text-sm font-medium mb-1">Password: </label>
+            <label className="text-sm font-medium mb-1">Password:</label>
             <input
               type="password"
               value={password}
@@ -58,18 +57,13 @@ const Login = ({ setLoggedInUser }) => {
               required
             />
           </div>
-          <button
-            type="submit"
-            className="w-full button-auth"
-          >
+          <button type="submit" className="w-full button-auth">
             Login
           </button>
         </form>
         <p className="text-center text-sm">
           Don't have an account?{' '}
-          <Link to="/register">
-            Register
-          </Link>
+          <Link to="/register">Register</Link>
         </p>
       </div>
     </div>

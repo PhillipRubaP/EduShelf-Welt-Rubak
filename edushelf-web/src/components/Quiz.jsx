@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getQuizzes, deleteQuiz } from '../services/api';
 import QuizModal from './QuizModal';
 import { FaPen, FaTrash, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import './Files.css';
 import './Quiz.css';
+
+const PAGE_SIZE = 10;
 
 const Quiz = () => {
     const { quizTitle } = useParams();
@@ -19,36 +21,30 @@ const Quiz = () => {
     const [openMenuId, setOpenMenuId] = useState(null);
     const [selectedAnswerId, setSelectedAnswerId] = useState(null);
     const [answerStatus, setAnswerStatus] = useState('');
-
-    // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
-    const [totalCount, setTotalCount] = useState(0);
 
     const fetchQuizzes = async () => {
         try {
-            const result = await getQuizzes(currentPage, pageSize);
-            // Handle PagedResult
-            if (result && result.items) {
+            const result = await getQuizzes(currentPage, PAGE_SIZE);
+            if (result?.items) {
                 setQuizzes(result.items);
                 setTotalPages(result.totalPages);
-                setTotalCount(result.totalCount);
             } else if (Array.isArray(result)) {
                 setQuizzes(result);
             }
         } catch (error) {
-            console.error("Failed to fetch quizzes", error);
+            console.error('Failed to fetch quizzes', error);
         }
     };
 
     useEffect(() => {
         fetchQuizzes();
-    }, [currentPage, pageSize]);
+    }, [currentPage]);
 
     useEffect(() => {
         if (quizTitle && quizzes.length > 0) {
-            const quiz = quizzes.find((q) => q.title.toLowerCase().replace(/\s+/g, '-') === quizTitle);
+            const quiz = quizzes.find(q => q.title.toLowerCase().replace(/\s+/g, '-') === quizTitle);
             setSelectedQuiz(quiz);
         } else {
             setSelectedQuiz(null);
@@ -56,17 +52,15 @@ const Quiz = () => {
     }, [quizTitle, quizzes]);
 
     useEffect(() => {
-        if (selectedQuiz === null) {
-            setShowScore(false);
-        }
-        if (quizTitle === undefined) {
+        if (!quizTitle) {
             setSelectedQuiz(null);
             setCurrentQuestionIndex(0);
             setScore(0);
             setSelectedAnswerId(null);
             setAnswerStatus('');
+            setShowScore(false);
         }
-    }, [selectedQuiz, quizTitle]);
+    }, [quizTitle]);
 
     const handleAnswerOptionClick = (answer) => {
         if (selectedAnswerId) return;
@@ -75,9 +69,7 @@ const Quiz = () => {
         const isCorrect = answer.isCorrect;
         setAnswerStatus(isCorrect ? 'correct' : 'incorrect');
 
-        if (isCorrect) {
-            setScore(score + 1);
-        }
+        if (isCorrect) setScore(score + 1);
 
         setTimeout(() => {
             const nextQuestion = currentQuestionIndex + 1;
@@ -98,22 +90,17 @@ const Quiz = () => {
     };
 
     const selectQuiz = (quiz) => {
-        const quizTitleSlug = quiz.title.toLowerCase().replace(/\s+/g, '-');
-        navigate(`/quiz/${quizTitleSlug}`);
-    };
-
-    const handleBackToQuizzes = () => {
-        navigate('/quizzes');
+        const slug = quiz.title.toLowerCase().replace(/\s+/g, '-');
+        navigate(`/quiz/${slug}`);
     };
 
     const handleDelete = async (quizId) => {
-        if (window.confirm("Are you sure you want to delete this quiz?")) {
-            try {
-                await deleteQuiz(quizId);
-                fetchQuizzes();
-            } catch (error) {
-                console.error('Error deleting quiz:', error);
-            }
+        if (!window.confirm('Are you sure you want to delete this quiz?')) return;
+        try {
+            await deleteQuiz(quizId);
+            fetchQuizzes();
+        } catch (error) {
+            console.error('Error deleting quiz:', error);
         }
     };
 
@@ -122,25 +109,19 @@ const Quiz = () => {
         setIsModalOpen(true);
     };
 
-    const toggleMenu = (quizId) => {
-        setOpenMenuId(openMenuId === quizId ? null : quizId);
-    };
+    const toggleMenu = (quizId) => setOpenMenuId(openMenuId === quizId ? null : quizId);
 
-    if (showScore) {
-        if (!selectedQuiz) {
-            return null; // or a loading indicator
-        }
+    if (showScore && selectedQuiz) {
         const percentage = Math.round((score / selectedQuiz.questions.length) * 100);
         const passed = percentage >= 50;
         return (
             <div className="quiz-results-container">
                 <h2 className="quiz-results-title">Quiz Results</h2>
-                {passed ? (
-                    <FaCheckCircle className="quiz-results-icon success" />
-                ) : (
-                    <FaTimesCircle className="quiz-results-icon failure" />
-                )}
-                <p className="quiz-results-message">{passed ? "Nice job, you passed!" : "Sadly you didn't pass!"}</p>
+                {passed
+                    ? <FaCheckCircle className="quiz-results-icon success" />
+                    : <FaTimesCircle className="quiz-results-icon failure" />
+                }
+                <p className="quiz-results-message">{passed ? 'Nice job, you passed!' : "Sadly you didn't pass!"}</p>
                 <div className="quiz-results-stats">
                     <div className="quiz-results-stat-card">
                         <h4>YOUR SCORE</h4>
@@ -153,7 +134,7 @@ const Quiz = () => {
                         <span>PASSING POINTS: {Math.ceil(selectedQuiz.questions.length / 2)}</span>
                     </div>
                 </div>
-                <button onClick={handleBackToQuizzes} className="quiz-answer-btn">Back to Quizzes</button>
+                <button onClick={() => navigate('/quizzes')} className="quiz-answer-btn">Back to Quizzes</button>
             </div>
         );
     }
@@ -165,20 +146,16 @@ const Quiz = () => {
                     {selectedQuiz.questions[currentQuestionIndex].text}
                 </div>
                 <div className="quiz-answers">
-                    {selectedQuiz.questions[currentQuestionIndex].answers.map((answer) => {
-                        const isSelected = selectedAnswerId === answer.id;
-                        const buttonClass = `quiz-answer-btn ${isSelected ? answerStatus : ''}`;
-                        return (
-                            <button
-                                key={answer.id}
-                                onClick={() => handleAnswerOptionClick(answer)}
-                                className={buttonClass}
-                                disabled={selectedAnswerId !== null}
-                            >
-                                {answer.text}
-                            </button>
-                        );
-                    })}
+                    {selectedQuiz.questions[currentQuestionIndex].answers.map((answer) => (
+                        <button
+                            key={answer.id}
+                            onClick={() => handleAnswerOptionClick(answer)}
+                            className={`quiz-answer-btn ${selectedAnswerId === answer.id ? answerStatus : ''}`}
+                            disabled={selectedAnswerId !== null}
+                        >
+                            {answer.text}
+                        </button>
+                    ))}
                 </div>
             </div>
         );
@@ -191,16 +168,32 @@ const Quiz = () => {
                     <h2>Available Quizzes</h2>
                     <button onClick={() => setIsModalOpen(true)} className="add-file-button">+</button>
                 </div>
-                {isModalOpen && <QuizModal onClose={() => { setIsModalOpen(false); setEditingQuiz(null); }} onQuizSaved={handleQuizSaved} quiz={editingQuiz} />}
+
+                {isModalOpen && (
+                    <QuizModal
+                        onClose={() => { setIsModalOpen(false); setEditingQuiz(null); }}
+                        onQuizSaved={handleQuizSaved}
+                        quiz={editingQuiz}
+                    />
+                )}
+
                 <div className="file-grid">
                     {quizzes.map((quiz) => (
-                        <div key={quiz.id} className="file-card quiz-card" style={{ zIndex: openMenuId === quiz.id ? 100 : 1 }} onClick={() => selectQuiz(quiz)}>
+                        <div
+                            key={quiz.id}
+                            className="file-card quiz-card"
+                            style={{ zIndex: openMenuId === quiz.id ? 100 : 1 }}
+                            onClick={() => selectQuiz(quiz)}
+                        >
                             <p>{quiz.title}</p>
                             <div className="file-card-buttons">
-                                <button className="menu-button" onClick={(e) => { e.stopPropagation(); toggleMenu(quiz.id); }}>
-                                    <div className="menu-icon"></div>
-                                    <div className="menu-icon"></div>
-                                    <div className="menu-icon"></div>
+                                <button
+                                    className="menu-button"
+                                    onClick={(e) => { e.stopPropagation(); toggleMenu(quiz.id); }}
+                                >
+                                    <div className="menu-icon" />
+                                    <div className="menu-icon" />
+                                    <div className="menu-icon" />
                                 </button>
                                 {openMenuId === quiz.id && (
                                     <div className="dropdown-menu">
@@ -213,7 +206,6 @@ const Quiz = () => {
                     ))}
                 </div>
 
-                {/* Pagination Controls */}
                 {totalPages > 1 && (
                     <div className="pagination-controls">
                         <button
