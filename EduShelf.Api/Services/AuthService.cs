@@ -101,14 +101,20 @@ public class AuthService : IAuthService
             throw new BadRequestException("Email already exists.");
         }
 
+        bool requireEmailConfirmation = true;
+        if (bool.TryParse(_configuration["REQUIRE_EMAIL_CONFIRMATION"], out bool parsedValue))
+        {
+            requireEmailConfirmation = parsedValue;
+        }
+
         var user = new User
         {
             Username = userRegister.Username,
             Email = userRegister.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(userRegister.Password),
-            IsEmailConfirmed = false,
-            EmailConfirmationToken = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)),
-            EmailConfirmationTokenExpiresAt = DateTime.UtcNow.AddHours(24)
+            IsEmailConfirmed = !requireEmailConfirmation,
+            EmailConfirmationToken = requireEmailConfirmation ? Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)) : null,
+            EmailConfirmationTokenExpiresAt = requireEmailConfirmation ? DateTime.UtcNow.AddHours(24) : null
         };
 
         var studentRole = await _context.Roles.SingleOrDefaultAsync(r => r.Name == Roles.Student);
@@ -122,24 +128,27 @@ public class AuthService : IAuthService
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        try
+        if (requireEmailConfirmation)
         {
-            var appUrl = _configuration["AppUrl"] ?? "http://localhost:5173";
-            var confirmationLink = $"{appUrl}/confirm-email?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(user.EmailConfirmationToken)}";
-            var emailBody = $@"
-                <h2>Welcome to EduShelf!</h2>
-                <p>Please confirm your email by clicking the link below:</p>
-                <p><a href='{confirmationLink}'>Confirm Email</a></p>
-                <p>Or copy and paste this link into your browser:</p>
-                <p>{confirmationLink}</p>";
+            try
+            {
+                var appUrl = _configuration["AppUrl"] ?? "http://localhost:5173";
+                var confirmationLink = $"{appUrl}/confirm-email?email={Uri.EscapeDataString(user.Email)}&token={Uri.EscapeDataString(user.EmailConfirmationToken)}";
+                var emailBody = $@"
+                    <h2>Welcome to EduShelf!</h2>
+                    <p>Please confirm your email by clicking the link below:</p>
+                    <p><a href='{confirmationLink}'>Confirm Email</a></p>
+                    <p>Or copy and paste this link into your browser:</p>
+                    <p>{confirmationLink}</p>";
 
-            await _emailService.SendEmailAsync(user.Email, "Confirm your email", emailBody);
-        }
-        catch (Exception ex)
-        {
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-            throw new Exception($"Registration failed: Could not send confirmation email. Error: {ex.Message}");
+                await _emailService.SendEmailAsync(user.Email, "Confirm your email", emailBody);
+            }
+            catch (Exception ex)
+            {
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+                throw new Exception($"Registration failed: Could not send confirmation email. Error: {ex.Message}");
+            }
         }
 
         return new UserDto
