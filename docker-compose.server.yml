@@ -92,6 +92,7 @@ services:
       - EmailSettings__SmtpUser=${SMTP_USER}
       - EmailSettings__SmtpPass=${SMTP_PASS}
       - EmailSettings__FromEmail=${FROM_EMAIL}
+      - REQUIRE_EMAIL_CONFIRMATION=${REQUIRE_EMAIL_CONFIRMATION:-true}
       - AIService__Endpoint=http://ollama:11434
     volumes:
       - ./EduShelf.Api/Uploads:/app/Uploads

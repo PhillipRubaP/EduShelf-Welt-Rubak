@@ -21,6 +21,7 @@ services:
       - EmailSettings__SmtpUser=${SMTP_USER}
       - EmailSettings__SmtpPass=${SMTP_PASS}
       - EmailSettings__FromEmail=${FROM_EMAIL}
+      - REQUIRE_EMAIL_CONFIRMATION=${REQUIRE_EMAIL_CONFIRMATION:-true}
     volumes:
       - ./EduShelf.Api/Uploads:/app/Uploads
     networks:
