@@ -4,7 +4,7 @@
 ---
 
 <a name="english"></a>
-## 🇬🇧 English
+## English
 
 EduShelf is a web-based platform for managing and interacting with educational content.
 
@@ -12,7 +12,7 @@ EduShelf is a web-based platform for managing and interacting with educational c
 - **AI Integration:** Chat with your documents using the high-performance AI server.
 - **Document Management:** Upload and organize PDF and text files.
 
-### 🚀 How to Run
+### How to Run
 
 #### Installation Guide
 
@@ -31,12 +31,12 @@ docker-compose -f docker-compose.server.yml --env-file .env.server up -d --build
 
 Stop the server:
 ```bash
-docker-compose -f docker-compose.server.yml --env-file .env.server down -v
+docker-compose -f docker-compose.server.yml --env-file .env.server down
 ```
-
+For the chatbot functionality to work, the Large Language Models must be fully downloaded.
 Check the status of the model download:
 ```bash
-docker logs -f edushelf-welt-rubak_ollama-init_1
+docker logs -f <ollama container name>
 ```
 
 Access the application:
@@ -51,7 +51,7 @@ docker compose up
 ---
 
 <a name="deutsch"></a>
-## 🇩🇪 Deutsch
+## Deutsch
 
 EduShelf ist eine webbasierte Plattform zur Verwaltung und Interaktion mit Bildungsinhalten.
 
@@ -59,7 +59,7 @@ EduShelf ist eine webbasierte Plattform zur Verwaltung und Interaktion mit Bildu
 - **KI-Integration:** Chatten Sie mit Ihren Dokumenten über den leistungsstarken KI-Server.
 - **Dokumentenverwaltung:** Hochladen und Organisieren von PDF- und Textdateien.
 
-### 🚀 Ausführung
+### Ausführung
 
 #### Installationsanleitung
 
@@ -76,21 +76,15 @@ Server starten:
 docker-compose -f docker-compose.server.yml --env-file .env.server up -d --build
 ```
 
-Server stoppen und Volumes entfernen:
+Server stoppen:
 ```bash
-docker-compose -f docker-compose.server.yml --env-file .env.server down -v
+docker-compose -f docker-compose.server.yml --env-file .env.server down
 ```
-
+Damit die Chatbotfunktionalität funktioniert müssen die Large Language Models vollständig runtergeladen sein.
 Status des Modell-Downloads überprüfen:
 ```bash
-docker logs -f edushelf-welt-rubak_ollama-init_1
+docker logs -f <ollama container name>
 ```
 
 Auf die Anwendung zugreifen:
 http://172.16.17.15:5173/login
-
-#### Projekt lokal starten
-Die API ist so konfiguriert, dass sie sich mit dem KI-Server (172.16.17.15) verbindet.
-```bash
-docker compose up
-```
