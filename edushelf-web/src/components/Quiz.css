@@ -199,15 +199,12 @@
 @media (max-width: 768px) {
     .quiz-answers {
         grid-template-columns: 1fr;
-        /* Stack on mobile */
         gap: 1rem;
     }
 
     .quiz-question {
         font-size: 1.4rem;
         padding: 1.5rem 2rem;
-        clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
-        /* Rectangle on small screens for text space */
         border-radius: 12px;
         clip-path: none;
         border: 2px solid var(--quiz-border-color);
@@ -223,6 +220,74 @@
     .quiz-container::after,
     .quiz-container::before {
         display: none;
-        /* Hide lines on mobile */
+    }
+}
+
+/* ==========================================
+   Light Mode Overrides — Quiz
+   ========================================== */
+
+/* Base answer button: subtle slate-blue tint so it's clearly clickable */
+[data-theme='light'] .quiz-answer-btn {
+    background-color: #e8edf5;
+    color: #1e293b;
+    border: none;
+    filter: drop-shadow(0 0 2px var(--primary-green));
+}
+
+[data-theme='light'] .quiz-answer-btn:hover:not(:disabled) {
+    background-color: #d1dae9;
+    color: #1e293b;
+    filter: drop-shadow(0 0 5px var(--primary-green));
+}
+
+/* Correct: bright green with glow */
+[data-theme='light'] .quiz-answer-btn.correct {
+    background-color: #16a34a;
+    color: #ffffff;
+    filter: drop-shadow(0 0 10px rgba(22, 163, 74, 0.6));
+    animation: flashSuccessLight 0.5s alternate 3;
+}
+
+/* Incorrect: bright red with glow */
+[data-theme='light'] .quiz-answer-btn.incorrect {
+    background-color: #dc2626;
+    color: #ffffff;
+    filter: drop-shadow(0 0 10px rgba(220, 38, 38, 0.6));
+}
+
+@keyframes flashSuccessLight {
+    0% {
+        background-color: #16a34a;
+    }
+    100% {
+        background-color: #bbf7d0;
+    }
+}
+
+/* Question box in light mode */
+[data-theme='light'] .quiz-question {
+    background: #e8edf5;
+    color: #1e293b;
+    filter: drop-shadow(0 0 0.2rem var(--primary-green));
+    border-color: var(--primary-green);
+}
+
+/* Connector lines */
+[data-theme='light'] .quiz-container::before,
+[data-theme='light'] .quiz-container::after {
+    background-color: var(--primary-green);
+}
+
+/* Mobile responsive — keep same in light mode */
+@media (max-width: 768px) {
+    [data-theme='light'] .quiz-answer-btn {
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+    }
+
+    [data-theme='light'] .quiz-question {
+        border-color: #94a3b8;
+        border-radius: 12px;
     }
 }

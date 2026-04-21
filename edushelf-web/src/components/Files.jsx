@@ -167,7 +167,7 @@ const Files = () => {
                     <button className="btn-reject" onClick={() => handleReject(file.id)} title="Reject">
                       <FaTimes />
                     </button>
-                    <button onClick={() => setViewFile(file)} title="View"><FaEye /></button>
+                    <button className="btn-view" onClick={() => setViewFile(file)} title="View"><FaEye /></button>
                   </div>
                 </div>
               ))}

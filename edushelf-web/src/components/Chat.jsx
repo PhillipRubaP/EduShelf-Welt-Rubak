@@ -207,51 +207,80 @@ const Chat = () => {
 
         <div className="chat-messages">
           {messages.map((msg, index) => (
-            <div key={index} className={`message ${msg.sender}`}>
-              <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{msg.text}</ReactMarkdown>
-              {msg.image && <img src={msg.image} alt="user upload" className="chat-image" />}
+            <div key={index} className={`message-wrapper ${msg.sender === 'user' ? 'user-wrapper' : 'bot-wrapper'}`}>
+              <div className={`message-avatar ${msg.sender === 'bot' ? 'bot-avatar' : 'user-avatar'}`}>
+                {msg.sender === 'bot' ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                  </svg>
+                )}
+              </div>
+              <div className={`message ${msg.sender}`}>
+                <ReactMarkdown rehypePlugins={[rehypeHighlight]}>{msg.text}</ReactMarkdown>
+                {msg.image && <img src={msg.image} alt="user upload" className="chat-image" />}
+              </div>
             </div>
           ))}
           {isLoading && (
-            <div className="message bot">
-              <div className="thinking-indicator">
-                <span /><span /><span />
+            <div className="message-wrapper bot-wrapper">
+              <div className="message-avatar bot-avatar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
+                </svg>
+              </div>
+              <div className="message bot">
+                <div className="thinking-indicator">
+                  <span /><span /><span />
+                </div>
               </div>
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
 
-        <form className="chat-input-form" onSubmit={handleSend}>
-          <input
-            type="file"
-            id="file-input"
-            ref={fileInputRef}
-            className="file-input"
-            onChange={(e) => setImage(e.target.files[0])}
-            accept="image/*"
-          />
-          <button type="button" className="upload-button" onClick={() => fileInputRef.current.click()}>
-            Upload Image
-          </button>
-          <input
-            type="text"
-            className="chat-input"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            disabled={isLoading || !currentSession}
-          />
-          {image && (
-            <div className="image-preview">
-              <img src={URL.createObjectURL(image)} alt="preview" />
-              <button type="button" onClick={() => setImage(null)}>×</button>
-            </div>
-          )}
-          <button type="submit" className="send-button" disabled={isLoading || !currentSession}>
-            Send
-          </button>
-        </form>
+        <div className="chat-input-area">
+          <div className="chat-input-inner">
+            <form className="chat-input-form" onSubmit={handleSend}>
+              <input
+                type="file"
+                id="file-input"
+                ref={fileInputRef}
+                className="file-input"
+                onChange={(e) => setImage(e.target.files[0])}
+                accept="image/*"
+              />
+              <button type="button" className="upload-button" title="Upload Image" onClick={() => fileInputRef.current.click()}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+                </svg>
+              </button>
+              {image && (
+                <div className="image-preview">
+                  <img src={URL.createObjectURL(image)} alt="preview" />
+                  <button type="button" onClick={() => setImage(null)}>×</button>
+                </div>
+              )}
+              <input
+                type="text"
+                className="chat-input"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Type your message..."
+                disabled={isLoading || !currentSession}
+              />
+              <button type="submit" className="send-button" disabled={isLoading || !currentSession} title="Send">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );

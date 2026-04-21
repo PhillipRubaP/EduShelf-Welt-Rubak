@@ -86,49 +86,60 @@
 }
 
 [data-theme='light'] {
-  --primary-color: var(--neutral-white);
-  --secondary-color: var(--secondary-mint);
-  --text-color: var(--neutral-anthracite);
-  --sidebar-background: #f5f5f5;
-  --header-background: var(--neutral-white);
-  --bot-message-background: #e9e9eb;
-  --bot-message-color: #333;
-  --input-background: var(--neutral-white);
-  --input-color: var(--neutral-anthracite);
-  --button-text-color: var(--neutral-white);
+  /* Core palette — clean whites and light grays, no mint tints */
+  --primary-color: #f8fafc;
+  --secondary-color: #f1f5f9;
+  --text-color: #1e293b;
+  --text-muted: #64748b;
+  --accent-color: var(--primary-green);
 
-  /* Flashcard variables */
-  --flashcard-text-color: var(--text-color);
-  --flashcard-front-background: var(--secondary-color);
-  --flashcard-front-border: var(--secondary-color);
+  /* Layout */
+  --sidebar-background: #ffffff;
+  --header-background: #ffffff;
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --border-color: #e2e8f0;
+
+  /* Chat */
+  --bot-message-background: #e9ecef;
+  --bot-message-color: #1e293b;
+  --input-background: #ffffff;
+  --input-color: #1e293b;
+  --button-text-color: #ffffff;
+
+  /* Flashcard */
+  --flashcard-text-color: #1e293b;
+  --flashcard-front-background: #ffffff;
+  --flashcard-front-border: #e2e8f0;
   --flashcard-back-background: var(--primary-green);
   --flashcard-back-border: var(--primary-green);
-  --flashcard-back-text-color: var(--neutral-white);
+  --flashcard-back-text-color: #ffffff;
 
-  /* Quiz variables */
-  --quiz-answer-hover-text-color: var(--neutral-white);
-  --quiz-results-stat-card-text-color: var(--text-color);
-
-  /* New Quiz UI Variables (Light Mode) */
-  --quiz-card-bg: linear-gradient(145deg, #ffffff, #f0f4f8);
-  --quiz-card-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  --quiz-card-hover-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  --quiz-card-text: #2c3e50;
+  /* Quiz */
+  --quiz-answer-hover-text-color: #ffffff;
+  --quiz-results-stat-card-text-color: #1e293b;
+  --quiz-card-bg: linear-gradient(145deg, #ffffff, #f8fafc);
+  --quiz-card-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+  --quiz-card-hover-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  --quiz-card-text: #1e293b;
   --quiz-results-bg: #ffffff;
   --quiz-option-bg: #ffffff;
-  --quiz-option-border: #e0e0e0;
-  --quiz-option-hover-bg: #f8f9fa;
-  --quiz-option-hover-border: #764ba2;
-  --quiz-stat-card-bg: #f8f9fa;
-  --quiz-stat-card-border: #eee;
+  --quiz-option-border: #e2e8f0;
+  --quiz-option-hover-bg: #f8fafc;
+  --quiz-option-hover-border: var(--primary-green);
+  --quiz-stat-card-bg: #f8fafc;
+  --quiz-stat-card-border: #e2e8f0;
 
-  /* Modal Specifics Light Mode */
+  /* Modal */
   --modal-background: #ffffff;
-  --modal-text-color: #333333;
-  --modal-input-bg: #f9f9f9;
-  --modal-input-border: #e0e0e0;
-  --modal-close-color: #888;
-  --modal-close-hover-color: #007bff;
+  --modal-text-color: #1e293b;
+  --modal-input-bg: #f8fafc;
+  --modal-input-border: #e2e8f0;
+  --modal-close-color: #94a3b8;
+  --modal-close-hover-color: #1e293b;
+
+  /* Error / status */
+  --error-red: #ef4444;
 }
 
 a {
@@ -457,20 +468,22 @@ input[style*="--primary-green"] {
 
 /* --- Light Mode Overrides --- */
 
+/* Modal */
 [data-theme='light'] .modal-container {
   background: #ffffff;
-  color: #1f2937;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 [data-theme='light'] .modal-title {
-  background: linear-gradient(135deg, #1f2937 0%, #4b5563 100%);
+  background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
+/* Forms */
 [data-theme='light'] .form-label {
   color: #374151;
 }
@@ -478,9 +491,9 @@ input[style*="--primary-green"] {
 [data-theme='light'] .form-input,
 [data-theme='light'] .form-textarea,
 [data-theme='light'] .form-select {
-  background-color: #f9fafb;
-  border-color: #d1d5db;
-  color: #1f2937;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+  color: #1e293b;
 }
 
 [data-theme='light'] .form-input:focus,
@@ -488,29 +501,85 @@ input[style*="--primary-green"] {
 [data-theme='light'] .form-select:focus {
   background-color: #ffffff;
   border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px rgba(59, 178, 115, 0.15);
 }
 
+/* Buttons */
 [data-theme='light'] .btn-secondary {
-  background: #f3f4f6;
-  color: #4b5563;
-  border: 1px solid #e5e7eb;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
 }
 
 [data-theme='light'] .btn-secondary:hover {
-  background: #e5e7eb;
-  color: #1f2937;
+  background: #e2e8f0;
+  color: #1e293b;
 }
 
+/* Scrollbars */
 [data-theme='light'] .modal-body::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(0, 0, 0, 0.03);
 }
 
 [data-theme='light'] .modal-body::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.15);
 }
 
 [data-theme='light'] .modal-body::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Dashboard Cards */
+[data-theme='light'] .dashboard-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme='light'] .dashboard-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] .file-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+[data-theme='light'] .file-item:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+[data-theme='light'] .file-icon {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+
+[data-theme='light'] .stat-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+[data-theme='light'] .tag-filter-input {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #1e293b;
+}
+
+[data-theme='light'] .tag-filter-input:focus {
+  background: #ffffff;
+  border-color: var(--primary-green);
+}
+
+[data-theme='light'] .view-btn {
+  border-color: #e2e8f0;
+  color: #475569;
+}
+
+[data-theme='light'] .view-btn:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+  border-color: #cbd5e1;
 }
 
 /* Global Pagination Styles */

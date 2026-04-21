@@ -76,8 +76,8 @@ const Flashcards = () => {
         <div className="files-container">
             <div className="file-list">
                 <div className="file-list-header flashcards-header">
-                    <h2>Flashcards</h2>
-                    <div className="flashcard-header-center">
+                    <div className="flashcard-header-left">
+                        <h2>Flashcards</h2>
                         <button onClick={() => setIsReviewModalOpen(true)} className="add-file-button review-button">
                             Review
                         </button>

@@ -96,21 +96,18 @@
 }
 
 .flashcards-header {
-    display: grid !important;
-    grid-template-columns: 1fr auto 1fr;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.flashcard-header-left {
+    display: flex;
     align-items: center;
     gap: 1rem;
 }
 
-.flashcards-header h2 {
-    justify-self: start;
-}
-
-.flashcards-header .flashcard-header-center {
-    justify-self: center;
-    display: flex;
-}
-
-.flashcards-header .add-file-button:last-child {
-    justify-self: end;
+.flashcard-header-left h2 {
+    margin: 0;
 }
