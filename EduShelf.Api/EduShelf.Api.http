@@ -28,28 +28,17 @@ Content-Type: application/json
 }
 
 ### Hash Admin Password
-GET http://localhost:5000/api/Users/hash/admin
+GET http://localhost:5015/api/Users/hash/admin
 
 ### Hash Student Password
-GET http://localhost:5000/api/Users/hash/student
-
-### Login to get a token
-POST {{@EduShelf_Api_HostAddress}}/api/Users/login
-Content-Type: application/json
-
-{
-  "username": "admin",
-  "password": "admin"
-}
+GET http://localhost:5015/api/Users/hash/student
 
 ### Get a single document by ID
 GET {{@EduShelf_Api_HostAddress}}/api/Documents/1
-Authorization: Bearer {{token}}
 
 ### Add a tag to a document
 POST {{@EduShelf_Api_HostAddress}}/api/Documents/1/tags
 Content-Type: application/json
-Authorization: Bearer {{token}}
 
 {
   "tagId": 1
@@ -58,7 +47,6 @@ Authorization: Bearer {{token}}
 ### Create a new tag
 POST {{@EduShelf_Api_HostAddress}}/api/Tags
 Content-Type: application/json
-Authorization: Bearer {{token}}
 
 {
   "name": "Physics"
@@ -66,4 +54,3 @@ Authorization: Bearer {{token}}
 
 ### Get all tags
 GET {{@EduShelf_Api_HostAddress}}/api/Tags
-Authorization: Bearer {{token}}

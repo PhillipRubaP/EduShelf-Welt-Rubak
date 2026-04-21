@@ -50,9 +50,6 @@ namespace EduShelf.Api.Controllers
         [HttpPost("generate")]
         public async Task<ActionResult<QuizDto>> GenerateQuiz([FromBody] GenerateQuizRequest request)
         {
-            // GetUserId not implemented in Controller like in FlashcardController? 
-            // Ah, I see GetUserId private method is missing in this controller, but User.FindFirstValue is standard.
-            // Let's implement helper or use inline.
             var userIdString = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdString, out var userId))
             {

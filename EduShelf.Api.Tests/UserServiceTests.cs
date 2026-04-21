@@ -159,6 +159,7 @@ namespace EduShelf.Api.Tests
 
             // Assert
             var dbUser = await context.Users.FindAsync(1);
+            Assert.NotNull(dbUser);
             Assert.Equal("updated", dbUser.Username);
         }
 

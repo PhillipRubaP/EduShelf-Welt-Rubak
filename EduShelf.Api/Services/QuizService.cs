@@ -332,13 +332,11 @@ namespace EduShelf.Api.Services
                 throw new ArgumentException("Document content is empty or unreadable.");
             }
 
-            // Limit content size roughly to fit context window if needed, but assuming model handles or truncates 4096 tokens.
             if (documentContent.Length > 15000)
             {
-                documentContent = documentContent.Substring(0, 15000); // Rough truncation
+                documentContent = documentContent.Substring(0, 15000);
             }
 
-            // 2. Prepare AI Prompt
             var promptTemplate = _configuration.GetValue<string>("AIService:Prompts:Quiz");
             if (string.IsNullOrEmpty(promptTemplate))
             {
@@ -369,8 +367,6 @@ namespace EduShelf.Api.Services
             
             if (generatedQuiz == null) throw new InvalidOperationException("Generated quiz is null.");
 
-            // 5. Save Quiz
-            // Use the title from AI or fallback
             if (string.IsNullOrWhiteSpace(generatedQuiz.Title) || generatedQuiz.Title == "Geography Quiz")
             {
                 generatedQuiz.Title = documentTitle;
@@ -425,11 +421,10 @@ namespace EduShelf.Api.Services
                     return result;
                 }
 
-                // Fallback: Manual Parsing for "All Lowercase / Alternative Schema"
                 var manualQuiz = new GeneratedQuizJson();
-                manualQuiz.Title = jsonNode["title"]?.ToString() ?? result?.Title ?? "Generated Quiz";
+                manualQuiz.Title = jsonNode?["title"]?.ToString() ?? result?.Title ?? "Generated Quiz";
                 
-                var questionsNode = jsonNode["questions"] ?? jsonNode["Questions"];
+                var questionsNode = jsonNode?["questions"] ?? jsonNode?["Questions"];
                 if (questionsNode is System.Text.Json.Nodes.JsonArray qArray)
                 {
                     manualQuiz.Questions = new List<GeneratedQuestionJson>();
@@ -440,7 +435,7 @@ namespace EduShelf.Api.Services
                         
                         var newQ = new GeneratedQuestionJson { Text = qText ?? "Unknown Question" };
                         
-                        var optsNode = qItem["answers"] ?? qItem["options"];
+                        var optsNode = qItem?["answers"] ?? qItem?["options"];
                         if (optsNode is System.Text.Json.Nodes.JsonArray optsArray)
                         {
                             newQ.Answers = new List<GeneratedAnswerJson>();

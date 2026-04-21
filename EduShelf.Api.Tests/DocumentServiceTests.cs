@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.IO;
 using System;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Linq;
 
 namespace EduShelf.Api.Tests
@@ -27,6 +28,7 @@ namespace EduShelf.Api.Tests
         private readonly Mock<IFileStorageService> _mockFileStorage;
         private readonly Mock<IFileParsingService> _mockFileParsingService;
         private readonly Mock<IConfiguration> _mockConfiguration;
+        private readonly Mock<ILogger<DocumentService>> _mockLogger;
 
         public DocumentServiceTests()
         {
@@ -36,6 +38,7 @@ namespace EduShelf.Api.Tests
             _mockFileStorage = new Mock<IFileStorageService>();
             _mockFileParsingService = new Mock<IFileParsingService>();
             _mockConfiguration = new Mock<IConfiguration>();
+            _mockLogger = new Mock<ILogger<DocumentService>>();
         }
 
         private ApiDbContext CreateContext()
@@ -53,9 +56,9 @@ namespace EduShelf.Api.Tests
                 _mockQueue.Object, 
                 _mockScopeFactory.Object, 
                 _mockImageProcessing.Object, 
-
                 _mockFileStorage.Object,
-                _mockFileParsingService.Object);
+                _mockFileParsingService.Object,
+                _mockLogger.Object);
         }
 
         [Fact]
@@ -99,7 +102,7 @@ namespace EduShelf.Api.Tests
 
             // Act & Assert
             await Assert.ThrowsAsync<BadRequestException>(() => 
-                service.UploadDocumentAsync(fileStream, "test.exe", "application/octet-stream", 1, null));
+                service.UploadDocumentAsync(fileStream, "test.exe", "application/octet-stream", 1, null!));
         }
 
         [Fact]

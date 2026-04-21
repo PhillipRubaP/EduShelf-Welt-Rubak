@@ -36,7 +36,8 @@ namespace EduShelf.Api.Services
             IServiceScopeFactory scopeFactory,
             IImageProcessingService imageProcessingService, 
             IFileStorageService fileStorageService,
-            IFileParsingService fileParsingService)
+            IFileParsingService fileParsingService,
+            ILogger<DocumentService> logger)
         {
             _context = context;
             _queue = queue;
@@ -450,9 +451,6 @@ namespace EduShelf.Api.Services
             }
             catch (Exception ex)
             {
-                // Wrap other exceptions or just throw? 
-                // Original code let PdfPig or OpenXml throw. 
-                // Let's rethrow or maybe log? Protocol says just replace.
                 throw new BadRequestException($"Failed to extract content: {ex.Message}");
             }
 
