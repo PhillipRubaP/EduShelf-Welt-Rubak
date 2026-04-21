@@ -36,8 +36,7 @@ namespace EduShelf.Api.Services
             IServiceScopeFactory scopeFactory,
             IImageProcessingService imageProcessingService, 
             IFileStorageService fileStorageService,
-            IFileParsingService fileParsingService,
-            ILogger<DocumentService> logger)
+            IFileParsingService fileParsingService)
         {
             _context = context;
             _queue = queue;
