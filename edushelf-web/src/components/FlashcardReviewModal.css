@@ -1,5 +1,3 @@
-/* Flashcard Review Modal - Immersive Geometric Style */
-
 .modal-backdrop {
     position: fixed;
     top: 0;
@@ -7,7 +5,6 @@
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.85);
-    /* Darker backdrop for focus */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -17,12 +14,9 @@
 
 .modal-content {
     background: transparent;
-    /* Remove standard modal bg for custom shape */
     box-shadow: none;
-    /* Handled by elements */
     padding: 0;
     width: 800px;
-    /* Wider for immersive feel */
     max-width: 95%;
     display: flex;
     flex-direction: column;
@@ -31,13 +25,10 @@
     border: none;
 }
 
-/* Close button - Floating */
 .close-button {
-    /* Removed: Using global .modal-close-button */
     display: none;
 }
 
-/* Tag Selection View - Keep it contained */
 .tag-selection {
     background: var(--quiz-background);
     padding: 2rem;
@@ -115,7 +106,6 @@
     text-align: center;
     color: var(--quiz-question-text-color);
 
-    /* "Millionaire" Shape */
     clip-path: polygon(5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%, 0% 50%);
     filter: drop-shadow(0 0 5px var(--quiz-border-color));
 }
@@ -126,14 +116,11 @@
 
 .flashcard-back {
     background-color: var(--quiz-background);
-    /* Differentiate back */
     transform: rotateY(180deg);
     filter: drop-shadow(0 0 5px var(--secondary-mint));
     color: var(--secondary-mint);
-    /* Highlight answer text */
 }
 
-/* Review Buttons - "Knew" / "Didn't Know" */
 .review-buttons {
     display: flex;
     justify-content: center;
@@ -150,9 +137,7 @@
     color: white;
     transition: transform 0.2s, filter 0.2s;
 
-    /* Hexagonal Buttons */
     clip-path: polygon(10% 0, 100% 0, 100% 100%, 0% 100%, 0% 100%, 10% 100%, 0% 50%);
-    /* Actually let's use the Quiz Answer Button shape for consistency */
     clip-path: polygon(5% 0%, 95% 0%, 100% 50%, 95% 100%, 5% 100%, 0% 50%);
 
     min-width: 200px;
@@ -164,7 +149,6 @@
 }
 
 .review-buttons button:first-child {
-    /* Knew */
     background-color: var(--correct-color);
     filter: drop-shadow(0 0 5px var(--correct-color));
 }
@@ -174,7 +158,6 @@
 }
 
 .review-buttons button:last-child {
-    /* Didn't Know */
     background-color: var(--incorrect-color);
     filter: drop-shadow(0 0 5px var(--incorrect-color));
 }
@@ -183,7 +166,6 @@
     filter: drop-shadow(0 0 10px var(--incorrect-color));
 }
 
-/* Responsive */
 @media (max-width: 768px) {
     .modal-content {
         width: 100%;
@@ -197,7 +179,6 @@
     .flashcard-face {
         font-size: 1.5rem;
         clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
-        /* Rectangle on mobile */
         border-radius: 12px;
     }
 

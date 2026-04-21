@@ -67,7 +67,6 @@
 .file-list-header {
   display: flex;
   justify-content: space-between;
-  /* Changed from flex-start to space-between for better layout */
   align-items: center;
   gap: 1rem;
   margin-bottom: 2rem;
@@ -158,12 +157,10 @@
   animation: dropdownFadeIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
-/* Light mode specific shadow adjustment if needed, usually global shadows handle this but we can refine */
 [data-theme='light'] .dropdown-menu {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
-/* Dropdown Animation */
 @keyframes dropdownFadeIn {
   from {
     opacity: 0;
@@ -205,8 +202,6 @@
   transform: scale(0.95);
 }
 
-/* Existing styles... */
-
 .shared-badge {
   position: absolute;
   top: 1rem;
@@ -215,7 +210,8 @@
   color: var(--accent-primary);
   background: var(--bg-secondary);
   border-radius: 50%;
-  padding: 4px;
+  width: 28px;
+  height: 28px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
@@ -223,14 +219,18 @@
 }
 
 .pending-shares-section {
-  background: var(--bg-secondary);
+  background: var(--header-background);
   border: 1px solid var(--accent-primary);
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 2rem;
 }
 
-/* File Tags & Meta */
+.pending-card {
+  background: var(--quiz-option-bg);
+  border: 1px solid var(--border-color);
+}
+
 .file-meta-row {
   display: flex;
   align-items: center;
@@ -300,7 +300,6 @@
   gap: 0.5rem;
 }
 
-/* Pending share action buttons – modern pill style */
 .btn-accept,
 .btn-reject,
 .btn-view {
@@ -376,10 +375,6 @@
 .btn-view:active {
   transform: scale(0.95);
 }
-
-/* ==========================================
-   Light Mode Overrides — Files
-   ========================================== */
 
 [data-theme='light'] .file-card {
   background: #ffffff;

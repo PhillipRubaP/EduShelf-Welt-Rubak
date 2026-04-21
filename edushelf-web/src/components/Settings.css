@@ -1,7 +1,5 @@
-/* Settings specific styles */
 .settings-modal {
   max-width: 32rem;
-  /* Consistent width */
 }
 
 .settings-subtitle {
@@ -76,7 +74,6 @@
   color: #6b7280;
 }
 
-/* Toggle Switch */
 .toggle-switch {
   position: relative;
   display: inline-block;
@@ -130,7 +127,6 @@ input:checked+.slider:before {
   transform: translateX(24px);
 }
 
-/* Rounded sliders */
 .slider.round {
   border-radius: 34px;
 }
@@ -148,11 +144,9 @@ input:checked+.slider:before {
   margin-top: 1rem;
 }
 
-/* Disabled State */
 .setting-item.disabled {
   opacity: 0.6;
   pointer-events: none;
-  /* Prevent clicks on the container label if any */
 }
 
 input:disabled+.slider {

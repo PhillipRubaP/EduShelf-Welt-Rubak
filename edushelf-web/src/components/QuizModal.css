@@ -1,6 +1,3 @@
-/* QuizModal.css - Premium Design and Robust Layout */
-
-/* Card styling for each question block */
 .quiz-card {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -15,50 +12,35 @@
     border: 1px solid #e2e8f0;
 }
 
-/* --- Layout Rows --- */
-
-/* General row for alignment */
 .question-row,
 .answer-row {
     display: flex;
     align-items: flex-end;
-    /* Align bottom so input label doesn't offset button */
     gap: 1rem;
     width: 100%;
 }
 
 .answer-row {
     align-items: center;
-    /* Center vertically for answers since they have no labels usually */
     margin-bottom: 0.75rem;
 }
 
-/* Wrappers ensure inputs take up space */
 .input-wrapper {
     flex: 1 1 auto !important;
-    /* Force grow */
     width: auto;
     min-width: 0;
-    /* Critical for flex child truncation */
     display: flex;
     flex-direction: column;
 }
 
-/* Force inputs to 100% of their wrapper and make them larger */
 .input-wrapper .form-input {
     width: 100%;
     padding: 1rem;
-    /* Larger touch target/visual size */
     font-size: 1.05rem;
-    /* Slightly larger text */
 }
 
-/* --- Specific Elements --- */
-
-/* Delete Buttons */
 .delete-btn {
     flex: 0 0 2.25rem !important;
-    /* Force basis to width */
     width: 2.25rem !important;
     max-width: 2.25rem !important;
     height: 2.25rem !important;
@@ -71,10 +53,8 @@
 
 .answer-row .delete-btn {
     margin-bottom: 0;
-    /* Reset for centered rows */
 }
 
-/* Radio Button Wrapper */
 .radio-wrapper {
     display: flex;
     align-items: center;
@@ -90,7 +70,6 @@
     cursor: pointer;
 }
 
-/* Answers Section */
 .answers-section {
     margin-top: 1.5rem;
     padding-left: 1rem;
@@ -108,7 +87,6 @@
     border-style: dashed;
 }
 
-/* Add Question Section */
 .add-question-wrapper {
     margin-top: 2rem;
 }
@@ -120,7 +98,6 @@
     font-weight: 600;
 }
 
-/* Hover effects for cards */
 .quiz-card:hover {
     border-color: rgba(255, 255, 255, 0.2);
 }

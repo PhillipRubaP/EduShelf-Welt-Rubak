@@ -1,5 +1,3 @@
-/* MainDashboard.css */
-
 .main-dashboard {
   padding: 2rem;
   max-width: 1200px;
@@ -21,7 +19,6 @@
   font-size: 1.1rem;
 }
 
-/* Grid Layout */
 .dashboard-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -42,10 +39,8 @@
   }
 }
 
-/* Glassmorphism Card Style */
 .dashboard-card {
   background: rgba(255, 255, 255, 0.05);
-  /* Very transparent white */
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -69,11 +64,9 @@
   align-items: center;
 }
 
-/* Recent Files Section */
 .recent-files {
   grid-area: recent;
   min-height: 400px;
-  /* Ensure it takes up vertical space */
 }
 
 .card-header {
@@ -112,7 +105,6 @@
 
 .file-item:hover {
   background: rgba(255, 255, 255, 0.08);
-  /* Slightly lighter on hover */
 }
 
 .file-icon {
@@ -159,7 +151,6 @@
   color: white;
 }
 
-/* Stats Section */
 .stats-card {
   grid-area: stats;
 }
@@ -193,7 +184,6 @@
   color: var(--text-muted);
 }
 
-/* Quick Actions Section */
 .quick-actions {
   grid-area: actions;
 }
@@ -230,7 +220,6 @@
 .action-btn.quiz {
   background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
   color: #333;
-  /* Dark text for light gradient */
 }
 
 .action-btn.flashcard {
@@ -250,7 +239,6 @@
   font-style: italic;
 }
 
-/* Tag Filter Styles */
 .filter-container {
   flex: 1;
   margin: 0 1rem;
@@ -274,7 +262,6 @@
   border-color: var(--primary-color);
 }
 
-/* File List Update for Tags */
 .file-meta-row {
   display: flex;
   align-items: center;

@@ -23,7 +23,6 @@
 }
 
 .close-button {
-  /* Removed: Using global .modal-close-button */
   display: none;
 }
 

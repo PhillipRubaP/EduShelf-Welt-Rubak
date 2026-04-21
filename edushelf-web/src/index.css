@@ -16,6 +16,11 @@
   /* RGB of #3BB273 */
   --sidebar-background: #2c2c2c;
   --header-background: var(--neutral-anthracite);
+  --bg-primary: var(--primary-color);
+  --bg-secondary: #2c2c2c;
+  --border-color: var(--secondary-color);
+  --accent-primary: var(--primary-green);
+
   --bot-message-background: #4a4a4a;
   --bot-message-color: var(--neutral-white);
   --input-background: #4a4a4a;
