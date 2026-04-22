@@ -74,7 +74,7 @@ const Register = () => {
         <h1 className="text-3xl font-bold text-center">Register</h1>
         <form onSubmit={handleRegister} className="space-y-4" noValidate>
           <div className="form-group">
-            <label className="text-sm font-medium mb-1">Username:</label>
+            <label className="text-lg font-medium mb-1">Username:</label>
             <input
               type="text"
               value={username}
@@ -83,7 +83,7 @@ const Register = () => {
             />
           </div>
           <div className="form-group">
-            <label className="text-sm font-medium mb-1">Email:</label>
+            <label className="text-lg font-medium mb-1">Email:</label>
             <input
               type="email"
               value={email}
@@ -92,7 +92,7 @@ const Register = () => {
             />
           </div>
           <div className="form-group">
-            <label className="text-sm font-medium mb-1">Password:</label>
+            <label className="text-lg font-medium mb-1">Password:</label>
             <input
               type="password"
               value={password}

@@ -3,7 +3,6 @@
   --secondary-color: #2d3748;
   --text-color: #ffffff;
   --sidebar-background: #2c2c2c;
-  /* Original sidebar */
   --neutral-white: #ffffff;
   --neutral-anthracite: #1a202c;
   --primary-green: #38a169;
@@ -13,10 +12,8 @@
 
   --quiz-background: #2d3748;
   --quiz-question-background: #4a5568;
-  /* Lighter than background */
   --quiz-question-text-color: #ffffff;
   --quiz-answer-background: #4a5568;
-  /* Lighter than background */
   --quiz-answer-text-color: #ffffff;
   --quiz-answer-border-color: #68d391;
   --quiz-answer-hover-background: #68d391;
@@ -27,7 +24,6 @@
   --quiz-results-stat-card-text-color: #ffffff;
 
   --flashcard-front-background: #4a5568;
-  /* Match Quiz/File Cards (Lighter than bg) */
   --flashcard-front-border: #4a5568;
   --flashcard-back-background: #4a5568;
   --flashcard-back-border: #2d3748;
@@ -39,10 +35,8 @@
   --modal-close-button-hover-color: #800000;
   --modal-input-background: #4a5568;
   --modal-input-border-color: #38a169;
-  /* Semantic Colors */
   --correct-color: var(--primary-green);
   --incorrect-color: #e53e3e;
-  /* Soft Red for errors */
   --selected-color: var(--primary-green-dark);
   --quiz-border-color: var(--secondary-mint);
 
